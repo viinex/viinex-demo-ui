@@ -2,6 +2,8 @@ import { Component } from '@angular/core';
 
 @Component({
   selector: 'my-app',
-  template: `<h1>Hello {{name}}</h1>`,
+  template: `<h1>Hello</h1>
+  <onvif-discovery>loading onvif discovery</onvif-discovery>
+  `,
 })
-export class AppComponent  { name = 'qqq'; }
+export class AppComponent  { }
