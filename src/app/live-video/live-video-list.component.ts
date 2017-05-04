@@ -1,8 +1,8 @@
 import {Component, OnInit} from '@angular/core';
 import {Router, ActivatedRoute} from '@angular/router';
 
-import {VideoObjectsService} from './video-objects.service'
-import {VideoSource,VideoObjects} from './video-objects'
+import {VideoObjectsService} from '../video-objects.service'
+import {VideoSource,VideoObjects} from '../video-objects'
 
 @Component({
     template: `

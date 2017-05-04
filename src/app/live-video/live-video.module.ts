@@ -1,7 +1,7 @@
 import { NgModule }      from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-import {VideoObjectsService} from './video-objects.service'
+import {VideoObjectsService} from '../video-objects.service'
 import {LiveVideoRoutingModule} from './live-video-routing.module'
 import {LiveVideoListComponent} from './live-video-list.component'
 import {LiveVideoViewComponent} from './live-video-view.component'

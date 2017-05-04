@@ -6,8 +6,8 @@ import 'rxjs/add/operator/switchMap'
 
 import * as Hls from 'hls.js'
 
-import {VideoObjectsService} from './video-objects.service'
-import {VideoSource,VideoObjects} from './video-objects'
+import {VideoObjectsService} from '../video-objects.service'
+import {VideoSource,VideoObjects} from '../video-objects'
 
 @Component({
     template: `

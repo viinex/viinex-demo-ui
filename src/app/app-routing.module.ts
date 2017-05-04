@@ -8,7 +8,7 @@ import { PageNotFoundComponent } from './not-found.component';
 const appRoutes: Routes = [
     { path: 'onvif', component: OnvifDiscoveryComponent },
     { path: 'video-objects', component: VideoObjectsComponent },
-    { path: 'live-video', loadChildren: 'app/live-video.module#LiveVideoModule'},
+    { path: 'live-video', loadChildren: 'app/live-video/live-video.module#LiveVideoModule'},
     { path: '', redirectTo: '/video-objects', pathMatch: 'full' },
     { path: '**', component: PageNotFoundComponent }
 ];
