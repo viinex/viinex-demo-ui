@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnInit, OnDestroy} from '@angular/core';
 
 import { ActivatedRoute,Router }       from '@angular/router';
 
@@ -11,13 +11,15 @@ import {VideoSource,VideoObjects} from './video-objects'
 
 @Component({
     template: `
-    <div height="40%">
-    <video id="LiveVideoViewComponent" controls>
+    <div>
+    <video class="livevideocontrol" id="LiveVideoViewComponent" controls>
+        <source src="{{streamUrl(videoSource)}}"/>
     </video>
     </div>
-    `
+    `,
+    styles: [".livevideocontrol { width: 100% }"]
 })
-export class LiveVideoViewComponent implements OnInit {
+export class LiveVideoViewComponent implements OnInit, OnDestroy {
     errorMessage: string;
     videoSource: VideoSource;
     readonly isAndroid: boolean;
@@ -29,6 +31,15 @@ export class LiveVideoViewComponent implements OnInit {
         this.route.params.switchMap(params => 
                 this.videoObjectsService.getVideoSource(params["videoSourceId"]))
             .subscribe(vs => { this.videoSource=vs; this.startLive(); });
+    }
+    ngOnDestroy(): void {
+        if(Hls.isSupported){
+            let video = <any>document.getElementById("LiveVideoViewComponent");
+            if(null!=video){
+                video.stop();
+            }
+
+        }
     }
     startLive() {
         if (Hls.isSupported) {
@@ -45,6 +56,11 @@ export class LiveVideoViewComponent implements OnInit {
         }
     }
     streamUrl(vs: VideoSource): string {
-        return 'v1/svc/' + vs.name + '/stream.m3u8';
+        if(vs!=null){
+            return 'v1/svc/' + vs.name + '/stream.m3u8';
+        }
+        else {
+            return "";
+        }
     }
 }

@@ -3,6 +3,8 @@ import { BrowserModule } from '@angular/platform-browser';
 import { HttpModule } from '@angular/http';
 import { RouterModule, Routes }  from '@angular/router';
 
+import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
+
 import {AppRoutingModule} from './app-routing.module'
 
 import {OnvifService} from './onvif.service';
@@ -16,7 +18,7 @@ import { Component } from '@angular/core';
 
 
 @NgModule({
-  imports:      [ BrowserModule, HttpModule, AppRoutingModule ],
+  imports:      [ BrowserModule, HttpModule, AppRoutingModule, NgbModule.forRoot() ],
   declarations: [ AppComponent, OnvifDiscoveryComponent, VideoObjectsComponent, PageNotFoundComponent ],
   providers:    [ OnvifService, VideoObjectsService ],
   bootstrap:    [ AppComponent ]

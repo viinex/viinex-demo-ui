@@ -6,12 +6,17 @@ import {VideoSource,VideoObjects} from './video-objects'
 
 @Component({
     template: `
-    <ul>
-      <li *ngFor="let vs of videoSources">
-        <a (click)="onSelect(vs)">{{vs.name}}</a>
+    <div class="row">
+    <div class="col-md-4">
+    <ul class="nav nav-pills flex-column">
+      <li class="nav-item" *ngFor="let vs of videoSources">
+        <a class="nav-link" routerLink="./{{vs.name}}" routerLinkActive="active">{{vs.name}}</a>
       </li>
     </ul>
+    </div>
+    <div class="col-md-7">
     <router-outlet></router-outlet>
+    </div>
     `
 })
 export class LiveVideoListComponent implements OnInit {
