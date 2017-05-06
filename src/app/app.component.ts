@@ -14,6 +14,9 @@ import { Component } from '@angular/core';
     <a class="nav-link" routerLinkActive="active" routerLink="/live-video">Live video</a> 
   </li>
   <li class="nav-item">
+    <a class="nav-link" routerLinkActive="active" routerLink="/video-archive">Video archive</a> 
+  </li>
+  <li class="nav-item">
     <a class="nav-link" routerLinkActive="active" routerLink="/onvif">ONVIF discovery tool</a>
   </li>
 </ul>
@@ -28,6 +31,7 @@ import { Component } from '@angular/core';
 </div>
 
 <div class="container">
+<br/>
 <router-outlet></router-outlet>
 </div> <!--container-->
   `,

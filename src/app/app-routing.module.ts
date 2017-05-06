@@ -9,6 +9,7 @@ const appRoutes: Routes = [
     { path: 'onvif', component: OnvifDiscoveryComponent },
     { path: 'video-objects', component: VideoObjectsComponent },
     { path: 'live-video', loadChildren: 'app/live-video/live-video.module#LiveVideoModule'},
+    { path: 'video-archive', loadChildren: 'app/video-archive/video-archive.module#VideoArchiveModule'},
     { path: '', redirectTo: '/video-objects', pathMatch: 'full' },
     { path: '**', component: PageNotFoundComponent }
 ];

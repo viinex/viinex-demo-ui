@@ -8,6 +8,7 @@ import {VideoSource,VideoObjects} from '../video-objects'
     template: `
     <div class="row">
     <div class="col-md-4">
+    <h3>Select a live video source</h3>
     <ul class="nav nav-pills flex-column">
       <li class="nav-item" *ngFor="let vs of videoSources">
         <a class="nav-link" routerLink="./{{vs.name}}" routerLinkActive="active">{{vs.name}}</a>
