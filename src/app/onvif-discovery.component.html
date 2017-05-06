@@ -1,4 +1,74 @@
-<h1>ONVIF devices</h1>
+<h2>ONVIF devices</h2>
+<h4>Parameters for probe</h4>
+<div class="row">
+<div class="col-md-2">
+    <label>
+        As anonymous: 
+        <input type="checkbox" [(ngModel)]="probeAnon"/>
+    </label>
+</div>
+<div class="col-md-4">
+    <div  *ngIf="!probeAnon">
+        <label>
+        Credentials:
+        <input type="text" size="8" placeholder="login" [(ngModel)]="probeLogin"/>
+        <input type="password" size="8" placeholder="password" [(ngModel)]="probePassword"/>
+        </label>
+    </div>
+</div>
+<div class="col-md-4">
+    <label>
+        Device:
+        <input type="text" size="12" placeholder="ip addr or host" [(ngModel)]="probeCustomAddress"/>
+        <input type="text" size="4" placeholder="port" [(ngModel)]="probeCustomPort"/>
+    </label>
+</div>
+<div class="col-md-2">
+    <button class="btn primary active" (click)="this.probeForCustom()">Probe...</button>
+</div>
+</div> <!--parameters row-->
+<br/>
+<div class="row">
+<div class="col-md-6">
+<h4>Devices found on the network</h4>
 <ul>
-    <li *ngFor="let dev of devices">{{dev.name}}</li>
+    <li *ngFor="let dev of devices">
+        <h4>{{dev.name}}</h4>
+        Name: {{dev.name}} <br/>
+        Hardware: {{dev.hardware}} <br/>
+        Location: {{dev.location}} <br/>
+        URL: {{dev.url}} <br/>
+        <button class="btn primary" (click)="this.probeFor(dev.url)">Probe for details...</button><br/>
+    </li>
 </ul>
+Total: {{devices != null ? devices.length : "N/A"}} device(s).
+</div>
+<div class="col-md-6">
+    <div class="alert alert-danger" role="alert" *ngIf="errorMessage!=null">Operation failed: {{errorMessage}}</div>
+    <div *ngIf="probeResult!=null">
+        <h4>Probe result for {{probeTarget}}</h4>
+        <h5>Device information</h5>
+        Vendor: {{probeResult.info.vendor}} <br/>
+        Serial: {{probeResult.info.serial}} <br/>
+        Model: {{probeResult.info.model}} <br/>
+        Firmware: {{probeResult.info.firmware}} <br/>
+        <h5>Video sources</h5>
+        <div *ngFor="let vs of probeResult.videoSources">
+        {{vs.token}} : {{vs.resolution[0]}}x{{vs.resolution[1]}} at {{vs.framerate}} FPS <br/>
+        </div>
+        <h5>Profiles</h5>
+        <ul>
+        <li *ngFor="let p of probeResult.profiles">
+            <h5>{{p.name}}</h5>
+            Token: {{p.token}} <br/>
+            Fixed: {{p.fixed?"YES":"NO"}} <br/>
+            Video codec settings:<br/>
+            Codec: {{p.video.codec}} <br/>
+            Resolution: {{p.video.resolution[0]}}x{{p.video.resolution[1]}} <br/>
+            Video source token: {{p.video.source}} <br/>
+            Quality: {{p.video.quality}} <br/>
+            Bounds: ({{p.video.bounds[0]}},{{p.video.bounds[1]}})-({{p.video.bounds[2]}},{{p.video.bounds[3]}}) 
+        </ul>
+    </div>
+</div>
+</div>
