@@ -30,9 +30,13 @@ export class LiveVideoListComponent implements OnInit {
     ngOnInit(): void {
         this.videoObjectsService.getObjects().subscribe(
             objs => {
-                this.videoSources=objs.videoSources;
+                this.videoSources=objs.videoSources.filter(vs => vs.isLive);
             },
-            error => this.errorMessage=<any>error
+            error => {
+                console.log("error");
+                console.log(error);
+                this.errorMessage=<any>error
+            }
         );
     }
     onSelect(vs:VideoSource){

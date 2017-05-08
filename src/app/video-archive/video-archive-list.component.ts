@@ -2,7 +2,7 @@ import {Component, OnInit} from '@angular/core';
 import {Router, ActivatedRoute} from '@angular/router';
 
 import {VideoObjectsService} from '../video-objects.service'
-import {VideoArchive,VideoArchiveContext,VideoObjects} from '../video-objects'
+import {VideoArchive,VideoTrack,VideoObjects} from '../video-objects'
 
 @Component({
     template: `
@@ -25,9 +25,9 @@ import {VideoArchive,VideoArchiveContext,VideoObjects} from '../video-objects'
         <p>Select a video source written to the video archive to display data from.</p>
       </div>
       <ul class="nav nav-pills flex-column">
-        <li class="nav-item" *ngFor="let vc of selectedArchive.videoSources">
-          <a class="nav-link" routerLink="./{{va.name}}/{{vc.name}}" routerLinkActive="active">{{vc.name}}</a>
-          {{vc.diskUsage/1000000}} MB, {{vc.timeBoundaries[0]}}-{{vc.timeBoundaries[1]}}
+        <li class="nav-item" *ngFor="let vc of selectedArchive.videoTracks">
+          <a class="nav-link" routerLink="./{{selectedArchive.name}}/{{vc.videoSource.name}}" routerLinkActive="active">{{vc.videoSource.name}}</a>
+          <!--//{{vc.diskUsage/1000000}} MB, {{vc.timeBoundaries[0]}}-{{vc.timeBoundaries[1]}}-->
         </li>
       </ul>
     

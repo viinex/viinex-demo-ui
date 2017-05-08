@@ -1,7 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 
 import {VideoObjectsService} from './video-objects.service'
-import {VideoSource,VideoArchive,VideoObjects,VideoArchiveContext} from './video-objects'
+import {VideoSource,VideoArchive,VideoObjects,VideoTrack} from './video-objects'
 
 @Component({
     selector: 'video-objects',
