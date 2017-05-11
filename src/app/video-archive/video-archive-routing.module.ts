@@ -11,11 +11,15 @@ const routes: Routes = [
         component: VideoArchiveComponent,
         children: [
             {
-                path: '', 
-                component: VideoArchiveListComponent, 
+                path: '',
+                component: VideoArchiveListComponent,
+            },
+            {
+                path: ':videoArchiveId',
+                component: VideoArchiveListComponent,
                 children: [
                     {
-                        path: ':videoArchiveId/:videoSourceId',
+                        path: ':videoSourceId',
                         component: VideoArchiveViewComponent
                     }
                 ]

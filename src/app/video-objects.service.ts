@@ -25,9 +25,15 @@ export class VideoObjectsService {
                         .map((res:Response) => VideoObjectsService.extractSvcData(this.http, res))
                         .mergeMap((vo:VideoObjects) => VideoObjectsService.createAllTracks(this.http, vo));
     }
-    getVideoSource(videoSourceId: string) : Observable<VideoSource>
-    {
+    getVideoSource(videoSourceId: string) : Observable<VideoSource> {
         return this.getObjects().map(vo => vo.videoSources.find(vs => vs.name==videoSourceId));
+    }
+    getVideoArchive(videoArchiveId: string) : Observable <VideoArchive>
+    {
+        return this.getObjects().map(vo => vo.videoArchives.find(va => va.name==videoArchiveId));
+    }
+    getVideoTrack(videoArchiveId: string, videoSourceId: string){
+        return this.getVideoArchive(videoArchiveId).map(va => va.videoTracks.find(vt => vt.videoSource.name==videoSourceId));
     }
     private static extractSvcData(http: Http, res: Response){
         let body=res.json();
@@ -73,7 +79,7 @@ export class VideoObjectsService {
         vas.tracks=new Map<string,VideoTrackSummary>();
         for(let tn in body.contexts){
             let c=<any>body.contexts[tn];
-            let ts=new VideoTrackSummary(c.time_boundaries, c.disk_usage);
+            let ts=new VideoTrackSummary(VideoObjectsService.jsonDateInterval(c.time_boundaries), c.disk_usage);
             vas.tracks[tn]=ts;
         }
         return vas;
@@ -91,9 +97,18 @@ export class VideoObjectsService {
     private static extractTrackData(res:Response): VideoTrackData {
         let body=<any>res.json();
         let td=new VideoTrackData();
-        td.summary=new VideoTrackSummary(body.time_boundaries, body.disk_usage);
-        td.timeLine=body.timeline;
+        td.summary=new VideoTrackSummary(VideoObjectsService.jsonDateInterval(body.time_boundaries), body.disk_usage);
+        td.timeLine=body.timeline!=null?body.timeline.map(VideoObjectsService.jsonDateInterval):null;
         return td;
+    }
+
+    static jsonDateInterval(ii: any): [Date,Date]{
+        if(ii!=null){
+            return [new Date(ii[0]), new Date(ii[1])];
+        } 
+        else {
+            return null;
+        }
     }
 
     private static lookupOrAddArchiveVideoSource(vs: Array<VideoSource>, n:string): VideoSource

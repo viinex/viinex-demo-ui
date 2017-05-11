@@ -1,0 +1,47 @@
+<div class="row">
+<div class="col-md-4">
+<div class="card">
+    <div class="card-block">
+    <h4 class="card-title">Storage</h4>
+    <p class="card-text">Select a video archive to extract video data from. A single video source may be written into multiple video archives.</p>
+    </div>
+    <ul class="nav nav-pills flex-column">
+    <li class="nav-item" *ngFor="let va of videoArchives">
+        <a class="nav-link" routerLink="/video-archive/{{va.name}}" routerLinkActive="active">{{va.name}}</a>
+    </li>
+    </ul>
+</div>
+<br/>
+<div class="card" *ngIf="selectedArchiveSummary != null">
+    <div class="card-block">
+        <h5>Summary</h5>
+        Disk usage: {{gb(selectedArchiveSummary.diskUsage)}}<br/>
+        Disk free space: {{gb(selectedArchiveSummary.diskFreeSpace)}} <br/>
+        Video tracks: {{selectedArchiveSummary.tracks.size}} <br/>
+    </div>
+    
+</div>
+<br/>
+<div class="card" *ngIf="selectedArchive != null">
+    <div class="card-block">
+    <h4>Video source</h4>
+    <p>Select a video source written to the video archive to display data from.</p>
+    </div>
+    <ul class="nav nav-pills flex-column">
+    <li class="nav-item" *ngFor="let vc of selectedArchive.videoTracks">
+        <a class="nav-link" routerLink="./{{vc.videoSource.name}}" routerLinkActive="active">{{vc.videoSource.name}},
+        <br/>{{gb(selectedArchiveSummary.tracks[vc.videoSource.name].diskUsage)}},
+        {{formatInterval(vc.videoSource.name)}}
+        </a>
+        <!--//{{vc.diskUsage/1000000}} MB, {{vc.timeBoundaries[0]}}-{{vc.timeBoundaries[1]}}-->
+    </li>
+    </ul>
+
+</div>
+</div>
+
+<div class="col-md-8">
+<router-outlet></router-outlet>
+</div>
+
+</div> <!--row-->

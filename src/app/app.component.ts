@@ -23,17 +23,18 @@ import { Component } from '@angular/core';
 </div>
 </nav>
 
-<div class="fixed-bottom">
+<footer class="footer">
   <div class="container">
     <p class="text-muted">This is a demo user interface for Viinex 2.0 video management SDK. 
     (c) Viinex, 2017. All rights reserved.</p>
   </div>
-</div>
+</footer>
 
-<div class="container">
+<div class="container maincontainer">
 <br/>
 <router-outlet></router-outlet>
 </div> <!--container-->
+
   `,
   styles: ['.active { font-weight: bold; }']
 })
