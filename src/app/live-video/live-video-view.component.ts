@@ -12,9 +12,7 @@ import {VideoSource,VideoObjects} from '../video-objects'
 @Component({
     template: `
     <div>
-    <video class="livevideocontrol" id="LiveVideoViewComponent" controls>
-        <source src="{{streamUrl(videoSource)}}"/>
-    </video>
+    <div id="LiveVideoDiv"></div>
     </div>
     `,
     styles: [".livevideocontrol { width: 100% }"]
@@ -24,37 +22,20 @@ export class LiveVideoViewComponent implements OnInit, OnDestroy {
     videoSource: VideoSource;
     readonly isAndroid: boolean;
 
+    private hls: Hls;
+
     constructor(private route: ActivatedRoute, private router: Router, private videoObjectsService: VideoObjectsService){
         this.isAndroid = /(android)/i.test(navigator.userAgent);
     }
     ngOnInit(): void {
         this.route.params.switchMap(params => 
                 this.videoObjectsService.getVideoSource(params["videoSourceId"]))
-            .subscribe(vs => { this.videoSource=vs; this.startLive(); });
+            .subscribe(vs => { this.videoSource=vs; this.startPlayback(); });
     }
     ngOnDestroy(): void {
-        if(Hls.isSupported){
-            let video = <any>document.getElementById("LiveVideoViewComponent");
-            if(null!=video){
-                video.stop();
-            }
+        this.clearVideo();
+    }
 
-        }
-    }
-    startLive() {
-        if (Hls.isSupported) {
-            let video = <any>document.getElementById("LiveVideoViewComponent");
-            let hls = new Hls();
-            hls.loadSource(this.streamUrl(this.videoSource));
-            hls.attachMedia(video);
-            hls.on(Hls.Events.MANIFEST_PARSED, function () {
-                if (!this.isAndroid) {
-                    video.controls = false;
-                }
-                video.play();
-            });
-        }
-    }
     streamUrl(vs: VideoSource): string {
         if(vs!=null){
             return 'v1/svc/' + vs.name + '/stream.m3u8';
@@ -63,4 +44,61 @@ export class LiveVideoViewComponent implements OnInit, OnDestroy {
             return "";
         }
     }
+
+    clearVideo(){
+        let videoDiv = <HTMLDivElement>document.getElementById("LiveVideoDiv");
+        while(videoDiv && videoDiv.firstChild){
+            videoDiv.removeChild(videoDiv.firstChild);
+        }
+        if(this.hls){
+            let hls=this.hls;
+            this.hls=null;
+            hls.on(Hls.Events.DESTROYING, function(){
+                //console.log("destroying");
+            });
+            hls.on(Hls.Events.MEDIA_DETACHED, function(){
+                //console.log("media detached");
+            });
+            hls.stopLoad(); 
+            hls.detachMedia();
+            hls.destroy();
+            //console.log(hls);
+        }        
+    }
+    startPlayback() {
+        this.clearVideo();
+        let videoDiv = <HTMLDivElement>document.getElementById("LiveVideoDiv");
+        while(videoDiv.firstChild){
+            let video=<HTMLVideoElement>videoDiv.firstChild; 
+            if(video){
+                
+            }
+            videoDiv.removeChild(videoDiv.firstChild);
+        }
+
+        let video=<HTMLVideoElement>document.createElement("video"); 
+        video.controls=false;
+        video.autoplay=true;
+        video.setAttribute("width", "100%");
+        let source=<HTMLSourceElement>document.createElement("source");
+        let streamUrl=this.streamUrl(this.videoSource);
+        source.src=streamUrl;
+        video.appendChild(source);
+        videoDiv.appendChild(video);
+
+        if (Hls.isSupported) {
+            let hls = new Hls();
+            hls.loadSource(streamUrl);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, function () {
+                //video.play();
+            });
+            this.hls=hls;
+        }
+        else{
+            //this.video.childNodes.item(0).attributes[0]=this.currentStreamUrl;
+            //this.video.currentTime=0;
+        }
+    }
+    
 }
