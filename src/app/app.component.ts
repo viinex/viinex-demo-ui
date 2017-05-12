@@ -5,7 +5,7 @@ import { Component } from '@angular/core';
   template: `
 <nav class="navbar navbar-toggleable-md nav-fixed-top bg-primary navbar-inverse">
 <div class="container">
-<h1 class="navbar-brand"><img src="assets/logo-01-verycropped.png" height="30px"/></h1>
+<h1 class="navbar-brand"><img src="assets/viinex.png" height="30px"/></h1>
 <ul class="navbar-nav">
   <li class="nav-item">
     <a class="nav-link" routerLinkActive="active" routerLink="/video-objects">Overview</a>
