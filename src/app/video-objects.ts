@@ -36,6 +36,7 @@ export class VideoArchive {
     videoTracks: Array<VideoTrack>;
 
     getSummary: () => Observable<VideoArchiveSummary>;
+    summarySnapshot: VideoArchiveSummary;
 }
 
 export class VideoArchiveSummary {

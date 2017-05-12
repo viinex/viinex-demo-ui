@@ -58,7 +58,7 @@ export class VideoArchiveListComponent implements OnInit {
 
     formatInterval(trackName: string): string {
         let res="no data";
-        let ii=this.selectedArchiveSummary.tracks[trackName].timeBoundaries;
+        let ii=this.selectedArchiveSummary.tracks.get(trackName).timeBoundaries;
         if(null!=ii && ii.length==2){
             res=Format.interval([new Date(ii[0]), new Date(ii[1])]);
         }

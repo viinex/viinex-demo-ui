@@ -1,8 +1,15 @@
-<h1>Live sources</h1>
+<h1>Video sources</h1>
 <ul>
-    <li *ngFor="let vs of videoSources">{{vs.name}}</li>
+    <li *ngFor="let vs of videoSources">{{vs.name}}
+        <a routerLink="/live-video/{{vs.name}}"><span *ngIf="vs.isLive" class="badge badge-success">Live stream</span></a>
+        <span *ngIf="vs.videoTracks.length>0" class="badge badge-info">In {{vs.videoTracks.length}} archive(s)</span>
+    </li>
 </ul>
 <h1>Video archives</h1>
 <ul>
-    <li *ngFor="let va of videoArchives">{{va.name}}</li>
+    <li *ngFor="let va of videoArchives"><a routerLink="/video-archive/{{va.name}}">{{va.name}}</a>:
+        <span *ngIf="va.summarySnapshot!=null">
+            {{gb(va.summarySnapshot.diskUsage)}} used, {{va.summarySnapshot.tracks.size}} track(s)
+        </span>
+    </li>
 </ul>

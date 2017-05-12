@@ -49,7 +49,11 @@ export class VideoObjectsService {
                 case "VideoStorage": {
                     let x=new VideoArchive(n); 
                     x.getSummary=function(){
-                        return http.get("/v1/svc/"+n).map(VideoObjectsService.extractArchiveSummary)
+                        return http.get("/v1/svc/"+n).map(r => {
+                            let s=VideoObjectsService.extractArchiveSummary(r);
+                            x.summarySnapshot=s;
+                            return s;
+                        })
                     };
                     va.push(x);
                     break;
@@ -80,18 +84,18 @@ export class VideoObjectsService {
         for(let tn in body.contexts){
             let c=<any>body.contexts[tn];
             let ts=new VideoTrackSummary(VideoObjectsService.jsonDateInterval(c.time_boundaries), c.disk_usage);
-            vas.tracks[tn]=ts;
+            vas.tracks.set(tn, ts);
         }
         return vas;
     }
     private static createTracks(http: Http, vs:Array<VideoSource>, a: VideoArchive, vas:VideoArchiveSummary){
-        for(let n in vas.tracks) {
+        vas.tracks.forEach((t: VideoTrackSummary, n:string) => {
             let vsrc=this.lookupOrAddArchiveVideoSource(vs, n);
             let vt=new VideoTrack(vsrc, a);
             vt.getTrackData=function(){ return http.get("/v1/svc/"+a.name+"/"+n).map(VideoObjectsService.extractTrackData) };
             a.videoTracks.push(vt);
             vsrc.videoTracks.push(vt);
-        }
+        });
     }
 
     private static extractTrackData(res:Response): VideoTrackData {

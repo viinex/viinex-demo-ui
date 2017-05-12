@@ -2,6 +2,7 @@ import {Component, OnInit} from '@angular/core';
 
 import {VideoObjectsService} from './video-objects.service'
 import {VideoSource,VideoArchive,VideoObjects,VideoTrack} from './video-objects'
+import {Format} from './format'
 
 @Component({
     selector: 'video-objects',
@@ -22,4 +23,5 @@ export class VideoObjectsComponent implements OnInit {
             error => this.errorMessage=<any>error
         );
     }
+    gb = Format.gb;
 }

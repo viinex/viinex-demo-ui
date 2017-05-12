@@ -26,7 +26,7 @@ import { Component } from '@angular/core';
 <footer class="footer">
   <div class="container">
     <p class="text-muted">This is a demo user interface for Viinex 2.0 video management SDK. 
-    (c) Viinex, 2017. All rights reserved.</p>
+    (c) <a href="https://www.viinex.com">Viinex</a>, 2017. All rights reserved.</p>
   </div>
 </footer>
 

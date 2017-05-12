@@ -24,13 +24,13 @@
 <br/>
 <div class="card" *ngIf="selectedArchive != null">
     <div class="card-block">
-    <h4>Video source</h4>
-    <p>Select a video source written to the video archive to display data from.</p>
+    <h4>Video track</h4>
+    <p>Select the track - a video source previously written to the archive - to display data from.</p>
     </div>
     <ul class="nav nav-pills flex-column">
     <li class="nav-item" *ngFor="let vc of selectedArchive.videoTracks">
         <a class="nav-link" routerLink="./{{vc.videoSource.name}}" routerLinkActive="active">{{vc.videoSource.name}},
-        <br/>{{gb(selectedArchiveSummary.tracks[vc.videoSource.name].diskUsage)}},
+        <br/>{{gb(selectedArchiveSummary.tracks.get(vc.videoSource.name).diskUsage)}},
         {{formatInterval(vc.videoSource.name)}}
         </a>
         <!--//{{vc.diskUsage/1000000}} MB, {{vc.timeBoundaries[0]}}-{{vc.timeBoundaries[1]}}-->
