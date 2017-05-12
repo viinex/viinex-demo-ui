@@ -4,7 +4,7 @@ import { HttpModule } from '@angular/http';
 import { RouterModule, Routes }  from '@angular/router';
 import {FormsModule} from '@angular/forms';
 
-import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
+//import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
 
 import {AppRoutingModule} from './app-routing.module'
 
@@ -22,8 +22,9 @@ import { Component } from '@angular/core';
   imports:      [ BrowserModule, 
                   HttpModule, 
                   AppRoutingModule, 
-                  FormsModule,
-                  NgbModule.forRoot() ],
+                  FormsModule
+                  //,NgbModule.forRoot() 
+                  ],
   declarations: [ AppComponent, OnvifDiscoveryComponent, VideoObjectsComponent, PageNotFoundComponent ],
   providers:    [ OnvifService, VideoObjectsService ],
   bootstrap:    [ AppComponent ]
