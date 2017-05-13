@@ -14,7 +14,8 @@ import {
     VideoArchiveSummary, 
     VideoTrack, 
     VideoTrackData, 
-    VideoTrackSummary 
+    VideoTrackSummary,
+    LiveStreamDetails
 } from './video-objects'
 
 @Injectable()
@@ -43,7 +44,9 @@ export class VideoObjectsService {
         for(let n in body){
             switch(body[n]){
                 case "VideoSource": {
-                    vs.push(new VideoSource(n, true));
+                    let s=new VideoSource(n, true);
+                    s.getStreamDetails=http.get("/v1/svc/"+n).map(VideoObjectsService.extractLiveStreamDetails);
+                    vs.push(s);
                     break;
                 }
                 case "VideoStorage": {
@@ -63,6 +66,14 @@ export class VideoObjectsService {
         vo.videoSources=vs;
         vo.videoArchives=va;
         return vo;
+    }
+    private static extractLiveStreamDetails(res: Response){
+        let body=<any>res.json();
+        let d=new LiveStreamDetails();
+        d.bitrate=body.bitrate;
+        d.resolution=body.resolution;
+        d.lastFrame=new Date(body.last_frame);
+        return d;
     }
     private static createAllTracks(http: Http, vo: VideoObjects): Observable<VideoObjects> {
         return Observable.forkJoin(vo.videoArchives.map(a => { return a.getSummary() })).map(

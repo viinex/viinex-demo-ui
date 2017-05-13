@@ -2,17 +2,24 @@ import {Component, OnInit, OnDestroy} from '@angular/core';
 
 import { ActivatedRoute,Router }       from '@angular/router';
 
+import { Observable } from "rxjs/Observable";
+import { Subscription } from "rxjs/Subscription";
+import {timer} from 'rxjs/observable/timer'
 import 'rxjs/add/operator/switchMap'
 
 import * as Hls from 'hls.js'
 
 import {VideoObjectsService} from '../video-objects.service'
-import {VideoSource,VideoObjects} from '../video-objects'
+import {VideoSource,VideoObjects, LiveStreamDetails} from '../video-objects'
 
 @Component({
     template: `
     <div>
     <div id="LiveVideoDiv"></div>
+    <div *ngIf="streamDetails">
+    Resolution: {{streamDetails.resolution[0]}}x{{streamDetails.resolution[1]}}<br/>
+    Bitrate: {{(streamDetails.bitrate/1000000).toFixed(2)}} Mbps
+    </div>
     </div>
     `,
     styles: [".livevideocontrol { width: 100% }"]
@@ -20,6 +27,10 @@ import {VideoSource,VideoObjects} from '../video-objects'
 export class LiveVideoViewComponent implements OnInit, OnDestroy {
     errorMessage: string;
     videoSource: VideoSource;
+
+    subscription: Subscription;
+    streamDetails: LiveStreamDetails;
+
     readonly isAndroid: boolean;
 
     private hls: Hls;
@@ -30,10 +41,26 @@ export class LiveVideoViewComponent implements OnInit, OnDestroy {
     ngOnInit(): void {
         this.route.params.switchMap(params => 
                 this.videoObjectsService.getVideoSource(params["videoSourceId"]))
-            .subscribe(vs => { this.videoSource=vs; this.startPlayback(); });
+            .subscribe(vs => { 
+                this.videoSource=vs; 
+                this.startPlayback(); 
+                this.subscribeStreamDetails(vs.getStreamDetails);
+            });
     }
     ngOnDestroy(): void {
         this.clearVideo();
+        this.unsubscribe();
+    }
+    unsubscribe(){
+        if(this.subscription){
+            this.subscription.unsubscribe();
+            this.subscription=null;
+        }
+    }
+    subscribeStreamDetails(sdo: Observable<LiveStreamDetails>){
+        this.unsubscribe();
+        this.streamDetails=null;
+        this.subscription=timer(0, 10000).switchMap(() => sdo).subscribe(d => this.streamDetails=d);
     }
 
     streamUrl(vs: VideoSource): string {
