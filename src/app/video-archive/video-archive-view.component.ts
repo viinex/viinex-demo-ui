@@ -13,29 +13,42 @@ import {Format} from '../format'
 
 @Component({
     template: `
-    <div *ngIf="videoTrackData != null">
+    <div *ngIf="videoTrack != null">
     <h5>Summary for {{videoTrack.videoSource.name}} @ {{videoTrack.videoArchive.name}}</h5>
 
-    Disk space used: {{gb(videoTrackData.summary.diskUsage)}}<br/>
-    Depth: {{formatDepth(videoTrackData.summary.timeBoundaries)}} ({{formatInterval(videoTrackData.summary.timeBoundaries)}}) <br/>
-    Total video fragments length: {{formatTemporalLength(totalTemporalLength(videoTrackData.timeLine))}} <br/>
+    <div *ngIf="videoTrackData != null">
+        Disk space used: {{gb(videoTrackData.summary.diskUsage)}}<br/>
+        Depth: {{formatDepth(videoTrackData.summary.timeBoundaries)}} ({{formatInterval(videoTrackData.summary.timeBoundaries)}}) <br/>
+        Total video fragments length: {{formatTemporalLength(totalTemporalLength(videoTrackData.timeLine))}} <br/>
+    </div>
 
-    <div class="list-group pre-scrollable intervals">
-        <a class="list-group-item list-group-item-action" 
-            *ngFor="let i of videoTrackData.timeLine"
-            (click)="gotoInterval(i)"
-            >{{formatInterval(i)}}</a>
+    <div class="row">
+        <div class="col-md-4" *ngIf="videoTrackData != null">
+            <ul class="list-group intervals">
+                <li class="list-group-item list-group-item-action" *ngFor="let i of videoTrackData.timeLine" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                    <a routerLink="." [queryParams]="{begin: i[0].valueOf(), end:i[1].valueOf() }" class="ainterval"
+                    routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">{{formatInterval(i)}}</a>
+                </li>
+            </ul>
+        </div>
+        <div class="col-md-8" *ngIf="currentInterval != null">
+            <h4>{{formatInterval(currentInterval)}}</h4>
+            <a 
+            href="/v1/svc/{{videoTrack.videoArchive.name}}/{{videoTrack.videoSource.name}}/export?format=isom&begin={{currentInterval[0].valueOf()}}&end={{currentInterval[1].valueOf()}}"
+            class="btn btn-primary" role="button" download target="_blank">Download as MP4</a>
+            <br/><br/>
+            <a href="/v1/svc/{{videoTrack.videoArchive.name}}/{{videoTrack.videoSource.name}}/export?format=ts&begin={{currentInterval[0].valueOf()}}&end={{currentInterval[1].valueOf()}}"
+            class="btn btn-primary" role="button" download target="_blank">Download as MPEG TS</a>
+        </div>
+    </div> <!--row-->
+    <br/>
     </div>
-    <br class="archivevideocontrol"/>
     <div id="ArchiveVideoDiv"></div>
-    <!--video class="archivevideocontrol" id="ArchiveVideoViewComponent" controls>
-        <source src="{{currentStreamUrl}}"/>
-    </video-->
-    </div>
     `,
-    styles: [".intervals { max-height: 200px }"]
+    styles: [".intervals { max-height: 200px; overflow-y: scroll }",
+    ".ainterval.active  { color: white !important }"]
 })
-export class VideoArchiveViewComponent implements OnInit{
+export class VideoArchiveViewComponent implements OnInit, OnDestroy{
     errorMessage: string;
     videoSource: VideoSource;
     readonly isAndroid: boolean;
@@ -43,7 +56,11 @@ export class VideoArchiveViewComponent implements OnInit{
     videoTrack: VideoTrack;
     videoTrackData: VideoTrackData;
 
+    currentInterval: [Date,Date];
+
     currentStreamUrl: string;
+
+    private hls: Hls; // for destroying the player
 
     constructor(private route: ActivatedRoute, private router: Router, private videoObjectsService: VideoObjectsService){
         this.isAndroid = /(android)/i.test(navigator.userAgent);
@@ -57,10 +74,38 @@ export class VideoArchiveViewComponent implements OnInit{
                 return t;
             })
             .mergeMap(vt => {
+                let oldvt=this.videoTrack;
                 this.videoTrack=vt;
+                if(oldvt!=null && vt !=null){
+                    if(oldvt.videoArchive.name!=vt.videoArchive.name || oldvt.videoSource.name!=vt.videoSource.name){
+                        this.currentInterval=null;
+                        this.clearVideo();
+                    }
+                }
+                else{
+                    if(this.currentInterval!=null){
+                        this.gotoInterval(this.currentInterval);
+                    }
+                }
                 return this.videoTrack.getTrackData();
             })
             .subscribe(vtd => this.videoTrackData=vtd);
+        this.route.queryParams.subscribe(qp => {
+            console.log(qp);
+            if(qp.begin!=null && qp.end!=null){
+                this.currentInterval=[new Date(+qp.begin), new Date(+qp.end)];
+                if(this.videoTrack!=null){
+                    this.gotoInterval(this.currentInterval);
+                }
+            }
+            else{
+                this.currentInterval=null;
+                this.clearVideo();
+            }
+        })
+    }
+    ngOnDestroy(): void{
+        this.clearVideo();
     }
 
     formatInterval(x: any): string {
@@ -104,14 +149,25 @@ export class VideoArchiveViewComponent implements OnInit{
         while(videoDiv && videoDiv.firstChild){
             videoDiv.removeChild(videoDiv.firstChild);
         }
+        if(this.hls){
+            let hls=this.hls;
+            this.hls=null;
+            hls.on(Hls.Events.DESTROYING, function(){
+                //console.log("destroying");
+            });
+            hls.on(Hls.Events.MEDIA_DETACHED, function(){
+                //console.log("media detached");
+            });
+            hls.stopLoad(); 
+            hls.detachMedia();
+            hls.destroy();
+            //console.log(hls);
+        }        
     }
 
     startPlayback() {
         this.clearVideo();
         let videoDiv = <HTMLDivElement>document.getElementById("ArchiveVideoDiv");
-        while(videoDiv.firstChild){
-            videoDiv.removeChild(videoDiv.firstChild);
-        }
 
         let video=<HTMLVideoElement>document.createElement("video"); 
         video.controls=true;
@@ -128,6 +184,7 @@ export class VideoArchiveViewComponent implements OnInit{
             hls.on(Hls.Events.MANIFEST_PARSED, function () {
                 //video.play();
             });
+            this.hls=hls;
         }
         else{
             //this.video.childNodes.item(0).attributes[0]=this.currentStreamUrl;
