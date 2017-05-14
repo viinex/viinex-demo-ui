@@ -1,0 +1,35 @@
+<div *ngIf="videoTrack != null">
+<h5>Summary for {{videoTrack.videoSource.name}} @ {{videoTrack.videoArchive.name}}</h5>
+
+<div *ngIf="videoTrackData != null">
+    Disk space used: {{gb(videoTrackData.summary.diskUsage)}}<br/>
+    Depth: {{formatDepth(videoTrackData.summary.timeBoundaries)}} ({{formatInterval(videoTrackData.summary.timeBoundaries)}}) <br/>
+    Total video fragments length: {{formatTemporalLength(totalTemporalLength(videoTrackData.timeLine))}} <br/>
+</div>
+
+<div class="row">
+    <div class="col-md-5" *ngIf="videoTrackData != null">
+        <ul class="list-group intervals">
+            <li class="list-group-item list-group-item-action" *ngFor="let i of videoTrackData.timeLine" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                <a routerLink="." [queryParams]="{begin: i[0].valueOf(), end:i[1].valueOf() }" class="ainterval"
+                    routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">{{formatInterval(i)}}</a>
+                    <span *ngIf="shouldRefine(i)"> ...</span>
+            </li>
+        </ul>
+    </div>
+    <div class="col-md-7" *ngIf="currentInterval != null">
+        <h4>{{formatInterval(currentInterval)}}</h4>
+        <a 
+        href="{{exportUrl(currentInterval, 'isom')}}"
+        class="btn btn-primary" role="button" download target="_blank">Export MP4</a>
+        <a href="{{exportUrl(currentInterval, 'ts')}}"
+        class="btn btn-primary" role="button" download target="_blank">Export MPEG TS</a>
+        <div *ngIf="shouldRefine(currentInterval)">
+        Please refine a window within selected interval by selecting its start time:
+        <input [(ngModel)]="timeOffset" type="datetime-local"/>
+        </div>
+    </div>
+</div> <!--row-->
+<br/>
+</div>
+<div id="ArchiveVideoDiv"></div>

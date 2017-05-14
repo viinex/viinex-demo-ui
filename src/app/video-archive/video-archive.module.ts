@@ -1,5 +1,6 @@
 import { NgModule }      from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 import {VideoObjectsService} from '../video-objects.service'
 import {VideoArchiveRoutingModule} from './video-archive-routing.module'
@@ -9,7 +10,7 @@ import {VideoArchiveComponent} from './video-archive.component'
 
 
 @NgModule({
-  imports:      [ CommonModule, VideoArchiveRoutingModule ],
+  imports:      [ CommonModule, VideoArchiveRoutingModule, FormsModule ],
   declarations: [ VideoArchiveComponent, VideoArchiveListComponent, VideoArchiveViewComponent]
 })
 export class VideoArchiveModule { }

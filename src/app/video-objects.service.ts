@@ -22,7 +22,7 @@ import {
 export class VideoObjectsService {
     constructor(private http: Http){}
     getObjects(): Observable<VideoObjects>{
-        return this.http.get("/v1/svc")
+        return this.http.get("v1/svc")
                         .map((res:Response) => VideoObjectsService.extractSvcData(this.http, res))
                         .mergeMap((vo:VideoObjects) => VideoObjectsService.createAllTracks(this.http, vo));
     }
@@ -45,14 +45,14 @@ export class VideoObjectsService {
             switch(body[n]){
                 case "VideoSource": {
                     let s=new VideoSource(n, true);
-                    s.getStreamDetails=http.get("/v1/svc/"+n).map(VideoObjectsService.extractLiveStreamDetails);
+                    s.getStreamDetails=http.get("v1/svc/"+n).map(VideoObjectsService.extractLiveStreamDetails);
                     vs.push(s);
                     break;
                 }
                 case "VideoStorage": {
                     let x=new VideoArchive(n); 
                     x.getSummary=function(){
-                        return http.get("/v1/svc/"+n).map(r => {
+                        return http.get("v1/svc/"+n).map(r => {
                             let s=VideoObjectsService.extractArchiveSummary(r);
                             x.summarySnapshot=s;
                             return s;
@@ -103,7 +103,7 @@ export class VideoObjectsService {
         vas.tracks.forEach((t: VideoTrackSummary, n:string) => {
             let vsrc=this.lookupOrAddArchiveVideoSource(vs, n);
             let vt=new VideoTrack(vsrc, a);
-            vt.getTrackData=function(){ return http.get("/v1/svc/"+a.name+"/"+n).map(VideoObjectsService.extractTrackData) };
+            vt.getTrackData=function(){ return http.get("v1/svc/"+a.name+"/"+n).map(VideoObjectsService.extractTrackData) };
             a.videoTracks.push(vt);
             vsrc.videoTracks.push(vt);
         });

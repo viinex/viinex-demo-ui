@@ -1,4 +1,5 @@
 import {Component, OnInit, OnDestroy} from '@angular/core';
+import {FormsModule} from '@angular/forms';
 
 import { ActivatedRoute,Router }       from '@angular/router';
 
@@ -12,39 +13,7 @@ import {VideoSource,VideoObjects, VideoTrack, VideoTrackData, VideoTrackSummary}
 import {Format} from '../format'
 
 @Component({
-    template: `
-    <div *ngIf="videoTrack != null">
-    <h5>Summary for {{videoTrack.videoSource.name}} @ {{videoTrack.videoArchive.name}}</h5>
-
-    <div *ngIf="videoTrackData != null">
-        Disk space used: {{gb(videoTrackData.summary.diskUsage)}}<br/>
-        Depth: {{formatDepth(videoTrackData.summary.timeBoundaries)}} ({{formatInterval(videoTrackData.summary.timeBoundaries)}}) <br/>
-        Total video fragments length: {{formatTemporalLength(totalTemporalLength(videoTrackData.timeLine))}} <br/>
-    </div>
-
-    <div class="row">
-        <div class="col-md-4" *ngIf="videoTrackData != null">
-            <ul class="list-group intervals">
-                <li class="list-group-item list-group-item-action" *ngFor="let i of videoTrackData.timeLine" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
-                    <a routerLink="." [queryParams]="{begin: i[0].valueOf(), end:i[1].valueOf() }" class="ainterval"
-                    routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">{{formatInterval(i)}}</a>
-                </li>
-            </ul>
-        </div>
-        <div class="col-md-8" *ngIf="currentInterval != null">
-            <h4>{{formatInterval(currentInterval)}}</h4>
-            <a 
-            href="/v1/svc/{{videoTrack.videoArchive.name}}/{{videoTrack.videoSource.name}}/export?format=isom&begin={{currentInterval[0].valueOf()}}&end={{currentInterval[1].valueOf()}}"
-            class="btn btn-primary" role="button" download target="_blank">Download as MP4</a>
-            <br/><br/>
-            <a href="/v1/svc/{{videoTrack.videoArchive.name}}/{{videoTrack.videoSource.name}}/export?format=ts&begin={{currentInterval[0].valueOf()}}&end={{currentInterval[1].valueOf()}}"
-            class="btn btn-primary" role="button" download target="_blank">Download as MPEG TS</a>
-        </div>
-    </div> <!--row-->
-    <br/>
-    </div>
-    <div id="ArchiveVideoDiv"></div>
-    `,
+    templateUrl: "video-archive-view.component.html",
     styles: [".intervals { max-height: 200px; overflow-y: scroll }",
     ".ainterval.active  { color: white !important }"]
 })
@@ -57,6 +26,7 @@ export class VideoArchiveViewComponent implements OnInit, OnDestroy{
     videoTrackData: VideoTrackData;
 
     currentInterval: [Date,Date];
+    timeOffset: Date;
 
     currentStreamUrl: string;
 
@@ -84,18 +54,18 @@ export class VideoArchiveViewComponent implements OnInit, OnDestroy{
                 }
                 else{
                     if(this.currentInterval!=null){
-                        this.gotoInterval(this.currentInterval);
+                        this.gotoInterval();
                     }
                 }
                 return this.videoTrack.getTrackData();
             })
             .subscribe(vtd => this.videoTrackData=vtd);
         this.route.queryParams.subscribe(qp => {
-            console.log(qp);
             if(qp.begin!=null && qp.end!=null){
                 this.currentInterval=[new Date(+qp.begin), new Date(+qp.end)];
+                this.timeOffset=this.currentInterval[0];
                 if(this.videoTrack!=null){
-                    this.gotoInterval(this.currentInterval);
+                    this.gotoInterval();
                 }
             }
             else{
@@ -138,10 +108,36 @@ export class VideoArchiveViewComponent implements OnInit, OnDestroy{
         }
     }
 
-    gotoInterval([b,e]:[Date,Date]){
+    shouldRefine([b,e]:[Date,Date]): boolean{
+        return (e.valueOf() - b.valueOf()) > 10*60*1000;
+    }
+    expandInterval([b,e]:[Date,Date]): Array<[Date,Date]>{
+        let r=new Array<[Date,Date]>();
+        let x=b;
+        while(x<e){
+            let y=new Date(x.valueOf()+10*60*1000);
+            r.push([x, y]);
+            x=y;
+        }
+        return r;
+    }
+
+    gotoInterval(){
+        let [b,e]=this.currentInterval;
+        if(this.timeOffset!=null){
+            b=new Date(Math.max(this.timeOffset.valueOf(), b.valueOf()));
+            e=new Date(Math.min(b.valueOf()+10*60*1000, e.valueOf()));
+            console.log([b,e]);
+        }
         this.currentStreamUrl='v1/svc/' + this.videoTrack.videoArchive.name + "/" + this.videoTrack.videoSource.name + '/stream.m3u8'
         + '?begin=' + b.valueOf() + '&end=' + e.valueOf();
-        this.startPlayback();
+        this.showVideo();
+    }
+
+    exportUrl(interval: [Date,Date], format: string){
+        return "v1/svc/"+this.videoTrack.videoArchive.name+"/"+
+            this.videoTrack.videoSource.name+"/export?format="+format+
+            "&begin="+interval[0].valueOf()+"&end="+interval[1].valueOf();
     }
 
     clearVideo(){
@@ -165,7 +161,7 @@ export class VideoArchiveViewComponent implements OnInit, OnDestroy{
         }        
     }
 
-    startPlayback() {
+    showVideo() {
         this.clearVideo();
         let videoDiv = <HTMLDivElement>document.getElementById("ArchiveVideoDiv");
 

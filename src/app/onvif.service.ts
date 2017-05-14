@@ -17,14 +17,14 @@ import {OnvifDevice,
 export class OnvifService {
     constructor(private http: Http){}
     getDevices(): Observable<OnvifDevice[]>{
-        return this.http.get("/v1/env/onvif")
+        return this.http.get("v1/env/onvif")
                         .map(this.extractDiscoveryData);
     }
     probeFor(url:string, auth:[string,string]): Observable<any>{
         let req:any=new Object();
         req.url=url;
         req.auth=auth;
-        return this.http.post("/v1/env/onvif/probe", req)
+        return this.http.post("v1/env/onvif/probe", req)
                         .map(this.extractProbeData);
     }
     private extractProbeData(res: Response){
