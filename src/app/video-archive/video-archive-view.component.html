@@ -25,9 +25,16 @@
         <a href="{{exportUrl(currentInterval, 'ts')}}"
         class="btn btn-primary" role="button" download target="_blank">Export MPEG TS</a>
         <div *ngIf="shouldRefine(currentInterval)">
-        Please refine a window within selected interval by selecting its start time:
-        <input [(ngModel)]="timeOffset" type="datetime-local"/>
-        </div>
+            Please refine a time window within selected interval:
+            <div class="dropdown">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    {{formatInterval(refinedInterval)}}
+                </button>
+                <div class="dropdown-menu archive-refine-menu">
+                    <button class="dropdown-item" type="button" *ngFor="let i of subintervals" (click)="setRefinedInterval(i)">{{formatInterval(i)}}</button>
+                </div>
+            </div>
+        </div> <!--should refine-->
     </div>
 </div> <!--row-->
 <br/>

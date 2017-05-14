@@ -12,10 +12,13 @@ import {VideoObjectsService} from '../video-objects.service'
 import {VideoSource,VideoObjects, VideoTrack, VideoTrackData, VideoTrackSummary} from '../video-objects'
 import {Format} from '../format'
 
+const MAX_WINDOW_SIZE_MINUTES=10;
+
 @Component({
     templateUrl: "video-archive-view.component.html",
     styles: [".intervals { max-height: 200px; overflow-y: scroll }",
-    ".ainterval.active  { color: white !important }"]
+    ".ainterval.active  { color: white !important }",
+    ".archive-refine-menu { max-height: 300px; overflow-y: scroll }"]
 })
 export class VideoArchiveViewComponent implements OnInit, OnDestroy{
     errorMessage: string;
@@ -26,7 +29,8 @@ export class VideoArchiveViewComponent implements OnInit, OnDestroy{
     videoTrackData: VideoTrackData;
 
     currentInterval: [Date,Date];
-    timeOffset: Date;
+    subintervals: Array<[Date, Date]>;
+    refinedInterval: [Date,Date];
 
     currentStreamUrl: string;
 
@@ -63,7 +67,8 @@ export class VideoArchiveViewComponent implements OnInit, OnDestroy{
         this.route.queryParams.subscribe(qp => {
             if(qp.begin!=null && qp.end!=null){
                 this.currentInterval=[new Date(+qp.begin), new Date(+qp.end)];
-                this.timeOffset=this.currentInterval[0];
+                this.subintervals=this.expandInterval(this.currentInterval);
+                this.refinedInterval=this.makeSubinterval(this.currentInterval[0], this.currentInterval);
                 if(this.videoTrack!=null){
                     this.gotoInterval();
                 }
@@ -108,26 +113,40 @@ export class VideoArchiveViewComponent implements OnInit, OnDestroy{
         }
     }
 
-    shouldRefine([b,e]:[Date,Date]): boolean{
-        return (e.valueOf() - b.valueOf()) > 10*60*1000;
+    makeSubinterval(x: Date, [b,e]:[Date,Date]): [Date,Date]{
+        let [xb,xe]=[x, new Date(x.valueOf()+MAX_WINDOW_SIZE_MINUTES*60*1000)];
+        if(xb<b){ xb=b; }
+        if(xb>e){ xb=e; }
+        if(xe<b){ xe=b; }
+        if(xe>e){ xe=e; }
+        return [xb,xe];
     }
-    expandInterval([b,e]:[Date,Date]): Array<[Date,Date]>{
+    shouldRefine([b,e]:[Date,Date]): boolean{
+        return (e.valueOf() - b.valueOf()) > MAX_WINDOW_SIZE_MINUTES*60*1000;
+    }
+    expandInterval(ii:[Date,Date]): Array<[Date,Date]>{
+        let [b,e]=ii;
         let r=new Array<[Date,Date]>();
         let x=b;
         while(x<e){
-            let y=new Date(x.valueOf()+10*60*1000);
-            r.push([x, y]);
-            x=y;
+            let i=this.makeSubinterval(x, ii);
+            r.push(i);
+            x=i[1];
         }
         return r;
     }
 
+    setRefinedInterval(i: [Date, Date]){
+        this.refinedInterval=i;
+        this.gotoInterval();
+    }
+
     gotoInterval(){
         let [b,e]=this.currentInterval;
-        if(this.timeOffset!=null){
-            b=new Date(Math.max(this.timeOffset.valueOf(), b.valueOf()));
-            e=new Date(Math.min(b.valueOf()+10*60*1000, e.valueOf()));
-            console.log([b,e]);
+        if(this.refinedInterval!=null){
+            let [rb,re]=this.refinedInterval;
+            b=new Date(Math.max(rb.valueOf(), b.valueOf()));
+            e=new Date(Math.min(re.valueOf(), e.valueOf()));
         }
         this.currentStreamUrl='v1/svc/' + this.videoTrack.videoArchive.name + "/" + this.videoTrack.videoSource.name + '/stream.m3u8'
         + '?begin=' + b.valueOf() + '&end=' + e.valueOf();
