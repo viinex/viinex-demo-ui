@@ -95,16 +95,8 @@ export class LiveVideoViewComponent implements OnInit, OnDestroy {
     startPlayback() {
         this.clearVideo();
         let videoDiv = <HTMLDivElement>document.getElementById("LiveVideoDiv");
-        while(videoDiv.firstChild){
-            let video=<HTMLVideoElement>videoDiv.firstChild; 
-            if(video){
-                
-            }
-            videoDiv.removeChild(videoDiv.firstChild);
-        }
-
         let video=<HTMLVideoElement>document.createElement("video"); 
-        video.controls=false;
+        video.controls=this.isAndroid;
         video.autoplay=true;
         video.setAttribute("width", "100%");
         let source=<HTMLSourceElement>document.createElement("source");
