@@ -18,7 +18,13 @@ const MAX_WINDOW_SIZE_MINUTES=10;
     templateUrl: "video-archive-view.component.html",
     styles: [".intervals { max-height: 200px; overflow-y: scroll }",
     ".ainterval.active  { color: white !important }",
-    ".archive-refine-menu { max-height: 300px; overflow-y: scroll }"]
+    ".archive-refine-menu { max-height: 300px; overflow-y: scroll }",
+    `.interval-item {
+        overflow:visible;  
+        display: block;
+        padding: .25rem .25rem;
+    }`
+    ]
 })
 export class VideoArchiveViewComponent implements OnInit, OnDestroy{
     errorMessage: string;

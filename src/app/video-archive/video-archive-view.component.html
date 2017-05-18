@@ -10,7 +10,7 @@
 <div class="row">
     <div class="col-md-5" *ngIf="videoTrackData != null">
         <ul class="list-group intervals">
-            <li class="list-group-item list-group-item-action" *ngFor="let i of videoTrackData.timeLine" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+            <li class="list-group-item list-group-item-action interval-item" *ngFor="let i of videoTrackData.timeLine" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
                 <a routerLink="." [queryParams]="{begin: i[0].valueOf(), end:i[1].valueOf() }" class="ainterval"
                     routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">{{formatInterval(i)}}</a>
                     <span *ngIf="shouldRefine(i)"> ...</span>
