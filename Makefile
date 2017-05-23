@@ -3,7 +3,7 @@ all: env build
 env: ngcli
 	npm install
 
-node_modules/@angular/cli/bin/ng: 
+ngcli: 
 	npm install @angular/cli
 
 NG=node node_modules/@angular/cli/bin/ng
