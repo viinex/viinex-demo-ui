@@ -45,6 +45,6 @@
     "tslint": "~4.5.0",
     "typescript": "~2.2.0",
 
-    "@types/hls.hs": "0.7.0"
+    "@types/hls.js": "0.7.0"
   }
 }
