@@ -6,6 +6,7 @@ import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
 import 'rxjs/add/operator/mergeMap';
 import 'rxjs/add/observable/forkJoin';
+import 'rxjs/add/observable/of';
 
 import { 
     VideoObjects, 
@@ -76,6 +77,9 @@ export class VideoObjectsService {
         return d;
     }
     private static createAllTracks(http: Http, vo: VideoObjects): Observable<VideoObjects> {
+        if(vo.videoArchives==null || vo.videoArchives.length==0){
+            return Observable.of(vo);
+        }
         return Observable.forkJoin(vo.videoArchives.map(a => { return a.getSummary() })).map(
             res => {
                 for(let k=0; k<vo.videoArchives.length; ++k){
