@@ -9,7 +9,7 @@ ngcli:
 NG=node node_modules/@angular/cli/bin/ng
 
 build:
-	$(NG) build --prod --aot
+	$(NG) build --prod --aot --progress=false
 
 
 
