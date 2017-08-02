@@ -42,8 +42,9 @@ export class VideoObjectsService {
         let vo=new VideoObjects();
         let vs=new Array<VideoSource>();
         let va=new Array<VideoArchive>();
-        for(let n in body){
-            switch(body[n]){
+        for(let tn of body){
+            let [t,n]=tn;
+            switch(t){
                 case "VideoSource": {
                     let s=new VideoSource(n, true);
                     s.getStreamDetails=http.get("v1/svc/"+n).map(VideoObjectsService.extractLiveStreamDetails);
