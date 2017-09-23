@@ -23,7 +23,7 @@ export class OnvifDiscoveryComponent implements OnInit {
     probeCustomPort: number;
 
     constructor(private onvifService: OnvifService){
-        this.probeAnon=true;
+        this.probeAnon=false;
     }
     ngOnInit(): void {
         this.onvifService.getDevices().subscribe(

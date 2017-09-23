@@ -1,4 +1,10 @@
 <h2>ONVIF devices</h2>
+Viinex 2.0 provides two API functions for searching ONVIF devices: <a href="/v1/env/onvif">/v1/env/onvif</a> 
+and /v1/env/onvif/probe (via the HTTP POST method). The former involves multicast and obviously does not find anything 
+when ran by Viinex instance in a public datacenter on the Internet (like demo.viinex.com is). The latter, however, 
+-- the probe call --
+will work for your ONVIF devices if they are available at some "white" IP addresses and ports. 
+Don't forget to specify the credentials then.
 <h4>Parameters for probe</h4>
 <div class="row">
 <div class="col-md-2">
@@ -30,7 +36,7 @@
 <br/>
 <div class="row">
 <div class="col-md-6">
-<h4>Devices found on the network</h4>
+<h4>Devices found on the local network</h4>
 <ul>
     <li *ngFor="let dev of devices">
         <h4>{{dev.name}}</h4>
