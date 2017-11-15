@@ -27,7 +27,7 @@
     "bootstrap": "4.0.0-alpha.6"
   },
   "devDependencies": {
-    "@angular/cli": "^1.2.4",
+    "@angular/cli": "^1.5.0",
     "@angular/compiler-cli": "^4.0.0",
     "@types/hls.js": "0.7.0",
     "@types/jasmine": "2.5.38",
