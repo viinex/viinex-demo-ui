@@ -1,0 +1,38 @@
+<div *ngIf="isLoginRequired" class="row">
+    <div class="col-md-4">
+        <form class="form">
+            <div class="form-group row">
+                <h2 class="col-sm-12">Login is required</h2>
+            </div>
+            <div class="form-group row">
+                <label class="col-form-label col-sm-4" for="username">User name:</label>
+                <input [(ngModel)]="loginName" type="email" class="form-control col-sm-8" name="loginName" id="username" placeholder="email"/>
+            </div>
+            <div class="form-group row">
+                <label class="col-form-label col-sm-4" for="password">Password:</label>
+                <input [(ngModel)]="loginPassword" type="password" class="form-control col-sm-8" id="password" name="loginPassword" placeholder="password"/>
+            </div>
+            <div class="form-group row">
+                <div class="col-sm-4">            
+                    <button type="submit" class="btn btn-primary" (click)="onLogin()">Login</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div *ngIf="isServerOnline &amp;&amp; !isLoginRequired">
+    <div *ngIf="loginName != null">
+        You are logged in as user id {{loginName}}.
+        <br/>
+        <button class="btn btn-primary" (click)="onLogout()">Logout</button>
+    </div>
+    <div *ngIf="loginName == null">
+        This server does not require authentication.
+    </div>
+</div>
+
+<div *ngIf="!isServerOnline">
+    Currently the server is not accessible. Please try again later.
+</div>
+    
