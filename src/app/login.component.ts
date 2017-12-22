@@ -13,11 +13,12 @@ export class LoginComponent implements OnInit {
     loginName: string;
     loginPassword: string;
 
+    errorMessage: string;
+
     constructor(private loginService: LoginService){}
     ngOnInit(): void {
         this.loginService.getLoginStatus().subscribe(
             ls => { 
-                console.log(ls);
                 if(null!=ls){
                     this.isServerOnline=true; 
                     this.isLoginRequired=ls[0]; 
@@ -28,6 +29,7 @@ export class LoginComponent implements OnInit {
                 }
             }
         );
+        this.loginService.getErrorMessage().subscribe(v => { this.errorMessage=v; })
         this.loginService.checkLoginStatus();
     }
 

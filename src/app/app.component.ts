@@ -1,44 +1,38 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+
+import {LoginService} from './login.service'
 
 @Component({
   selector: 'my-app',
-  template: `
-<nav class="navbar navbar-toggleable-md nav-fixed-top bg-primary navbar-inverse">
-<div class="container">
-<h1 class="navbar-brand"><img src="assets/viinex.png" height="30px"/></h1>
-<ul class="navbar-nav">
-  <li class="nav-item">
-    <a class="nav-link" routerLinkActive="active" routerLink="/video-objects">Overview</a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" routerLinkActive="active" routerLink="/live-video">Live video</a> 
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" routerLinkActive="active" routerLink="/video-archive">Video archive</a> 
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" routerLinkActive="active" routerLink="/onvif">ONVIF discovery tool</a>
-  </li>
-</ul>
-</div>
-</nav>
-
-<footer class="footer">
-  <div class="container">
-    <p class="text-muted">This is a demo user interface for Viinex 2.0 video management SDK. 
-    (c) <a href="https://www.viinex.com">Viinex</a>, 2017. All rights reserved.</p>
-  </div>
-</footer>
-
-<div class="container maincontainer">
-<br/>
-<router-outlet></router-outlet>
-</div> <!--container-->
-
-  `,
+  templateUrl: './app.component.html',
   styles: ['.active { font-weight: bold; }']
 })
-export class AppComponent  { }
+export class AppComponent implements OnInit { 
+  isServerOnline : boolean;
+  isLoginRequired : boolean;
+  loginRefLabel : string;
+
+  constructor(private loginService: LoginService){}
+
+  ngOnInit(): void {
+    this.loginService.getLoginStatus().subscribe(
+        ls => { 
+            if(null!=ls){
+                this.isServerOnline=true; 
+                this.isLoginRequired=ls[0]; 
+                this.loginRefLabel="Login";
+                if(null!=ls[1]){
+                  this.loginRefLabel="Logout";//"Logged in as "+ls[1]; 
+                }
+            }
+            else{
+                this.isServerOnline=false;
+            }
+        }
+    );
+    this.loginService.checkLoginStatus();
+  }
+}
 /*
 <nav class="navbar navbar-fixed-top navbar-dark bg-inverse">
     <div class="container">

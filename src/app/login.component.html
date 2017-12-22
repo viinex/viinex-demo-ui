@@ -1,8 +1,9 @@
-<div *ngIf="isLoginRequired" class="row">
+<div *ngIf="isServerOnline &amp;&amp; isLoginRequired" class="row">
     <div class="col-md-4">
         <form class="form">
             <div class="form-group row">
                 <h2 class="col-sm-12">Login is required</h2>
+                <div class="col-sm-12 alert alert-danger" *ngIf="null!=errorMessage">{{errorMessage}}</div>
             </div>
             <div class="form-group row">
                 <label class="col-form-label col-sm-4" for="username">User name:</label>
@@ -33,6 +34,6 @@
 </div>
 
 <div *ngIf="!isServerOnline">
-    Currently the server is not accessible. Please try again later.
+    <div class="alert alert-danger">The server is currently not accessible. Please try again later.</div>
 </div>
     
