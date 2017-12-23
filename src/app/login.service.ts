@@ -4,6 +4,7 @@ import { Http, Response } from '@angular/http';
 import { Observable } from "rxjs/Observable";
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
+import 'rxjs/add/operator/shareReplay';
 import 'rxjs/add/operator/mergeMap';
 import 'rxjs/add/observable/forkJoin';
 import 'rxjs/add/observable/of';
@@ -17,17 +18,25 @@ import * as Cookies from 'js-cookie';
 
 @Injectable()
 export class LoginService {
-    private IsLoggedIn(){
-        return false;
+    public static isServerAccessible(loginStatus : any[]){
+        return loginStatus!=null;
     }
+    public static isLoginRequired(loginStatus : any[]){
+        return loginStatus!=null && loginStatus[0];
+    }
+
     constructor(private http: Http){
+        this.lastLoginStatus=null;
+
         this.loginStatusObservable=Observable.create((o : Observer<any[]>)=>{
             this.loginStatusObserver=o;
-        }).share();
+        }).shareReplay(1);
         this.errorMessageObservable=Observable.create((o : Observer<string>)=>{
             this.errorMessageObserver=o;
-        }).share();
+        }).shareReplay(1);
     }
+
+    private lastLoginStatus : any[];
 
     private loginStatusObserver : Observer<any[]>;
     private loginStatusObservable : Observable<any[]>;
@@ -44,10 +53,21 @@ export class LoginService {
     }
 
     private setLoginStatus(ls : any[]){
-        this.loginStatusObserver.next(ls);
+        this.lastLoginStatus=ls;
+        if(null!=this.loginStatusObserver){
+            this.loginStatusObserver.next(ls);
+        }
     }
     private setErrorMessage(e : string){
-        this.errorMessageObserver.next(e);
+        if(null!=this.errorMessageObserver){
+            this.errorMessageObserver.next(e);
+        }
+    }
+
+    public initialCheckLoginStatus() {
+        if(this.lastLoginStatus==null){
+            this.checkLoginStatus();
+        }
     }
 
     public checkLoginStatus() {
@@ -76,7 +96,6 @@ export class LoginService {
         this.http.post("v1/authGetChallenge?login="+login, '')
         .subscribe((res:Response) => {
             let challenge=<any>res.json();
-            console.log(challenge);
             let secret = challenge.realm ? Crypto.MD5(login + ':' + challenge.realm + ':' + password).toString(Crypto.enc.Hex) : password;
             let responseStr = Crypto.HmacMD5(challenge.challenge, secret).toString(Crypto.enc.Hex);
             let response = {
@@ -86,9 +105,7 @@ export class LoginService {
                 signature: challenge.signature,
                 response: responseStr
             };
-            console.log(response);
             this.http.post("v1/authCheckResponse", response).subscribe((res:Response)=>{
-                console.log(res.json());
                 this.checkLoginStatus();
             }, (error:Response)=>{
                 if(error.status==403){

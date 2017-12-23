@@ -18,6 +18,7 @@ import {LoginComponent} from './login.component';
 
 import { AppComponent }  from './app.component';
 import { Component } from '@angular/core';
+import { LoginGuardService } from './login-guard.service';
 
 
 @NgModule({
@@ -28,7 +29,7 @@ import { Component } from '@angular/core';
                   //,NgbModule.forRoot() 
                   ],
   declarations: [ AppComponent, OnvifDiscoveryComponent, VideoObjectsComponent, PageNotFoundComponent, LoginComponent ],
-  providers:    [ OnvifService, VideoObjectsService, LoginService ],
+  providers:    [ OnvifService, VideoObjectsService, LoginService, LoginGuardService ],
   bootstrap:    [ AppComponent ]
 })
 export class AppModule { }

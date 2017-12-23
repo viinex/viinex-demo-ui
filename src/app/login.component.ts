@@ -1,6 +1,10 @@
 import {Component, OnInit} from '@angular/core';
+import { Router } from '@angular/router';
 
 import {LoginService} from './login.service'
+import { Observable } from 'rxjs/Observable';
+
+import 'rxjs/add/observable/timer';
 
 @Component({
     selector: 'login',
@@ -15,7 +19,7 @@ export class LoginComponent implements OnInit {
 
     errorMessage: string;
 
-    constructor(private loginService: LoginService){}
+    constructor(private loginService: LoginService, private router: Router){}
     ngOnInit(): void {
         this.loginService.getLoginStatus().subscribe(
             ls => { 
@@ -30,11 +34,14 @@ export class LoginComponent implements OnInit {
             }
         );
         this.loginService.getErrorMessage().subscribe(v => { this.errorMessage=v; })
-        this.loginService.checkLoginStatus();
+        this.loginService.initialCheckLoginStatus();
     }
 
     public onLogin(){
         this.loginService.login(this.loginName, this.loginPassword);
+        Observable.timer(1000).subscribe(() => { 
+            this.router.navigate(['/']); 
+        });
     }
     public onLogout(){
         this.loginService.logout();

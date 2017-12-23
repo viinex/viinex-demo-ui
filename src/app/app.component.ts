@@ -30,7 +30,7 @@ export class AppComponent implements OnInit {
             }
         }
     );
-    this.loginService.checkLoginStatus();
+    this.loginService.initialCheckLoginStatus();
   }
 }
 /*
