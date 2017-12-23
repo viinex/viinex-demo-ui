@@ -16,10 +16,11 @@ import {VideoSource,VideoObjects, LiveStreamDetails} from '../video-objects'
     template: `
     <div>
     <div id="LiveVideoDiv"></div>
-    <div *ngIf="streamDetails">
+    <div *ngIf="null != streamDetails">
     Resolution: {{streamDetails.resolution[0]}}x{{streamDetails.resolution[1]}}<br/>
     Bitrate: {{(streamDetails.bitrate/1000000).toFixed(2)}} Mbps
     </div>
+    <div *ngIf="isOfflineOrStalled" class="alert alert-danger">The stream appears to be offline or stalled</div>
     </div>
     `,
     styles: [".livevideocontrol { width: 100% }"]
@@ -30,6 +31,7 @@ export class LiveVideoViewComponent implements OnInit, OnDestroy {
 
     subscription: Subscription;
     streamDetails: LiveStreamDetails;
+    isOfflineOrStalled: boolean;
 
     readonly isAndroid: boolean;
 
@@ -60,7 +62,12 @@ export class LiveVideoViewComponent implements OnInit, OnDestroy {
     subscribeStreamDetails(sdo: Observable<LiveStreamDetails>){
         this.unsubscribe();
         this.streamDetails=null;
-        this.subscription=timer(0, 10000).switchMap(() => sdo).subscribe(d => this.streamDetails=d);
+        this.subscription=timer(0, 10000).switchMap(() => sdo).subscribe(d => {
+            this.streamDetails=d;
+            this.isOfflineOrStalled= (d==null)|| (Math.abs(Date.now()-this.streamDetails.lastFrame.valueOf()) > 20000); // 20 seconds
+        }, (error:any) => {
+            this.isOfflineOrStalled=true;
+        });
     }
 
     streamUrl(vs: VideoSource): string {

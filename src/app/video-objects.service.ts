@@ -5,6 +5,7 @@ import { Observable } from "rxjs/Observable";
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
 import 'rxjs/add/operator/mergeMap';
+import 'rxjs/add/observable/zip';
 import 'rxjs/add/observable/forkJoin';
 import 'rxjs/add/observable/of';
 
@@ -23,9 +24,11 @@ import {
 export class VideoObjectsService {
     constructor(private http: Http){}
     getObjects(): Observable<VideoObjects>{
-        return this.http.get("v1/svc")
-                        .map((res:Response) => VideoObjectsService.extractSvcData(this.http, res))
-                        .mergeMap((vo:VideoObjects) => VideoObjectsService.createAllTracks(this.http, vo));
+        return Observable.zip(
+            this.http.get("v1/svc"), 
+            this.http.get("v1/svc/meta"),
+            (res:Response, resMeta:Response) => VideoObjectsService.extractSvcData(this.http, res, resMeta))
+        .mergeMap((vo:VideoObjects) => VideoObjectsService.createAllTracks(this.http, vo));
     }
     getVideoSource(videoSourceId: string) : Observable<VideoSource> {
         return this.getObjects().map(vo => vo.videoSources.find(vs => vs.name==videoSourceId));
@@ -37,8 +40,9 @@ export class VideoObjectsService {
     getVideoTrack(videoArchiveId: string, videoSourceId: string){
         return this.getVideoArchive(videoArchiveId).map(va => va.videoTracks.find(vt => vt.videoSource.name==videoSourceId));
     }
-    private static extractSvcData(http: Http, res: Response){
+    private static extractSvcData(http: Http, res: Response, resMeta: Response){
         let body=res.json();
+        let bodyMeta=resMeta.json();
         let vo=new VideoObjects();
         let vs=new Array<VideoSource>();
         let va=new Array<VideoArchive>();
@@ -46,13 +50,19 @@ export class VideoObjectsService {
             let [t,n]=tn;
             switch(t){
                 case "VideoSource": {
-                    let s=new VideoSource(n, true);
+                    let s=new VideoSource(n, true, bodyMeta[n]);
                     s.getStreamDetails=http.get("v1/svc/"+n).map(VideoObjectsService.extractLiveStreamDetails);
+                    for(let tn1 of body){
+                        let [t1,n1]=tn1;
+                        if(t1=="SnapshotSource" && n1==n){
+                            s.getSnapshotImage="v1/svc/"+n+"/snapshot";
+                        }
+                    }
                     vs.push(s);
                     break;
                 }
                 case "VideoStorage": {
-                    let x=new VideoArchive(n); 
+                    let x=new VideoArchive(n, bodyMeta[n]); 
                     x.getSummary=function(){
                         return http.get("v1/svc/"+n).map(r => {
                             let s=VideoObjectsService.extractArchiveSummary(r);
@@ -137,7 +147,7 @@ export class VideoObjectsService {
             return x.name==n;
         });
         if(!res){
-            res=new VideoSource(n, false);
+            res=new VideoSource(n, false, null);
             vs.push(res);
         }
         return res;

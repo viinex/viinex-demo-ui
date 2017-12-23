@@ -16,7 +16,7 @@
             </li>
         </ul>
         <ul class="navbar-nav">
-            <li class="nav-item" >
+            <li class="nav-item" *ngIf="isLoginApplicable">
                 <a class="nav-link" routerLinkActive="active" routerLink="/login">{{loginRefLabel}}</a>
             </li>
         </ul>

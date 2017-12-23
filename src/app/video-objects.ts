@@ -1,12 +1,27 @@
 import { Observable } from "rxjs/Observable";
 
 export class VideoSource {
-    constructor(public name:string, public isLive: boolean){
+    constructor(public name:string, public isLive: boolean, public metaData: any){
         this.videoTracks=new Array<VideoTrack>();
+
+        if(null!=metaData){
+            this.displayName = metaData.name;
+            this.description = metaData.desc;
+        }
+        else{
+            this.displayName = name;
+            this.description = null;
+        }
+
+        this.getSnapshotImage=null;
     }
     videoTracks: Array<VideoTrack>;
 
     getStreamDetails: Observable<LiveStreamDetails>;
+    getSnapshotImage: string;
+
+    public readonly displayName : string;
+    public readonly description : string;
 }
 
 export class LiveStreamDetails {
@@ -30,13 +45,25 @@ export class VideoTrackData {
 }
 
 export class VideoArchive {
-    constructor(public name: string){
+    constructor(public name: string, public metaData: any){
         this.videoTracks=new Array<VideoTrack>();
+
+        if(null!=metaData){
+            this.displayName = metaData.name;
+            this.description = metaData.desc;
+        }
+        else{
+            this.displayName = name;
+            this.description = null;
+        }
     }
     videoTracks: Array<VideoTrack>;
 
     getSummary: () => Observable<VideoArchiveSummary>;
     summarySnapshot: VideoArchiveSummary;
+
+    public readonly displayName : string;
+    public readonly description : string;
 }
 
 export class VideoArchiveSummary {

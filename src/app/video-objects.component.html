@@ -6,20 +6,28 @@ and enumerates the functional interfaces implemented by each of them. Feel free 
 the "VideoSource" and "VideoStorage" interfaces.
 <p>
 <h2>Video sources</h2>
-<ul>
-    <li *ngFor="let vs of videoSources">{{vs.name}}
-        <a routerLink="/live-video/{{vs.name}}"><span *ngIf="vs.isLive" class="badge badge-success">Live stream</span></a>
-        <span *ngIf="vs.videoTracks.length>0" class="badge badge-info">In {{vs.videoTracks.length}} archive(s)</span>
-    </li>
-</ul>
-<h2>Video archives</h2>
-<ul>
-    <div *ngIf="videoArchives.length==0">
-        No video archives were set up yet.
+<div class="card-columns">
+    <div *ngFor="let vs of videoSources" class="card">
+        <img *ngIf="videoSources.length &lt;= 16 &amp;&amp; vs.getSnapshotImage != null" 
+            class="card-img-top img-fluid" width="100%"
+            src="{{vs.getSnapshotImage+'?width=160'}}"/>
+        <div class="card-block">
+            <h4>{{vs.displayName}}</h4>
+            <p *ngIf="vs.description != null">{{vs.description}}</p>
+            <a routerLink="/live-video/{{vs.name}}"><span *ngIf="vs.isLive" class="badge badge-success">Live stream</span></a>
+            <span *ngIf="vs.videoTracks.length>0" class="badge badge-info">In {{vs.videoTracks.length}} archive(s)</span>
+        </div>
     </div>
-    <li *ngFor="let va of videoArchives"><a routerLink="/video-archive/{{va.name}}">{{va.name}}</a>:
-        <span *ngIf="va.summarySnapshot!=null">
-            {{gb(va.summarySnapshot.diskUsage)}} used, {{va.summarySnapshot.tracks.size}} track(s)
-        </span>
-    </li>
-</ul>
+</div>
+<div *ngIf="videoArchives.length!=0">
+    <h2>Video archives</h2>
+    <div class="card-group">
+        <div class="card" *ngFor="let va of videoArchives">
+            <div class="card-block" *ngIf="va.summarySnapshot!=null">
+                    <h4><a routerLink="/video-archive/{{va.name}}">{{va.displayName}}</a></h4>
+                    <p *ngIf="va.description != null">{{va.description}}</p>
+                    {{gb(va.summarySnapshot.diskUsage)}} used, {{va.summarySnapshot.tracks.size}} track(s)
+            </div>
+        </div>
+    </div>
+</div>

@@ -21,6 +21,9 @@ export class LoginService {
     public static isServerAccessible(loginStatus : any[]){
         return loginStatus!=null;
     }
+    public static isLoginApplicable(loginStatus : any[]){
+        return loginStatus==null || loginStatus[0] || (loginStatus[1]!=null);
+    }
     public static isLoginRequired(loginStatus : any[]){
         return loginStatus!=null && loginStatus[0];
     }
@@ -74,7 +77,13 @@ export class LoginService {
         var c=this;
         this.http.get("v1/svc").subscribe(
             (res:Response) => { 
-                c.setLoginStatus([false, JSON.parse(atob(Cookies.get('auth'))).user]);
+                var authCookie=Cookies.get('auth');
+                if(null != authCookie){
+                    c.setLoginStatus([false, JSON.parse(atob(authCookie)).user]);
+                }
+                else{
+                    c.setLoginStatus([false, null]);
+                }
                 c.setErrorMessage(null);
             },
             (error: Response) => { c.handleErrorObservable(error); }
