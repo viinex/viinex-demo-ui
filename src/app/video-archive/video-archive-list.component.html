@@ -7,7 +7,8 @@
     </div>
     <ul class="nav nav-pills flex-column">
     <li class="nav-item" *ngFor="let va of videoArchives">
-        <a class="nav-link" routerLink="/video-archive/{{va.name}}" routerLinkActive="active">{{va.name}}</a>
+        <a class="nav-link" routerLink="/video-archive/{{va.name}}" routerLinkActive="active">
+            {{va.displayName}}<small *ngIf="va.displayName != va.name"> ({{va.name}})</small></a>
     </li>
     </ul>
 </div>
@@ -29,9 +30,13 @@
     </div>
     <ul class="nav nav-pills flex-column">
     <li class="nav-item" *ngFor="let vc of selectedArchive.videoTracks">
-        <a class="nav-link" routerLink="./{{vc.videoSource.name}}" routerLinkActive="active">{{vc.videoSource.name}},
-        <br/>{{gb(selectedArchiveSummary.tracks.get(vc.videoSource.name).diskUsage)}},
-        {{formatInterval(vc.videoSource.name)}}
+        <a class="nav-link" routerLink="./{{vc.videoSource.name}}" routerLinkActive="active">
+            <div class="row">
+                <div class="col-md-4"><img src="{{'v1/svc/'+selectedArchive.name+'/'+vc.videoSource.name+'/snapshot?cached=0&amp;width=160'}}" width="100%"/></div>
+                <div class="col-md-8">{{vc.videoSource.displayName}}<small *ngIf="vc.videoSource.displayName != vc.videoSource.name"> ({{vc.videoSource.name}})</small>,
+                    <br/>{{gb(selectedArchiveSummary.tracks.get(vc.videoSource.name).diskUsage)}},
+                    {{formatInterval(vc.videoSource.name)}}</div>
+            </div>
         </a>
         <!--//{{vc.diskUsage/1000000}} MB, {{vc.timeBoundaries[0]}}-{{vc.timeBoundaries[1]}}-->
     </li>
