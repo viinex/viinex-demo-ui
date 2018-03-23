@@ -29,13 +29,13 @@
     "js-cookie": "2.2.0"
   },
   "devDependencies": {
-    "@angular/cli": "^1.5.2",
+    "@angular/cli": "^1.7.3",
     "@angular/compiler-cli": "^4.0.0",
+    "@types/crypto-js": "3.1.38",
     "@types/hls.js": "0.7.0",
     "@types/jasmine": "2.5.38",
-    "@types/node": "~6.0.60",
-    "@types/crypto-js": "3.1.38",
     "@types/js-cookie": "2.1.0",
+    "@types/node": "~6.0.60",
     "codelyzer": "~2.0.0",
     "enhanced-resolve": "3.3.0",
     "jasmine-core": "~2.5.2",
