@@ -105,6 +105,7 @@ export class LiveVideoViewComponent implements OnInit, OnDestroy {
         let video=<HTMLVideoElement>document.createElement("video"); 
         video.controls=this.isAndroid;
         video.autoplay=true;
+        video.setAttribute("playsinline", "true");
         video.setAttribute("width", "100%");
         let source=<HTMLSourceElement>document.createElement("source");
         let streamUrl=this.streamUrl(this.videoSource);
