@@ -3,6 +3,7 @@ import { Observable } from "rxjs/Observable";
 export class VideoSource {
     constructor(public name:string, public isLive: boolean, public metaData: any){
         this.videoTracks=new Array<VideoTrack>();
+        this.webrtcServers=new Array<WebRTCServer>();
 
         if(null!=metaData){
             this.displayName = metaData.name;
@@ -16,6 +17,7 @@ export class VideoSource {
         this.getSnapshotImage=null;
     }
     videoTracks: Array<VideoTrack>;
+    webrtcServers: Array<WebRTCServer>;
 
     getStreamDetails: Observable<LiveStreamDetails>;
     getSnapshotImage: string;
@@ -72,8 +74,32 @@ export class VideoArchiveSummary {
     tracks: Map<string, VideoTrackSummary>;
 }
 
+export class WebRTCServer {
+    constructor(public name: string, public metaData: any){
+        this.videoSources=new Array<VideoSource>();
+
+        if(null!=metaData){
+            this.displayName = metaData.name;
+            this.description = metaData.desc;
+        }
+        else{
+            this.displayName = name;
+            this.description = null;
+        }
+    }
+    videoSources: Array<VideoSource>;
+    public readonly displayName : string;
+    public readonly description : string;
+}
+
+export class WebRTCServerSummary {
+    sessions: number;
+    live: Array<string>;
+}
+
 export class VideoObjects {
     videoSources: Array<VideoSource>;
     videoArchives: Array<VideoArchive>;
+    webrtcServers: Array<WebRTCServer>;
 }
 

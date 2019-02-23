@@ -14,7 +14,8 @@ the "VideoSource" and "VideoStorage" interfaces.
         <div class="card-block">
             <h4>{{vs.displayName}}</h4>
             <p *ngIf="vs.description != null">{{vs.description}}</p>
-            <a routerLink="/live-video/{{vs.name}}"><span *ngIf="vs.isLive" class="badge badge-success">Live stream</span></a>
+            <a *ngIf="vs.isLive" routerLink="/live-video/{{vs.name}}"><span class="badge badge-success">Live (HLS)</span></a>
+            <a *ngIf="vs.webrtcServers.length &gt; 0" routerLink="/rtc-video/{{vs.webrtcServers[0].name}}/{{vs.name}}"><span class="badge badge-info">WebRTC</span></a>
             <span *ngIf="vs.videoTracks.length>0" class="badge badge-info">In {{vs.videoTracks.length}} archive(s)</span>
         </div>
     </div>

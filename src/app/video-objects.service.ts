@@ -17,7 +17,9 @@ import {
     VideoTrack, 
     VideoTrackData, 
     VideoTrackSummary,
-    LiveStreamDetails
+    LiveStreamDetails,
+    WebRTCServer,
+    WebRTCServerSummary
 } from './video-objects'
 
 @Injectable()
@@ -28,6 +30,7 @@ export class VideoObjectsService {
             this.http.get("v1/svc"), 
             this.http.get("v1/svc/meta"),
             (res:Response, resMeta:Response) => VideoObjectsService.extractSvcData(this.http, res, resMeta))
+        .mergeMap((vo:VideoObjects) => VideoObjectsService.linkWebRTCServers(this.http, vo))
         .mergeMap((vo:VideoObjects) => VideoObjectsService.createAllTracks(this.http, vo));
     }
     getVideoSource(videoSourceId: string) : Observable<VideoSource> {
@@ -46,6 +49,7 @@ export class VideoObjectsService {
         let vo=new VideoObjects();
         let vs=new Array<VideoSource>();
         let va=new Array<VideoArchive>();
+        let wr=new Array<WebRTCServer>();
         for(let tn of body){
             let [t,n]=tn;
             switch(t){
@@ -73,10 +77,16 @@ export class VideoObjectsService {
                     va.push(x);
                     break;
                 }
+                case "WebRTC": {
+                    let w = new WebRTCServer(n, bodyMeta[n]);
+                    wr.push(w);
+                    break;
+                }
             }
         }
         vo.videoSources=vs;
         vo.videoArchives=va;
+        vo.webrtcServers=wr;
         return vo;
     }
     private static extractLiveStreamDetails(res: Response){
@@ -152,4 +162,29 @@ export class VideoObjectsService {
         }
         return res;
     }
+
+    private static linkWebRTCServers(http: Http, vo: VideoObjects): Observable<VideoObjects> {
+        if(vo.webrtcServers==null || vo.webrtcServers.length==0){
+            return Observable.of(vo);
+        }
+        return Observable.forkJoin(vo.webrtcServers.map(w => { 
+            return http.get("v1/svc/"+w.name).map((res : Response) => { return <WebRTCServerSummary>res.json(); });
+        })).map(
+            res => {
+                for(let k=0; k<vo.webrtcServers.length; ++k){
+                    let w = vo.webrtcServers[k];
+                    let r = res[k];
+                    r.live.forEach(src => {
+                        let vs = vo.videoSources.find(e => e.name==src);
+                        if(vs){
+                            vs.webrtcServers.push(w);
+                            w.videoSources.push(vs);
+                        }
+                    });
+                }
+                return vo;
+            }
+        );
+    }
+
 }
