@@ -1,4 +1,5 @@
 import { Observable } from "rxjs/Observable";
+import { Http, Response } from '@angular/http';
 
 export class VideoSource {
     constructor(public name:string, public isLive: boolean, public metaData: any){
@@ -75,7 +76,7 @@ export class VideoArchiveSummary {
 }
 
 export class WebRTCServer {
-    constructor(public name: string, public metaData: any){
+    constructor(private http: Http, public name: string, public metaData: any){
         this.videoSources=new Array<VideoSource>();
 
         if(null!=metaData){
@@ -90,6 +91,16 @@ export class WebRTCServer {
     videoSources: Array<VideoSource>;
     public readonly displayName : string;
     public readonly description : string;
+
+    public requestOffer(sessionId: string, videoSource: VideoSource) : Observable<string>{
+        return this.http.put("v1/svc/"+this.name+"/"+sessionId, {live: videoSource.name}).map(res => res.text().replace(/\r\n/g,'\n')+"\n");
+    }
+    public sendAnswer(sessionId: string, sdp: string) : Observable<Response>{
+        return this.http.post("v1/svc/"+this.name+"/"+sessionId+"/answer", sdp);
+    }
+    public dropSession(sessionId: string) : Observable<Response>{
+        return this.http.delete("v1/svc/"+this.name+"/"+sessionId);
+    }
 }
 
 export class WebRTCServerSummary {

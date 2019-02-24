@@ -78,7 +78,7 @@ export class VideoObjectsService {
                     break;
                 }
                 case "WebRTC": {
-                    let w = new WebRTCServer(n, bodyMeta[n]);
+                    let w = new WebRTCServer(http, n, bodyMeta[n]);
                     wr.push(w);
                     break;
                 }
