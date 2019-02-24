@@ -12,6 +12,7 @@ const appRoutes: Routes = [
     { path: 'onvif', component: OnvifDiscoveryComponent, canActivate: [LoginGuardService] },
     { path: 'video-objects', component: VideoObjectsComponent, canActivate: [LoginGuardService] },
     { path: 'live-video', loadChildren: 'app/live-video/live-video.module#LiveVideoModule', canActivate: [LoginGuardService] },
+    { path: 'webrtc-video', loadChildren: 'app/webrtc-video/webrtc-video.module#WebrtcVideoModule', canActivate: [LoginGuardService] },
     { path: 'video-archive', loadChildren: 'app/video-archive/video-archive.module#VideoArchiveModule', canActivate: [LoginGuardService] },
     { path: '', redirectTo: '/video-objects', pathMatch: 'full' },
     { path: '**', component: PageNotFoundComponent }

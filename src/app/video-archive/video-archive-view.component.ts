@@ -193,6 +193,7 @@ export class VideoArchiveViewComponent implements OnInit, OnDestroy{
         let video=<HTMLVideoElement>document.createElement("video"); 
         video.controls=true;
         video.setAttribute("width", "100%");
+        video.setAttribute("playsinline", "true");
         let source=<HTMLSourceElement>document.createElement("source");
         source.src=this.currentStreamUrl;
         video.appendChild(source);
