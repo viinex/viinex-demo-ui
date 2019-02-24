@@ -1,4 +1,4 @@
-import {Component, OnInit, OnDestroy} from '@angular/core';
+import {Component, OnInit, OnDestroy, ChangeDetectorRef} from '@angular/core';
 import {FormsModule} from '@angular/forms';
 
 import { ActivatedRoute,Router }       from '@angular/router';
@@ -20,10 +20,13 @@ export class WebrtcVideoViewComponent implements OnInit, OnDestroy{
     webrtcServer: WebRTCServer;
     videoSource: VideoSource;
 
+    connectionState: string; // to be displayed on the view
+
     private peerConnection : RTCPeerConnection;
     private sessionId : string;
 
-    constructor(private route: ActivatedRoute, private router: Router, private videoObjectsService: VideoObjectsService){
+    constructor(private route: ActivatedRoute, private router: Router, private videoObjectsService: VideoObjectsService, private changeDetector: ChangeDetectorRef){
+        this.connectionState="none";
     }
     ngOnInit(): void {
         this.videoObjectsService.getObjects().subscribe(vo => {
@@ -53,6 +56,7 @@ export class WebrtcVideoViewComponent implements OnInit, OnDestroy{
             this.peerConnection=null;
             this.webrtcServer.dropSession(this.sessionId);
             this.sessionId=null;
+            this.connectionState="none";
         }
     }
 
@@ -64,6 +68,8 @@ export class WebrtcVideoViewComponent implements OnInit, OnDestroy{
         video.controls=true;
         video.setAttribute("width", "100%");
         video.setAttribute("playsinline", "true");
+        video.setAttribute("muted", "true");
+        video.setAttribute("autoplay", "true");
         videoDiv.appendChild(video);
 
         this.sessionId=WebrtcVideoViewComponent.uuidv4();
@@ -102,11 +108,15 @@ export class WebrtcVideoViewComponent implements OnInit, OnDestroy{
             console.log(e.streams[0]);
             video.srcObject=e.streams[0];
             console.log(e.track);
-            //labelElement.innerHTML= e.track.label.id;
             console.log("ice gathering state:", pc.iceGatheringState);
         }
         pc.onsignalingstatechange = e => {
             console.log("signalingState:", pc.signalingState);
+        }
+        pc.oniceconnectionstatechange = (e) => {
+            console.log("RTCPeerConnection.iceConnectionState: ", pc.iceConnectionState);
+            this.connectionState=pc.iceConnectionState;
+            this.changeDetector.detectChanges();
         }
         return pc;
     }
