@@ -1,14 +1,15 @@
 import {Component, OnInit, OnDestroy, ChangeDetectorRef} from '@angular/core';
-import {FormsModule} from '@angular/forms';
 
-import { ActivatedRoute,Router }       from '@angular/router';
+import { ActivatedRoute,Router } from '@angular/router';
 
 import 'rxjs/add/operator/switchMap'
 import 'rxjs/add/operator/mergeMap'
 
+import 'webrtc-adapter'
+//import '@types/webrtc'
+
 import {VideoObjectsService} from '../video-objects.service'
-import {VideoSource,VideoObjects, WebRTCServer} from '../video-objects'
-import { parseCookieValue } from '@angular/common/src/cookie';
+import {VideoSource, WebRTCServer} from '../video-objects'
 
 @Component({
     templateUrl: "webrtc-video-view.component.html"
@@ -88,7 +89,7 @@ export class WebrtcVideoViewComponent implements OnInit, OnDestroy{
             if(e.candidate==null){
                 console.log("last candidate received");
                 console.log(pc.localDescription.sdp);
-                this.webrtcServer.sendAnswer(this.sessionId, pc.localDescription.sdp).subscribe(res => {
+                this.webrtcServer.sendAnswer(this.sessionId, pc.localDescription.sdp).subscribe((res:any) => {
                     if(res.ok){
                         this.errorMessage=null;
                         console.log("ice gathering state:", pc.iceGatheringState);
@@ -103,7 +104,9 @@ export class WebrtcVideoViewComponent implements OnInit, OnDestroy{
                 console.log("next onicecandidate: ", e);
             }
         };
-        pc.ontrack = e => {
+        let pcany = <any>pc;
+        pcany.ontrack = (e : any) => {
+            //let e = <RTCTrackEvent>ev;
             console.log("ontrack event received: ");
             console.log(e.streams[0]);
             video.srcObject=e.streams[0];
