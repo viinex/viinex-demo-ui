@@ -55,7 +55,9 @@ export class WebrtcVideoViewComponent implements OnInit, OnDestroy{
         if(this.peerConnection){
             this.peerConnection.close();
             this.peerConnection=null;
-            this.webrtcServer.dropSession(this.sessionId);
+            this.webrtcServer.dropSession(this.sessionId).subscribe(r => {
+                console.log("Session "+this.sessionId+" dropped");
+            });
             this.sessionId=null;
             this.connectionState="none";
         }
@@ -84,8 +86,14 @@ export class WebrtcVideoViewComponent implements OnInit, OnDestroy{
     }
 
     createPeerConnection(video: HTMLVideoElement) : RTCPeerConnection {
-        let viinexServerSTUN = {urls:"stun:"+location.hostname+":3478"};
-        let pc=new RTCPeerConnection({iceServers:[{urls:"stun:stun.l.google.com:19302"}, viinexServerSTUN]});
+        let iceServers = [];
+        // public Google STUN server
+        iceServers.push({urls:"stun:stun.l.google.com:19302"});
+        // a STUN server enabled at the instance of Viinex we're connecting to
+        if(location.hostname.toLowerCase() != "localhost" && location.hostname != "127.0.0.1"){
+            iceServers.push({urls:"stun:"+location.hostname+":3478"});
+        }
+        let pc=new RTCPeerConnection({iceServers:iceServers});
         pc.onicecandidate = e => {
             if(e.candidate==null){
                 console.log("last candidate received");
