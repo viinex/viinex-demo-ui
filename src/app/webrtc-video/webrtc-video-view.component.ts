@@ -86,14 +86,8 @@ export class WebrtcVideoViewComponent implements OnInit, OnDestroy{
     }
 
     createPeerConnection(video: HTMLVideoElement) : RTCPeerConnection {
-        let iceServers = [];
-        // public Google STUN server
-        iceServers.push({urls:"stun:stun.l.google.com:19302"});
-        // a STUN server enabled at the instance of Viinex we're connecting to
-        if(location.hostname.toLowerCase() != "localhost" && location.hostname != "127.0.0.1"){
-            iceServers.push({urls:"stun:"+location.hostname+":3478"});
-        }
-        let pc=new RTCPeerConnection({iceServers:iceServers});
+        let pc=new RTCPeerConnection({iceServers:this.webrtcServer.iceServers});
+        console.log(this.webrtcServer.iceServers);
         pc.onicecandidate = e => {
             if(e.candidate==null){
                 console.log("last candidate received");

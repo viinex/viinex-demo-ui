@@ -82,6 +82,17 @@ export class WebRTCServer {
         if(null!=metaData){
             this.displayName = metaData.name;
             this.description = metaData.desc;
+
+            this.iceServers=[];
+            if(location.hostname.toLowerCase() != "localhost" && location.hostname != "127.0.0.1" && null != metaData.stunsrv){
+                this.iceServers.push({urls:"stun:"+location.hostname+":"+metaData.stunsrv});
+            }
+            if(null != metaData.stun){
+                for(let ss of metaData.stun){
+                    let [host,port] = ss;
+                    this.iceServers.push({urls:"stun:"+host+":"+port});
+                }
+            }
         }
         else{
             this.displayName = name;
@@ -91,6 +102,8 @@ export class WebRTCServer {
     videoSources: Array<VideoSource>;
     public readonly displayName : string;
     public readonly description : string;
+
+    public readonly iceServers : Array<any>;
 
     public requestOffer(sessionId: string, videoSource: VideoSource) : Observable<string>{
         return this.http.put("v1/svc/"+this.name+"/"+sessionId, {live: videoSource.name}).map(res => res.text().replace(/\r\n/g,'\n')+"\n");
