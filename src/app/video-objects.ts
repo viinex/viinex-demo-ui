@@ -31,6 +31,7 @@ export class LiveStreamDetails {
     lastFrame: Date;
     resolution: [number,number];
     bitrate: number;
+    framerate: number;
 }
 
 export class VideoTrack {

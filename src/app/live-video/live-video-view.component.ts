@@ -17,8 +17,9 @@ import {VideoSource,VideoObjects, LiveStreamDetails} from '../video-objects'
     <div>
     <div id="LiveVideoDiv"></div>
     <div *ngIf="null != streamDetails">
-    Resolution: {{streamDetails.resolution[0]}}x{{streamDetails.resolution[1]}}<br/>
-    Bitrate: {{(streamDetails.bitrate/1000000).toFixed(2)}} Mbps
+    Resolution: {{streamDetails.resolution[0]}}x{{streamDetails.resolution[1]}} |
+    Bitrate: {{(streamDetails.bitrate/1000000).toFixed(2)}} Mbps |
+    Framerate: {{(streamDetails.framerate).toFixed(2)}} fps
     </div>
     <div *ngIf="isOfflineOrStalled" class="alert alert-danger">The stream appears to be offline or stalled</div>
     </div>

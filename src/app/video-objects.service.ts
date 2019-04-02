@@ -93,6 +93,7 @@ export class VideoObjectsService {
         let body=<any>res.json();
         let d=new LiveStreamDetails();
         d.bitrate=body.bitrate;
+        d.framerate=body.framerate;
         d.resolution=body.resolution;
         d.lastFrame=new Date(body.last_frame);
         return d;
