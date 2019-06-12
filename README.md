@@ -7,7 +7,8 @@ This is not a production UI, rather it is intended as an illustration of how Vii
 # license 
 This project (the demo UI, not Viinex backend) is distributed under the terms of MIT license.
 
-Copyright 2019 German Zhyvotnikov
+Copyright (c) 2017-2019, German Zhyvotnikov
+Copyright (c) 2019, Viinex Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
