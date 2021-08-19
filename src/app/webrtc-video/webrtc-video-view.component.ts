@@ -2,8 +2,8 @@ import {Component, OnInit, OnDestroy, ChangeDetectorRef} from '@angular/core';
 
 import { ActivatedRoute,Router } from '@angular/router';
 
-import 'rxjs/add/operator/switchMap'
-import 'rxjs/add/operator/mergeMap'
+import { Observable } from 'rxjs';
+import { switchMap, mergeMap } from 'rxjs/operators';
 
 import 'webrtc-adapter'
 //import '@types/webrtc'

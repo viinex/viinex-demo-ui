@@ -1,13 +1,15 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
+import { LoginGuardService } from '../login-guard.service';
+
 import { LiveVideoComponent } from './live-video.component';
 import { LiveVideoListComponent } from './live-video-list.component';
 import { LiveVideoViewComponent } from './live-video-view.component';
 
 const routes: Routes = [
     { 
-        path: '',
+        path: 'live-video',
         component: LiveVideoComponent,
         children: [
             {
@@ -20,7 +22,8 @@ const routes: Routes = [
                     }
                 ]
             }
-        ]
+        ],
+        canActivate: [LoginGuardService]
     }
 ];
 

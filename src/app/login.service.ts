@@ -98,8 +98,8 @@ export class LoginService {
 
     public login(login : string, password : string){
         this.http.post("v1/authGetChallenge?login="+login, '')
-        .subscribe((res:Response) => {
-            let challenge=<any>res.json();
+        .subscribe((res:Object) => {
+            let challenge=<any>res;
             let secret = challenge.realm ? Crypto.MD5(login + ':' + challenge.realm + ':' + password).toString(Crypto.enc.Hex) : password;
             let responseStr = Crypto.HmacMD5(challenge.challenge, secret).toString(Crypto.enc.Hex);
             let response = {
