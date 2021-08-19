@@ -198,7 +198,7 @@ export class VideoArchiveViewComponent implements OnInit, OnDestroy{
         videoDiv.appendChild(video);
 
         if (Hls.isSupported) {
-            let hls = new Hls();
+            let hls = new Hls({enableWorker:false});
             hls.loadSource(this.currentStreamUrl);
             hls.attachMedia(video);
             hls.on(Hls.Events.MANIFEST_PARSED, function () {
