@@ -1,9 +1,8 @@
 import { Injectable } from '@angular/core';
-import { Http, Response } from '@angular/http';
+import { HttpClient } from '@angular/common/http';
 
-import { Observable } from "rxjs/Observable";
-import 'rxjs/add/operator/map';
-import 'rxjs/add/operator/catch';
+import { Observable } from "rxjs";
+import {map} from 'rxjs/operators';
 
 import {OnvifDevice, 
         OnvifDeviceDetails, 
@@ -15,20 +14,20 @@ import {OnvifDevice,
 
 @Injectable()
 export class OnvifService {
-    constructor(private http: Http){}
+    constructor(private http: HttpClient){}
     getDevices(): Observable<OnvifDevice[]>{
         return this.http.get("v1/env/onvif")
-                        .map(this.extractDiscoveryData);
+                        .pipe(map(this.extractDiscoveryData));
     }
     probeFor(url:string, auth:[string,string]): Observable<any>{
         let req:any=new Object();
         req.url=url;
         req.auth=auth;
         return this.http.post("v1/env/onvif/probe", req)
-                        .map(this.extractProbeData);
+                        .pipe(map(this.extractProbeData));
     }
-    private extractProbeData(res: Response){
-        let body=<any>res.json();
+    private extractProbeData(res: Object){
+        let body=<any>res;
         let r=new OnvifDeviceDetails();
         r.videoSources=new Array<OnvifVideoSourceInfo>();
         r.profiles=new Array<OnvifProfileInfo>();
@@ -42,8 +41,8 @@ export class OnvifService {
         }
         return r;
     }
-    private extractDiscoveryData(res: Response){
-        let body=<any[]>res.json();
+    private extractDiscoveryData(res: Object){
+        let body=<any[]>res;
         return body.map(function(b: any) {
             let o=new OnvifDevice();
             o.hardware=b.scopes.hardware;

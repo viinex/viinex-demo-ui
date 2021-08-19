@@ -3,10 +3,9 @@ import {FormsModule} from '@angular/forms';
 
 import { ActivatedRoute,Router }       from '@angular/router';
 
-import 'rxjs/add/operator/switchMap'
-import 'rxjs/add/operator/mergeMap'
+import {mergeMap} from 'rxjs/operators'
 
-import * as Hls from 'hls.js'
+import Hls from 'hls.js'
 
 import {VideoObjectsService} from '../video-objects.service'
 import {VideoSource,VideoObjects, VideoTrack, VideoTrackData, VideoTrackSummary} from '../video-objects'
@@ -46,14 +45,14 @@ export class VideoArchiveViewComponent implements OnInit, OnDestroy{
         this.isAndroid = /(android)/i.test(navigator.userAgent);
     }
     ngOnInit(): void {
-        this.route.params
-            .mergeMap(params => {
+        this.route.params.pipe(
+            mergeMap(params => {
                 let archId = this.route.parent.snapshot.params["videoArchiveId"];
                 let srcId = params["videoSourceId"];
                 let t=this.videoObjectsService.getVideoTrack(archId, srcId);
                 return t;
-            })
-            .mergeMap(vt => {
+            }),
+            mergeMap(vt => {
                 let oldvt=this.videoTrack;
                 this.videoTrack=vt;
                 if(oldvt!=null && vt !=null){
@@ -68,8 +67,7 @@ export class VideoArchiveViewComponent implements OnInit, OnDestroy{
                     }
                 }
                 return this.videoTrack.getTrackData();
-            })
-            .subscribe(vtd => this.videoTrackData=vtd);
+            })).subscribe(vtd => this.videoTrackData=vtd);
         this.route.queryParams.subscribe(qp => {
             if(qp.begin!=null && qp.end!=null){
                 this.currentInterval=[new Date(+qp.begin), new Date(+qp.end)];

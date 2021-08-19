@@ -1,5 +1,6 @@
-import { Observable } from "rxjs/Observable";
-import { Http, Response } from '@angular/http';
+import { Observable } from "rxjs";
+import { map } from 'rxjs/operators';
+import { HttpClient } from '@angular/common/http';
 
 export class VideoSource {
     constructor(public name:string, public isLive: boolean, public metaData: any){
@@ -77,7 +78,7 @@ export class VideoArchiveSummary {
 }
 
 export class WebRTCServer {
-    constructor(private http: Http, public name: string, public metaData: any){
+    constructor(private http: HttpClient, public name: string, public metaData: any){
         this.videoSources=new Array<VideoSource>();
 
         if(null!=metaData){
@@ -107,12 +108,12 @@ export class WebRTCServer {
     public readonly iceServers : Array<any>;
 
     public requestOffer(sessionId: string, videoSource: VideoSource) : Observable<string>{
-        return this.http.put("v1/svc/"+this.name+"/"+sessionId, {live: videoSource.name}).map(res => res.text().replace(/\r\n/g,'\n')+"\n");
+        return map((res:string) => res.replace(/\r\n/g,'\n')+"\n")(this.http.put<string>("v1/svc/"+this.name+"/"+sessionId, {live: videoSource.name}));
     }
-    public sendAnswer(sessionId: string, sdp: string) : Observable<Response>{
-        return this.http.post("v1/svc/"+this.name+"/"+sessionId+"/answer", sdp);
+    public sendAnswer(sessionId: string, sdp: string) : Observable<Object>{
+        return this.http.post<string>("v1/svc/"+this.name+"/"+sessionId+"/answer", sdp);
     }
-    public dropSession(sessionId: string) : Observable<Response>{
+    public dropSession(sessionId: string) : Observable<Object>{
         return this.http.delete("v1/svc/"+this.name+"/"+sessionId);
     }
 }

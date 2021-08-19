@@ -1,6 +1,6 @@
 import { Injectable, OnInit } from '@angular/core';
-import { Observable } from "rxjs/Observable";
-import 'rxjs/add/operator/map';
+import { Observable } from "rxjs";
+import {map} from 'rxjs/operators';
 
 import { CanActivate, CanActivateChild, Router, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 
@@ -12,7 +12,7 @@ export class LoginGuardService implements CanActivate, OnInit {
     constructor(private loginService: LoginService, private router: Router){}
     
     canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> {
-        return this.loginService.getLoginStatus().map(ls => {
+        return this.loginService.getLoginStatus().pipe(map(ls => {
             if(LoginService.isServerAccessible(ls) && !LoginService.isLoginRequired(ls)){
                 return true;
             }
@@ -20,7 +20,7 @@ export class LoginGuardService implements CanActivate, OnInit {
                 this.router.navigate(['/login']);
                 return false;
             }
-        });
+        }));
     }
 
   ngOnInit(): void {

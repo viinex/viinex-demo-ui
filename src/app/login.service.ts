@@ -1,19 +1,12 @@
 import { Injectable } from '@angular/core';
-import { Http, Response } from '@angular/http';
-
-import { Observable } from "rxjs/Observable";
-import 'rxjs/add/operator/map';
-import 'rxjs/add/operator/catch';
-import 'rxjs/add/operator/shareReplay';
-import 'rxjs/add/operator/mergeMap';
-import 'rxjs/add/observable/forkJoin';
-import 'rxjs/add/observable/of';
-import 'rxjs/add/operator/share';
-
-import { Observer } from 'rxjs/Observer';
+import { Observable, Observer, forkJoin } from "rxjs";
+import { map,shareReplay } from 'rxjs/operators';
 
 import * as Crypto from 'crypto-js';
 import * as Cookies from 'js-cookie';
+
+import jwtDecode, { JwtPayload } from 'jwt-decode'
+import { HttpClient } from '@angular/common/http';
 
 
 @Injectable()
@@ -28,15 +21,15 @@ export class LoginService {
         return loginStatus!=null && loginStatus[0];
     }
 
-    constructor(private http: Http){
+    constructor(private http: HttpClient){
         this.lastLoginStatus=null;
 
         this.loginStatusObservable=Observable.create((o : Observer<any[]>)=>{
             this.loginStatusObserver=o;
-        }).shareReplay(1);
+        }).pipe(shareReplay(1));
         this.errorMessageObservable=Observable.create((o : Observer<string>)=>{
             this.errorMessageObserver=o;
-        }).shareReplay(1);
+        }).pipe(shareReplay(1));
     }
 
     private lastLoginStatus : any[];
@@ -79,7 +72,9 @@ export class LoginService {
             (res:Response) => { 
                 var authCookie=Cookies.get('auth');
                 if(null != authCookie){
-                    c.setLoginStatus([false, JSON.parse(atob(authCookie)).user]);
+                    let d =  jwtDecode<Object>(authCookie);
+                    console.log(d);
+                    c.setLoginStatus([false, d]);
                 }
                 else{
                     c.setLoginStatus([false, null]);

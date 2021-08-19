@@ -2,12 +2,10 @@ import {Component, OnInit, OnDestroy} from '@angular/core';
 
 import { ActivatedRoute,Router }       from '@angular/router';
 
-import { Observable } from "rxjs/Observable";
-import { Subscription } from "rxjs/Subscription";
-import {timer} from 'rxjs/observable/timer'
-import 'rxjs/add/operator/switchMap'
+import { Observable, Subscription, timer } from "rxjs";
+import {switchMap } from 'rxjs/operators';
 
-import * as Hls from 'hls.js'
+import Hls from 'hls.js'
 
 import {VideoObjectsService} from '../video-objects.service'
 import {VideoSource,VideoObjects, LiveStreamDetails} from '../video-objects'
@@ -42,8 +40,8 @@ export class LiveVideoViewComponent implements OnInit, OnDestroy {
         this.isAndroid = /(android)/i.test(navigator.userAgent);
     }
     ngOnInit(): void {
-        this.route.params.switchMap(params => 
-                this.videoObjectsService.getVideoSource(params["videoSourceId"]))
+        this.route.params.pipe(switchMap(params => 
+                this.videoObjectsService.getVideoSource(params["videoSourceId"])))
             .subscribe(vs => { 
                 this.videoSource=vs; 
                 this.startPlayback(); 
@@ -63,7 +61,7 @@ export class LiveVideoViewComponent implements OnInit, OnDestroy {
     subscribeStreamDetails(sdo: Observable<LiveStreamDetails>){
         this.unsubscribe();
         this.streamDetails=null;
-        this.subscription=timer(0, 10000).switchMap(() => sdo).subscribe(d => {
+        this.subscription=timer(0, 10000).pipe(switchMap(() => sdo)).subscribe(d => {
             this.streamDetails=d;
             this.isOfflineOrStalled= (d==null)|| (Math.abs(Date.now()-this.streamDetails.lastFrame.valueOf()) > 20000); // 20 seconds
         }, (error:any) => {

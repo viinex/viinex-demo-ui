@@ -2,9 +2,7 @@ import {Component, OnInit} from '@angular/core';
 import { Router } from '@angular/router';
 
 import {LoginService} from './login.service'
-import { Observable } from 'rxjs/Observable';
-
-import 'rxjs/add/observable/timer';
+import { Observable, timer } from 'rxjs';
 
 @Component({
     selector: 'login',
@@ -39,7 +37,7 @@ export class LoginComponent implements OnInit {
 
     public onLogin(){
         this.loginService.login(this.loginName, this.loginPassword);
-        Observable.timer(1000).subscribe(() => { 
+        timer(1000).subscribe(() => { 
             this.router.navigate(['/']); 
         });
     }

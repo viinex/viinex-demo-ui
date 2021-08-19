@@ -1,13 +1,8 @@
 import { Injectable } from '@angular/core';
-import { Http, Response } from '@angular/http';
+import { HttpClient } from '@angular/common/http';
 
-import { Observable } from "rxjs/Observable";
-import 'rxjs/add/operator/map';
-import 'rxjs/add/operator/catch';
-import 'rxjs/add/operator/mergeMap';
-import 'rxjs/add/observable/zip';
-import 'rxjs/add/observable/forkJoin';
-import 'rxjs/add/observable/of';
+import { Observable, of, forkJoin } from "rxjs";
+import {map, mergeMap} from 'rxjs/operators'
 
 import { 
     VideoObjects, 
@@ -24,28 +19,31 @@ import {
 
 @Injectable()
 export class VideoObjectsService {
-    constructor(private http: Http){}
+    constructor(private http: HttpClient){}
+
     getObjects(): Observable<VideoObjects>{
-        return Observable.zip(
-            this.http.get("v1/svc"), 
-            this.http.get("v1/svc/meta"),
-            (res:Response, resMeta:Response) => VideoObjectsService.extractSvcData(this.http, res, resMeta))
-        .mergeMap((vo:VideoObjects) => VideoObjectsService.linkWebRTCServers(this.http, vo))
-        .mergeMap((vo:VideoObjects) => VideoObjectsService.createAllTracks(this.http, vo));
+        let svcs = forkJoin(
+            [this.http.get("v1/svc"), 
+            this.http.get("v1/svc/meta")]);
+        return svcs.pipe(
+            map(([res,resMeta]) => VideoObjectsService.extractSvcData(this.http, res, resMeta)),
+            mergeMap((vo:VideoObjects) => VideoObjectsService.linkWebRTCServers(this.http, vo)),
+            mergeMap((vo:VideoObjects) => VideoObjectsService.createAllTracks(this.http, vo))
+        );
     }
     getVideoSource(videoSourceId: string) : Observable<VideoSource> {
-        return this.getObjects().map(vo => vo.videoSources.find(vs => vs.name==videoSourceId));
+        return this.getObjects().pipe(map(vo => vo.videoSources.find(vs => vs.name==videoSourceId)));
     }
     getVideoArchive(videoArchiveId: string) : Observable <VideoArchive>
     {
-        return this.getObjects().map(vo => vo.videoArchives.find(va => va.name==videoArchiveId));
+        return this.getObjects().pipe(map(vo => vo.videoArchives.find(va => va.name==videoArchiveId)));
     }
     getVideoTrack(videoArchiveId: string, videoSourceId: string){
-        return this.getVideoArchive(videoArchiveId).map(va => va.videoTracks.find(vt => vt.videoSource.name==videoSourceId));
+        return this.getVideoArchive(videoArchiveId).pipe(map(va => va.videoTracks.find(vt => vt.videoSource.name==videoSourceId)));
     }
-    private static extractSvcData(http: Http, res: Response, resMeta: Response){
-        let body=res.json();
-        let bodyMeta=resMeta.json();
+    private static extractSvcData(http: HttpClient, res: Object, resMeta: Object){
+        let body=res as Array<Array<string>>;
+        let bodyMeta=resMeta;
         let vo=new VideoObjects();
         let vs=new Array<VideoSource>();
         let va=new Array<VideoArchive>();
@@ -55,7 +53,7 @@ export class VideoObjectsService {
             switch(t){
                 case "VideoSource": {
                     let s=new VideoSource(n, true, bodyMeta[n]);
-                    s.getStreamDetails=http.get("v1/svc/"+n).map(VideoObjectsService.extractLiveStreamDetails);
+                    s.getStreamDetails=http.get("v1/svc/"+n).pipe(map(VideoObjectsService.extractLiveStreamDetails));
                     for(let tn1 of body){
                         let [t1,n1]=tn1;
                         if(t1=="SnapshotSource" && n1==n){
@@ -68,11 +66,11 @@ export class VideoObjectsService {
                 case "VideoStorage": {
                     let x=new VideoArchive(n, bodyMeta[n]); 
                     x.getSummary=function(){
-                        return http.get("v1/svc/"+n).map(r => {
+                        return http.get("v1/svc/"+n).pipe(map(r => {
                             let s=VideoObjectsService.extractArchiveSummary(r);
                             x.summarySnapshot=s;
                             return s;
-                        })
+                        }));
                     };
                     va.push(x);
                     break;
@@ -89,31 +87,30 @@ export class VideoObjectsService {
         vo.webrtcServers=wr;
         return vo;
     }
-    private static extractLiveStreamDetails(res: Response){
-        let body=<any>res.json();
+    private static extractLiveStreamDetails(body: Object){
         let d=new LiveStreamDetails();
-        d.bitrate=body.bitrate;
-        d.framerate=body.framerate;
-        d.resolution=body.resolution;
-        d.lastFrame=new Date(body.last_frame);
+        d.bitrate=body["bitrate"];
+        d.framerate=body["framerate"];
+        d.resolution=body["resolution"];
+        d.lastFrame=new Date(body["last_frame"]);
         return d;
     }
-    private static createAllTracks(http: Http, vo: VideoObjects): Observable<VideoObjects> {
+    private static createAllTracks(http: HttpClient, vo: VideoObjects): Observable<VideoObjects> {
         if(vo.videoArchives==null || vo.videoArchives.length==0){
-            return Observable.of(vo);
+            return of(vo);
         }
-        return Observable.forkJoin(vo.videoArchives.map(a => { return a.getSummary() })).map(
+        return forkJoin(vo.videoArchives.map(a => { return a.getSummary() })).pipe(map(
             res => {
                 for(let k=0; k<vo.videoArchives.length; ++k){
                     VideoObjectsService.createTracks(http, vo.videoSources, vo.videoArchives[k], res[k]);
                 }
                 return vo;
             }
-        );
+        ));
     }
 
-    private static extractArchiveSummary(res: Response): VideoArchiveSummary{
-        let body=<any>res.json();
+    private static extractArchiveSummary(res: Object): VideoArchiveSummary{
+        let body=<any>res;
         let vas=new VideoArchiveSummary();
         vas.diskFreeSpace=body.disk_free_space;
         vas.diskUsage=body.disk_usage;
@@ -125,18 +122,18 @@ export class VideoObjectsService {
         }
         return vas;
     }
-    private static createTracks(http: Http, vs:Array<VideoSource>, a: VideoArchive, vas:VideoArchiveSummary){
+    private static createTracks(http: HttpClient, vs:Array<VideoSource>, a: VideoArchive, vas:VideoArchiveSummary){
         vas.tracks.forEach((t: VideoTrackSummary, n:string) => {
             let vsrc=this.lookupOrAddArchiveVideoSource(vs, n);
             let vt=new VideoTrack(vsrc, a);
-            vt.getTrackData=function(){ return http.get("v1/svc/"+a.name+"/"+n).map(VideoObjectsService.extractTrackData) };
+            vt.getTrackData=function(){ return http.get("v1/svc/"+a.name+"/"+n).pipe(map(VideoObjectsService.extractTrackData)); }
             a.videoTracks.push(vt);
             vsrc.videoTracks.push(vt);
         });
     }
 
-    private static extractTrackData(res:Response): VideoTrackData {
-        let body=<any>res.json();
+    private static extractTrackData(res:Object): VideoTrackData {
+        let body=<any>res;
         let td=new VideoTrackData();
         td.summary=new VideoTrackSummary(VideoObjectsService.jsonDateInterval(body.time_boundaries), body.disk_usage);
         td.timeLine=body.timeline!=null?body.timeline.map(VideoObjectsService.jsonDateInterval):null;
@@ -164,14 +161,14 @@ export class VideoObjectsService {
         return res;
     }
 
-    private static linkWebRTCServers(http: Http, vo: VideoObjects): Observable<VideoObjects> {
+    private static linkWebRTCServers(http: HttpClient, vo: VideoObjects): Observable<VideoObjects> {
         if(vo.webrtcServers==null || vo.webrtcServers.length==0){
-            return Observable.of(vo);
+            return of(vo);
         }
-        return Observable.forkJoin(vo.webrtcServers.map(w => { 
-            return http.get("v1/svc/"+w.name).map((res : Response) => { return <WebRTCServerSummary>res.json(); });
-        })).map(
-            res => {
+        let summaries = vo.webrtcServers.map((w: WebRTCServer) => { 
+            return http.get<WebRTCServerSummary>("v1/svc/"+w.name);
+        });
+        return forkJoin(summaries).pipe(map(res => {
                 for(let k=0; k<vo.webrtcServers.length; ++k){
                     let w = vo.webrtcServers[k];
                     let r = res[k];
@@ -184,7 +181,7 @@ export class VideoObjectsService {
                     });
                 }
                 return vo;
-            }
+            })
         );
     }
 
