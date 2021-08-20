@@ -36,9 +36,12 @@ export class LoginComponent implements OnInit {
     }
 
     public onLogin(){
-        this.loginService.login(this.loginName, this.loginPassword);
-        timer(1000).subscribe(() => { 
-            this.router.navigate(['/']); 
+        this.loginService.login(this.loginName, this.loginPassword).subscribe((loggedOn: boolean) => {
+            if(loggedOn){
+                timer(1000).subscribe(() => { 
+                    this.router.navigate(['/']); 
+                });
+            }
         });
     }
     public onLogout(){

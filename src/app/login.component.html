@@ -24,8 +24,9 @@
 
 <div *ngIf="isServerOnline &amp;&amp; !isLoginRequired">
     <div *ngIf="loginName != null">
-        You are logged in as user id {{loginName}}.
-        <br/>
+        <p>
+            You are logged in as user  <b>{{loginName}}</b>.
+        </p>
         <button class="btn btn-primary" (click)="onLogout()">Logout</button>
     </div>
     <div *ngIf="loginName == null">
