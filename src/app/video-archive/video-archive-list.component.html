@@ -1,7 +1,7 @@
 <div class="row">
 <div class="col-md-4">
 <div class="card">
-    <div class="card-block">
+    <div class="card-body">
     <h4 class="card-title">Storage</h4>
     <p class="card-text">Select a video archive to extract video data from. A single video source may be written into multiple video archives.</p>
     </div>
@@ -14,7 +14,7 @@
 </div>
 <br/>
 <div class="card" *ngIf="selectedArchiveSummary != null">
-    <div class="card-block">
+    <div class="card-body">
         <h5>Summary</h5>
         Disk usage: {{gb(selectedArchiveSummary.diskUsage)}}<br/>
         Disk free space: {{gb(selectedArchiveSummary.diskFreeSpace)}} <br/>
@@ -24,7 +24,7 @@
 </div>
 <br/>
 <div class="card" *ngIf="selectedArchive != null">
-    <div class="card-block">
+    <div class="card-body">
     <h4>Video track</h4>
     <p>Select the track - a video source previously written to the archive - to display data from.</p>
     </div>
