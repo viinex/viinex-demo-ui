@@ -26,6 +26,7 @@ import { WebrtcVideoModule } from './webrtc-video/webrtc-video.module';
 import { AppComponent }  from './app.component';
 import { Component } from '@angular/core';
 import { LoginGuardService } from './login-guard.service';
+import { WampClient } from './wamp-client';
 
 
 @NgModule({
@@ -46,7 +47,7 @@ import { LoginGuardService } from './login-guard.service';
                   AppRoutingModule
                 ],
   declarations: [ AppComponent, OnvifDiscoveryComponent, VideoObjectsComponent, PageNotFoundComponent, LoginComponent ],
-  providers:    [ OnvifService, VideoObjectsService, LoginService, LoginGuardService ],
+  providers:    [ OnvifService, VideoObjectsService, LoginService, LoginGuardService, WampClient ],
   bootstrap:    [ AppComponent ]
 })
 export class AppModule { }

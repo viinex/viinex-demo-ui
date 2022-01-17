@@ -16,19 +16,35 @@ import {
     WebRTCServer,
     WebRTCServerSummary
 } from './video-objects'
+import { LoginService } from './login.service';
+import { IViinexRpc } from './viinex-rpc';
+
+function trace(msg : string) {
+    return (o: Observable<any>) => {
+        return o.pipe(map(v => {
+            console.log(msg,v);
+            return v;
+        }));
+    }
+}
+
 
 @Injectable()
 export class VideoObjectsService {
-    constructor(private http: HttpClient){}
+    constructor(private login: LoginService){
+    }
 
     getObjects(): Observable<VideoObjects>{
         let svcs = forkJoin(
-            [this.http.get("v1/svc"), 
-            this.http.get("v1/svc/meta")]);
+            [this.login.rpc.svc(), this.login.rpc.meta()]);
         return svcs.pipe(
-            map(([res,resMeta]) => VideoObjectsService.extractSvcData(this.http, res, resMeta)),
-            mergeMap((vo:VideoObjects) => VideoObjectsService.linkWebRTCServers(this.http, vo)),
-            mergeMap((vo:VideoObjects) => VideoObjectsService.createAllTracks(this.http, vo))
+            trace("TRACE svc meta"),
+            map(([res,resMeta]) => VideoObjectsService.extractSvcData(this.login.rpc, res, resMeta)),
+            trace("TRACE extract svc data"),
+            mergeMap((vo:VideoObjects) => VideoObjectsService.linkWebRTCServers(this.login.rpc, vo)),
+            trace("TRACE link webrtc servers"),
+            mergeMap((vo:VideoObjects) => VideoObjectsService.createAllTracks(this.login.rpc, vo)),
+            trace("TRACE create all tracks")
         );
     }
     getVideoSource(videoSourceId: string) : Observable<VideoSource> {
@@ -41,7 +57,7 @@ export class VideoObjectsService {
     getVideoTrack(videoArchiveId: string, videoSourceId: string){
         return this.getVideoArchive(videoArchiveId).pipe(map(va => va.videoTracks.find(vt => vt.videoSource.name==videoSourceId)));
     }
-    private static extractSvcData(http: HttpClient, res: Object, resMeta: Object){
+    private static extractSvcData(rpc: IViinexRpc, res: Object, resMeta: Object){
         let body=res as Array<Array<string>>;
         let bodyMeta=resMeta;
         let vo=new VideoObjects();
@@ -53,7 +69,7 @@ export class VideoObjectsService {
             switch(t){
                 case "VideoSource": {
                     let s=new VideoSource(n, true, bodyMeta[n]);
-                    s.getStreamDetails=http.get("v1/svc/"+n).pipe(map(VideoObjectsService.extractLiveStreamDetails));
+                    s.getStreamDetails=rpc.liveStreamDetails(n).pipe(map(VideoObjectsService.extractLiveStreamDetails));
                     for(let tn1 of body){
                         let [t1,n1]=tn1;
                         if(t1=="SnapshotSource" && n1==n){
@@ -66,7 +82,7 @@ export class VideoObjectsService {
                 case "VideoStorage": {
                     let x=new VideoArchive(n, bodyMeta[n]); 
                     x.getSummary=function(){
-                        return http.get("v1/svc/"+n).pipe(map(r => {
+                        return rpc.archiveSummary(n).pipe(map(r => {
                             let s=VideoObjectsService.extractArchiveSummary(r);
                             x.summarySnapshot=s;
                             return s;
@@ -76,7 +92,7 @@ export class VideoObjectsService {
                     break;
                 }
                 case "WebRTC": {
-                    let w = new WebRTCServer(http, n, bodyMeta[n]);
+                    let w = new WebRTCServer(rpc, n, bodyMeta[n]);
                     wr.push(w);
                     break;
                 }
@@ -85,6 +101,7 @@ export class VideoObjectsService {
         vo.videoSources=vs;
         vo.videoArchives=va;
         vo.webrtcServers=wr;
+        console.log("extractSvcData returning ", vo);
         return vo;
     }
     private static extractLiveStreamDetails(body: Object){
@@ -95,14 +112,14 @@ export class VideoObjectsService {
         d.lastFrame=new Date(body["last_frame"]);
         return d;
     }
-    private static createAllTracks(http: HttpClient, vo: VideoObjects): Observable<VideoObjects> {
+    private static createAllTracks(rpc: IViinexRpc, vo: VideoObjects): Observable<VideoObjects> {
         if(vo.videoArchives==null || vo.videoArchives.length==0){
             return of(vo);
         }
         return forkJoin(vo.videoArchives.map(a => { return a.getSummary() })).pipe(map(
             res => {
                 for(let k=0; k<vo.videoArchives.length; ++k){
-                    VideoObjectsService.createTracks(http, vo.videoSources, vo.videoArchives[k], res[k]);
+                    VideoObjectsService.createTracks(rpc, vo.videoSources, vo.videoArchives[k], res[k]);
                 }
                 return vo;
             }
@@ -122,11 +139,11 @@ export class VideoObjectsService {
         }
         return vas;
     }
-    private static createTracks(http: HttpClient, vs:Array<VideoSource>, a: VideoArchive, vas:VideoArchiveSummary){
+    private static createTracks(rpc: IViinexRpc, vs:Array<VideoSource>, a: VideoArchive, vas:VideoArchiveSummary){
         vas.tracks.forEach((t: VideoTrackSummary, n:string) => {
             let vsrc=this.lookupOrAddArchiveVideoSource(vs, n);
             let vt=new VideoTrack(vsrc, a);
-            vt.getTrackData=function(){ return http.get("v1/svc/"+a.name+"/"+n).pipe(map(VideoObjectsService.extractTrackData)); }
+            vt.getTrackData=function(){ return rpc.archiveChannelSummary(a.name,n).pipe(map(VideoObjectsService.extractTrackData)); }
             a.videoTracks.push(vt);
             vsrc.videoTracks.push(vt);
         });
@@ -161,19 +178,21 @@ export class VideoObjectsService {
         return res;
     }
 
-    private static linkWebRTCServers(http: HttpClient, vo: VideoObjects): Observable<VideoObjects> {
+    private static linkWebRTCServers(rpc: IViinexRpc, vo: VideoObjects): Observable<VideoObjects> {
         if(vo.webrtcServers==null || vo.webrtcServers.length==0){
             return of(vo);
         }
         let summaries = vo.webrtcServers.map((w: WebRTCServer) => { 
-            return http.get<WebRTCServerSummary>("v1/svc/"+w.name);
+            return rpc.webrtcServerSummary(w.name);
         });
         return forkJoin(summaries).pipe(map(res => {
                 for(let k=0; k<vo.webrtcServers.length; ++k){
                     let w = vo.webrtcServers[k];
                     let r = res[k];
                     r.live.forEach(src => {
+                        console.log(vo.videoSources);
                         let vs = vo.videoSources.find(e => e.name==src);
+                        console.log(src,vs);
                         if(vs){
                             vs.webrtcServers.push(w);
                             w.videoSources.push(vs);

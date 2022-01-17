@@ -6,7 +6,9 @@ import * as Crypto from 'crypto-js';
 import * as Cookies from 'js-cookie';
 
 import jwtDecode, { JwtPayload } from 'jwt-decode'
-import { HttpClient } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http'
+import { WampClient } from './wamp-client'
+import { IViinexRpc, HttpRpc, WampRpc } from './viinex-rpc'
 
 
 @Injectable()
@@ -18,10 +20,10 @@ export class LoginService {
         return loginStatus==null || loginStatus[0] || (loginStatus[1]!=null);
     }
     public static isLoginRequired(loginStatus : any[]){
-        return loginStatus!=null && loginStatus[0];
+        return loginStatus!=null && loginStatus[0]=='http';
     }
 
-    constructor(private http: HttpClient){
+    constructor(private http: HttpClient, private wamp: WampClient){
         this.lastLoginStatus=null;
 
         this.loginStatusObservable=Observable.create((o : Observer<any[]>)=>{
@@ -91,7 +93,11 @@ export class LoginService {
 
     private handleErrorObservable (error: Response) {
         if(error.status==403) {
-            this.setLoginStatus([true, null]); 
+            this.setLoginStatus(['http', null]); 
+            this.setErrorMessage(null);
+        }
+        else if(error.status==404){
+            this.setLoginStatus(['wamp', null]); 
             this.setErrorMessage(null);
         }
         else {
@@ -100,7 +106,45 @@ export class LoginService {
         }
     }
 
-    public login(login : string, password : string){
+    private _rpc : IViinexRpc;
+    public get rpc() : IViinexRpc {
+        return this._rpc;
+    }
+
+    public login(isWamp : boolean, login : string, password : string){
+        if(!isWamp){
+            return this.loginHttp(login, password).pipe(map(v => {
+                if(v){
+                    this._rpc = new HttpRpc(this.http);
+                }
+                else{
+                    this._rpc=null;
+                }
+                return v;
+            }));
+        }
+        else{
+            return this.loginWamp(login, password).pipe(map(v => {
+                if(v){
+                    this._rpc = new WampRpc(this.wamp);
+                }
+                else{
+                    this._rpc=null;
+                }
+                return v;
+            }));
+        }
+    }
+    private loginWamp(login : string, password : string){
+        return this.wamp.connect(login, password).pipe(map(res =>{
+            if(res){
+                console.log("set login status ", res);
+                this.setLoginStatus(['wamp', login]);
+            }
+            return res;
+        }));
+    }
+    private loginHttp(login : string, password : string){
         return this.http.post("v1/authGetChallenge?login="+login, '')
             .pipe(mergeMap(
                 (res:Object) => {

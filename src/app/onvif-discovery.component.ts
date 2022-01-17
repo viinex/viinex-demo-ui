@@ -26,8 +26,9 @@ export class OnvifDiscoveryComponent implements OnInit {
         this.probeAnon=false;
     }
     ngOnInit(): void {
+        let x = this;
         this.onvifService.getDevices().subscribe(
-            devices => this.devices=devices,
+            devices => x.devices=devices,
             error => this.errorMessage=<any>error
         );
     }

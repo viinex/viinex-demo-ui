@@ -11,6 +11,7 @@ import { Observable, timer } from 'rxjs';
 export class LoginComponent implements OnInit {
     isServerOnline: boolean;
     isLoginRequired: boolean;
+    isWamp : boolean;
 
     loginName: string;
     loginPassword: string;
@@ -19,12 +20,19 @@ export class LoginComponent implements OnInit {
 
     constructor(private loginService: LoginService, private router: Router){}
     ngOnInit(): void {
+        this.isWamp = false;
         this.loginService.getLoginStatus().subscribe(
             ls => { 
                 if(null!=ls){
                     this.isServerOnline=true; 
-                    this.isLoginRequired=ls[0]; 
+                    this.isLoginRequired=(ls[0]=='http')||(ls[0]=='wamp'); 
                     this.loginName=ls[1]; 
+                    this.isWamp=ls[0]=='wamp';
+
+                    if(this.isWamp){
+                        this.loginName = 'user42';
+                        this.loginPassword = 'fb434a5d1f40693ed4a3407c64c0e6d3f5df2ceee9f3c5cf6de67f7a818f8a08';
+                    }
                 }
                 else{
                     this.isServerOnline=false;
@@ -36,7 +44,7 @@ export class LoginComponent implements OnInit {
     }
 
     public onLogin(){
-        this.loginService.login(this.loginName, this.loginPassword).subscribe((loggedOn: boolean) => {
+        this.loginService.login(this.isWamp, this.loginName, this.loginPassword).subscribe((loggedOn: boolean) => {
             if(loggedOn){
                 timer(1000).subscribe(() => { 
                     this.router.navigate(['/']); 

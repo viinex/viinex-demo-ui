@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 
 import { Observable } from "rxjs";
 import {map} from 'rxjs/operators';
@@ -11,20 +10,16 @@ import {OnvifDevice,
         OnvifVideoCodecInfo, 
         OnvifVideoSourceInfo 
     } from './onvif-device'
+import { LoginService } from './login.service';
 
 @Injectable()
 export class OnvifService {
-    constructor(private http: HttpClient){}
+    constructor(private login: LoginService){}
     getDevices(): Observable<OnvifDevice[]>{
-        return this.http.get("v1/env/onvif")
-                        .pipe(map(this.extractDiscoveryData));
+        return this.login.rpc.onvifDiscover().pipe(map(this.extractDiscoveryData));
     }
     probeFor(url:string, auth:[string,string]): Observable<any>{
-        let req:any=new Object();
-        req.url=url;
-        req.auth=auth;
-        return this.http.post("v1/env/onvif/probe", req)
-                        .pipe(map(this.extractProbeData));
+        return this.login.rpc.onvifProbe(url, auth).pipe(map(this.extractProbeData));
     }
     private extractProbeData(res: Object){
         let body=<any>res;

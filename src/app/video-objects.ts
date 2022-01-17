@@ -1,6 +1,7 @@
 import { Observable } from "rxjs";
 import { map } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
+import { IViinexRpc } from "./viinex-rpc";
 
 export class VideoSource {
     constructor(public name:string, public isLive: boolean, public metaData: any){
@@ -78,7 +79,7 @@ export class VideoArchiveSummary {
 }
 
 export class WebRTCServer {
-    constructor(private http: HttpClient, public name: string, public metaData: any){
+    constructor(private rpc: IViinexRpc, public name: string, public metaData: any){
         this.videoSources=new Array<VideoSource>();
 
         if(null!=metaData){
@@ -108,14 +109,13 @@ export class WebRTCServer {
     public readonly iceServers : Array<any>;
 
     public requestOffer(sessionId: string, videoSource: VideoSource) : Observable<string>{
-        return this.http.put("v1/svc/"+this.name+"/"+sessionId, 
-            {live: videoSource.name}, {responseType: 'text'}).pipe(map(res => res.replace(/\r\n/g,'\n')+"\n"));
+        return this.rpc.webrtcSessionCreate(this.name, sessionId, {live: videoSource.name}).pipe(map(res => res.replace(/\r\n/g,'\n')+"\n"));
     }
     public sendAnswer(sessionId: string, sdp: string) : Observable<Object>{
-        return this.http.post<Object>("v1/svc/"+this.name+"/"+sessionId+"/answer", sdp);
+        return this.rpc.webrtcSessionAnswer(this.name, sessionId, sdp);
     }
     public dropSession(sessionId: string) : Observable<Object>{
-        return this.http.delete<Object>("v1/svc/"+this.name+"/"+sessionId);
+        return this.rpc.webrtcSessionDrop(this.name, sessionId);
     }
 }
 

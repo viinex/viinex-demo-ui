@@ -3,6 +3,7 @@
         <form class="form">
             <div class="form-group row">
                 <h2 class="col-sm-12">Login is required</h2>
+                <h5 class="col-sm-12" *ngIf='isWamp'>WAMP transport is going to be used</h5>
                 <div class="col-sm-12 alert alert-danger" *ngIf="null!=errorMessage">{{errorMessage}}</div>
             </div>
             <div class="form-group row">
