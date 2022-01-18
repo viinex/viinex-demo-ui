@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { Observable, Observer, of } from "rxjs";
-import { map,shareReplay,concatMap, mergeMap, catchError } from 'rxjs/operators';
+import { Observable, BehaviorSubject, of } from "rxjs";
+import { map, mergeMap, catchError } from 'rxjs/operators';
 
 import * as Crypto from 'crypto-js';
 import * as Cookies from 'js-cookie';
@@ -10,60 +10,67 @@ import { HttpClient } from '@angular/common/http'
 import { WampClient } from './wamp-client'
 import { IViinexRpc, HttpRpc, WampRpc } from './viinex-rpc'
 
+export enum Transport { None = 'none', Http = 'http', Wamp = 'wamp' };
+
+export class LoginStatus {
+    public readonly transport: Transport = null;
+    public readonly anonymous: boolean = true; // if anonymous access *TO VIINEX* is allowed
+    public readonly loginName: string = null;
+    constructor(t: Transport, a: boolean, l?: string){
+        this.transport=t;
+        this.anonymous=a;
+        if(l){
+            this.loginName=l;
+        }
+    }
+    public isServerAccessible(){
+        return this.transport != Transport.None;
+    }
+    public isLoginPageRelevant(){
+        return this.transport!=Transport.None && !(this.transport==Transport.Http && this.anonymous);
+    }
+    public isLoginRequired(){
+        return this.loginName == null &&
+            (   (this.transport==Transport.Wamp) || 
+                (this.transport==Transport.Http && !this.anonymous)
+            );
+    }
+    public isHttp(){
+        return this.transport==Transport.Http;
+    }
+}
 
 @Injectable()
 export class LoginService {
-    public static isServerAccessible(loginStatus : any[]){
-        return loginStatus!=null;
-    }
-    public static isLoginApplicable(loginStatus : any[]){
-        return loginStatus==null || loginStatus[0] || (loginStatus[1]!=null);
-    }
-    public static isLoginRequired(loginStatus : any[]){
-        return loginStatus!=null && loginStatus[0]=='http';
-    }
-
     constructor(private http: HttpClient, private wamp: WampClient){
-        this.lastLoginStatus=null;
-
-        this.loginStatusObservable=Observable.create((o : Observer<any[]>)=>{
-            this.loginStatusObserver=o;
-        }).pipe(shareReplay(1));
-        this.errorMessageObservable=Observable.create((o : Observer<string>)=>{
-            this.errorMessageObserver=o;
-        }).pipe(shareReplay(1));
+        this.lastLoginStatus=new LoginStatus(Transport.None, false);
+        this.loginStatus=new BehaviorSubject(this.lastLoginStatus);
+        this.errorMessage=new BehaviorSubject(null);
     }
 
-    private lastLoginStatus : any[];
+    private lastLoginStatus : LoginStatus;
 
-    private loginStatusObserver : Observer<any[]>;
-    private loginStatusObservable : Observable<any[]>;
+    private loginStatus : BehaviorSubject<LoginStatus>;
+    private errorMessage : BehaviorSubject<string>;
 
-    private errorMessageObserver : Observer<string>;
-    private errorMessageObservable : Observable<string>;
-    
-
-    public getLoginStatus() : Observable<any[]>{
-        return this.loginStatusObservable;
+    public getLoginStatus() : Observable<LoginStatus>{
+        return this.loginStatus.asObservable();
     }
     public getErrorMessage() : Observable<string>{
-        return this.errorMessageObservable;
+        return this.errorMessage.asObservable();
     }
 
-    private setLoginStatus(ls : any[]){
+    private setLoginStatus(ls : LoginStatus){
         this.lastLoginStatus=ls;
-        if(null!=this.loginStatusObserver){
-            this.loginStatusObserver.next(ls);
-        }
+        this.loginStatus.next(ls);
+        console.log("LOGIN STATUS:" , ls, ls.isLoginRequired());
     }
     private setErrorMessage(e : string){
-        if(null!=this.errorMessageObserver){
-            this.errorMessageObserver.next(e);
-        }
+        this.errorMessage.next(e);
     }
 
     public initialCheckLoginStatus() {
-        if(this.lastLoginStatus==null){
+        if(this.lastLoginStatus.transport==Transport.None){
             this.checkLoginStatus();
         }
     }
@@ -74,10 +81,10 @@ export class LoginService {
         if(null != authCookie){
             let d =  jwtDecode<Object>(authCookie);
             console.debug("JWT content:", d);
-            this.setLoginStatus([false, (<any>d).sub]);
+            this.setLoginStatus(new LoginStatus(Transport.Http, false, (<any>d).sub)); // non-anonymous login was allowed over http
         }
         else{
-            this.setLoginStatus([false, null]);
+            this.setLoginStatus(new LoginStatus(Transport.Http, true)); // anonymous login was allowed over http
         }
         this.setErrorMessage(null);
     }
@@ -93,15 +100,15 @@ export class LoginService {
 
     private handleErrorObservable (error: Response) {
         if(error.status==403) {
-            this.setLoginStatus(['http', null]); 
+            this.setLoginStatus(new LoginStatus(Transport.Http, false)); 
             this.setErrorMessage(null);
         }
         else if(error.status==404){
-            this.setLoginStatus(['wamp', null]); 
+            this.setLoginStatus(new LoginStatus(Transport.Wamp, true)); 
             this.setErrorMessage(null);
         }
         else {
-            this.setLoginStatus(null); 
+            this.setLoginStatus(new LoginStatus(Transport.None, false)); 
             this.setErrorMessage(error.toString());
         }
     }
@@ -136,12 +143,13 @@ export class LoginService {
         }
     }
     private loginWamp(login : string, password : string){
-        return this.wamp.connect(login, password).pipe(map(res =>{
-            if(res){
-                console.log("set login status ", res);
-                this.setLoginStatus(['wamp', login]);
-            }
-            return res;
+        return this.wamp.connect(login, password).pipe(map(() =>{
+            this.setLoginStatus(new LoginStatus(Transport.Wamp, true, login));
+            return true;
+        }), catchError((e) => {
+            this.setLoginStatus(new LoginStatus(Transport.Wamp, true));
+            this.setErrorMessage(e);
+            return of(false);
         }));
     }
     private loginHttp(login : string, password : string){
@@ -175,6 +183,11 @@ export class LoginService {
     }
     public logout(){
         Cookies.remove("auth");
+        if(this.rpc){
+            this.rpc.close();
+            this._rpc=null;
+        }
+        this.setLoginStatus(new LoginStatus(Transport.None, false));
         this.checkLoginStatus();
     }
 

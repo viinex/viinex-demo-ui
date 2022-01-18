@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 
 import { Observable, of, forkJoin, throwError } from "rxjs";
 import {map, mergeMap} from 'rxjs/operators'
@@ -32,6 +31,11 @@ function trace(msg : string) {
 @Injectable()
 export class VideoObjectsService {
     constructor(private login: LoginService){
+        login.getLoginStatus().subscribe(ls => {
+            if(ls.isLoginRequired()){
+                this._videoObjects=null;
+            }
+        });
     }
 
     _videoObjects: Observable<VideoObjects>;
@@ -41,8 +45,7 @@ export class VideoObjectsService {
             return throwError("No RPC backend. Login first if you're using WAMP");
         }
         if(null==this._videoObjects){
-            let svcs = forkJoin(
-                [this.login.rpc.svc(), this.login.rpc.meta()]);
+            let svcs = forkJoin([this.login.rpc.svc(), this.login.rpc.meta()]);
             this._videoObjects=svcs.pipe(
                 //trace("TRACE svc meta"),
                 map(([res,resMeta]) => VideoObjectsService.extractSvcData(this.login.rpc, res, resMeta)),

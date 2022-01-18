@@ -21,6 +21,8 @@ export interface IViinexRpc {
 
     archiveSummary(name: string): Observable<Object>;
     archiveChannelSummary(name: string, channel: string): Observable<Object>;
+
+    close(): void;
 }
 
 export class HttpRpc implements IViinexRpc {
@@ -67,6 +69,8 @@ export class HttpRpc implements IViinexRpc {
     archiveChannelSummary(name: string, channel: string): Observable<Object>{
         return this.http.get("v1/svc/"+name+"/"+channel);
     }
+
+    close(){}
 }
 
 export class WampRpc implements IViinexRpc {
@@ -115,4 +119,7 @@ export class WampRpc implements IViinexRpc {
         return this.wamp.call<Object>(this.prefix+name+".channel_summary", [channel]);
     }
 
+    close(): void {
+        this.wamp.close();
+    }
 }

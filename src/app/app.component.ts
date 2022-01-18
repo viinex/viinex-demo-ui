@@ -12,15 +12,17 @@ export class AppComponent implements OnInit {
   isLoginApplicable: boolean;
   isLoginRequired: boolean;
   loginRefLabel: string;
+  isHttpRpc: boolean;
 
   constructor(private loginService: LoginService) { }
 
   ngOnInit(): void {
     this.loginService.getLoginStatus().subscribe(
       ls => {
-        this.isServerOnline = LoginService.isServerAccessible(ls);
-        this.isLoginApplicable = LoginService.isLoginApplicable(ls);
-        this.isLoginRequired = LoginService.isLoginRequired(ls);
+        this.isServerOnline = ls.isServerAccessible();
+        this.isLoginApplicable = ls.isLoginPageRelevant();
+        this.isLoginRequired = ls.isLoginRequired();
+        this.isHttpRpc = ls.isHttp();
         if (this.isLoginRequired) {
           this.loginRefLabel = "Login";
         }

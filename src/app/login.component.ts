@@ -1,7 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import { Router } from '@angular/router';
 
-import {LoginService} from './login.service'
+import {LoginService, LoginStatus, Transport } from './login.service'
 import { Observable, timer } from 'rxjs';
 
 @Component({
@@ -25,9 +25,9 @@ export class LoginComponent implements OnInit {
             ls => { 
                 if(null!=ls){
                     this.isServerOnline=true; 
-                    this.isLoginRequired=(ls[0]=='http')||(ls[0]=='wamp'); 
-                    this.loginName=ls[1]; 
-                    this.isWamp=ls[0]=='wamp';
+                    this.isLoginRequired = ls.isLoginRequired(); 
+                    this.loginName = ls.loginName; 
+                    this.isWamp = ls.transport==Transport.Wamp;
 
                     if(this.isWamp){
                         this.loginName = 'user42';
