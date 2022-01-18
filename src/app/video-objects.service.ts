@@ -84,7 +84,7 @@ export class VideoObjectsService {
                     for(let tn1 of body){
                         let [t1,n1]=tn1;
                         if(t1=="SnapshotSource" && n1==n){
-                            s.getSnapshotImage="v1/svc/"+n+"/snapshot";
+                            s.getSnapshotImage = (spatial: any) => rpc.liveSnapshotImage(n, spatial);
                         }
                     }
                     vs.push(s);
@@ -112,7 +112,6 @@ export class VideoObjectsService {
         vo.videoSources=vs;
         vo.videoArchives=va;
         vo.webrtcServers=wr;
-        console.log("extractSvcData returning ", vo);
         return vo;
     }
     private static extractLiveStreamDetails(body: Object){
@@ -201,9 +200,7 @@ export class VideoObjectsService {
                     let w = vo.webrtcServers[k];
                     let r = res[k];
                     r.live.forEach(src => {
-                        console.log(vo.videoSources);
                         let vs = vo.videoSources.find(e => e.name==src);
-                        console.log(src,vs);
                         if(vs){
                             vs.webrtcServers.push(w);
                             w.videoSources.push(vs);

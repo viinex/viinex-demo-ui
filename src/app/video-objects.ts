@@ -5,7 +5,6 @@ import { IViinexRpc } from "./viinex-rpc";
 
 export class VideoSource {
     constructor(public name:string, public isLive: boolean, public metaData: any){
-        console.log("VIDEO SOURCE CTOR",name,metaData);
         this.videoTracks=new Array<VideoTrack>();
         this.webrtcServers=new Array<WebRTCServer>();
 
@@ -24,7 +23,7 @@ export class VideoSource {
     webrtcServers: Array<WebRTCServer>;
 
     getStreamDetails: Observable<LiveStreamDetails>;
-    getSnapshotImage: string;
+    getSnapshotImage: (spatial: any) => Observable<string>;
 
     public readonly displayName : string;
     public readonly description : string;

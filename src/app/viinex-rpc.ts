@@ -1,4 +1,5 @@
 import { Observable, throwError, of, Subject, from } from "rxjs";
+import {map, share} from "rxjs/operators";
 
 import { HttpClient } from '@angular/common/http';
 import { WampClient } from './wamp-client'
@@ -18,9 +19,11 @@ export interface IViinexRpc {
     webrtcSessionDrop(server: string, peerId: string) : Observable<Object>;
 
     liveStreamDetails(name: string): Observable<Object>;
+    liveSnapshotImage(name: string, spatial: any): Observable<string>;
 
     archiveSummary(name: string): Observable<Object>;
     archiveChannelSummary(name: string, channel: string): Observable<Object>;
+
 
     close(): void;
 }
@@ -62,6 +65,9 @@ export class HttpRpc implements IViinexRpc {
     liveStreamDetails(name: string){
         return this.http.get("v1/svc/"+name);
     }
+    liveSnapshotImage(name: string, spatial: any): Observable<string> {
+        return of("v1/svc/"+name+"/snapshot"+HttpRpc.snapshotRequestParams(null, spatial));
+    }
 
     archiveSummary(name: string){
         return this.http.get("v1/svc/"+name);
@@ -71,6 +77,30 @@ export class HttpRpc implements IViinexRpc {
     }
 
     close(){}
+
+    private static snapshotRequestParams(when: Date, spatial: any): string {
+        let a="";
+        if(when){
+            a="?"+when.toISOString();
+        }
+        if(spatial){
+            if(spatial.scale){
+                a+=a.length?"?":"&";
+                if(Array.isArray(spatial.scale)){
+                    a+="width="+spatial.scale[0]+"&height="+spatial.scale[1];
+                }
+                else{
+                    a+="scale="+spatial.scale;
+                }
+            }
+            if(spatial.roi){
+                a+=a.length?"?":"&";
+                a+="roi=("+spatial.roi[0]+","+spatial.roi[1]+","+spatial.roi[2]+","+spatial.roi[3]+")";
+            }
+        }
+        return a;
+    }
+
 }
 
 export class WampRpc implements IViinexRpc {
@@ -117,6 +147,10 @@ export class WampRpc implements IViinexRpc {
     }
     archiveChannelSummary(name: string, channel: string): Observable<Object>{
         return this.wamp.call<Object>(this.prefix+name+".channel_summary", [channel]);
+    }
+
+    liveSnapshotImage(name: string, spatial: any): Observable<string> {
+        return this.wamp.call<string>(this.prefix+name+".snapshot_base64", [null, spatial]).pipe(map(v => "data:image/jpeg;base64,"+v));
     }
 
     close(): void {

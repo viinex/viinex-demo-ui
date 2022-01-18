@@ -10,12 +10,12 @@ the "VideoSource" and "VideoStorage" interfaces.
     <div *ngFor="let vs of videoSources" class="card">
         <img *ngIf="videoSources.length &lt;= 16 &amp;&amp; vs.getSnapshotImage != null" 
             class="card-img-top img-fluid" width="100%"
-            src="{{vs.getSnapshotImage+'?width=160'}}"
+            src="{{liveSnapshots[vs.name]}}"
             (error)="onSnapshotError($event)" />
         <div class="card-body">
             <h4>{{vs.displayName}}</h4>
             <p *ngIf="vs.description != null">{{vs.description}}</p>
-            <a *ngIf="vs.isLive" routerLink="/live-video/{{vs.name}}"><span class="badge badge-success">Live (HLS)</span>&nbsp;</a>
+            <a *ngIf="isHttp && vs.isLive" routerLink="/live-video/{{vs.name}}"><span class="badge badge-success">Live (HLS)</span>&nbsp;</a>
             <a *ngIf="vs.webrtcServers.length &gt; 0" routerLink="/webrtc-video/{{vs.webrtcServers[0].name}}/{{vs.name}}"><span class="badge badge-info">WebRTC</span>&nbsp;</a>
             <span *ngIf="vs.videoTracks.length>0" class="badge badge-info">In {{vs.videoTracks.length}} archive(s)</span>
         </div>
