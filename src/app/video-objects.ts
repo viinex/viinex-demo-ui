@@ -5,12 +5,13 @@ import { IViinexRpc } from "./viinex-rpc";
 
 export class VideoSource {
     constructor(public name:string, public isLive: boolean, public metaData: any){
+        console.log("VIDEO SOURCE CTOR",name,metaData);
         this.videoTracks=new Array<VideoTrack>();
         this.webrtcServers=new Array<WebRTCServer>();
 
         if(null!=metaData){
             this.displayName = metaData.name;
-            this.description = metaData.desc;
+            this.description = metaData.desc || null ;
         }
         else{
             this.displayName = name;
@@ -83,8 +84,8 @@ export class WebRTCServer {
         this.videoSources=new Array<VideoSource>();
 
         if(null!=metaData){
-            this.displayName = metaData.name;
-            this.description = metaData.desc;
+            this.displayName = metaData.name || name;
+            this.description = metaData.desc || null;
 
             this.iceServers=[];
             if(location.hostname.toLowerCase() != "localhost" && location.hostname != "127.0.0.1" && null != metaData.stunsrv){

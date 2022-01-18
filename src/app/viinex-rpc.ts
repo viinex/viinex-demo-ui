@@ -3,7 +3,6 @@ import { Observable, throwError, of, Subject, from } from "rxjs";
 import { HttpClient } from '@angular/common/http';
 import { WampClient } from './wamp-client'
 import { WebRTCServerSummary } from "./video-objects";
-import { url } from "inspector";
 
 export interface IViinexRpc {
     svc() : Observable<Object>;

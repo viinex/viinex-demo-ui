@@ -1,11 +1,15 @@
-import { Observable, throwError, of, Subject, from } from "rxjs";
+import { Observable, throwError, of, Subject, from, defer } from "rxjs";
+import { Injectable, NgZone } from "@angular/core";
 import * as nacl from 'tweetnacl';
 import * as bb from 'bytebuffer';
 
 import * as autobahn from 'autobahn-browser';
 
+@Injectable()
 export class WampClient {
     connection : autobahn.Connection;
+
+    constructor(private zone: NgZone){}
 
     public connect(login : string, password : string) : Observable<boolean> {
         let res=new Subject<boolean>();
@@ -23,15 +27,16 @@ export class WampClient {
             authmethods: ["cryptosign"],
             authextra: {
                 pubkey: bb.wrap(key.publicKey).toHex()
-            }
+            }, 
+            
         });
         this.connection.onopen = (session, details) => { 
             console.log("WAMP session established, id = ", session.id, details);
-            res.next(true);
+            this.zone.run(() => res.next(true));
         };
         this.connection.onclose = (reason, details) => {
             console.log("WAMP connection closed, reason: ", reason);
-            res.next(false);
+            this.zone.run(() => res.next(false));
             return false;
         }
         this.connection.open();
@@ -42,7 +47,18 @@ export class WampClient {
         if(!s){
             return throwError("WAMP client is not connected");
         }
-        let res=new Subject<T>();
-        return from(s.call(procedure, args).then(v => <T>v));
+
+        // copied from https://github.com/ReactiveX/rxjs/blob/ff5a748b31ee73a6517e2f4220c920c73fbdd1fc/src/internal/observable/innerFrom.ts#L83
+        return new Observable<T>(subscriber => {
+            s.call(procedure, args).then(v => {
+                this.zone.run(() => {
+                    if(!subscriber.closed){
+                        subscriber.next(<T>v);
+                        subscriber.complete();
+                    }
+                });
+            },
+            (err: any) => this.zone.run(() => { subscriber.error(err) }));
+        });
     }
 }
