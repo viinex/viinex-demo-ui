@@ -63,7 +63,6 @@ export class LoginService {
     private setLoginStatus(ls : LoginStatus){
         this.lastLoginStatus=ls;
         this.loginStatus.next(ls);
-        console.log("LOGIN STATUS:" , ls, ls.isLoginRequired());
     }
     private setErrorMessage(e : string){
         this.errorMessage.next(e);
@@ -171,7 +170,7 @@ export class LoginService {
                         return true;
                     }));
                 })).pipe(catchError((err) => {
-                    console.log("Caught error:",err);
+                    console.error("Caught error when logging in via HTTP:",err);
                     if(err.status == 403){
                         this.setErrorMessage("Invalid credentials");
                     }

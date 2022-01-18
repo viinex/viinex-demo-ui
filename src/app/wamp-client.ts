@@ -23,7 +23,6 @@ export class WampClient implements OnDestroy {
             this.connection = new autobahn.Connection({
                 url: "ws://demo.viinex.com:8080/ws",
                 onchallenge: (session: autobahn.Session, method: string, extra: any) => {
-                    console.log("WAMP cryptosign onchallenge ", extra.challenge, key);
                     return bb.wrap(nacl.sign(new Uint8Array(bb.fromHex(extra.challenge).toArrayBuffer()), key.secretKey)).toHex();
                 },
                 realm: "demo1",
@@ -34,7 +33,7 @@ export class WampClient implements OnDestroy {
                 }, 
             });
             this.connection.onopen = (session, details) => { 
-                console.log("WAMP session established, id = ", session.id, details);
+                console.debug("WAMP session established, id = ", session.id, details);
                 // enable autoreconnect
                 this.connection.onclose = (reason, details) => {
                     return false;
@@ -47,7 +46,7 @@ export class WampClient implements OnDestroy {
                 });
             };
             this.connection.onclose = (reason, details) => {
-                console.log("WAMP connection closed, reason: ", reason, details);
+                console.debug("WAMP connection closed, reason: ", reason, details);
                 this.zone.run(() => {
                     if(!subscriber.closed){
                         subscriber.error(reason);
@@ -61,7 +60,7 @@ export class WampClient implements OnDestroy {
     public close() {
         if(this.connection){
             this.connection.onclose = (reason, details) => {
-                console.log("WampClient.close(): WAMP connection closed, ", reason);
+                console.debug("WampClient.close(): WAMP connection closed, ", reason);
                 return true;
             };
             this.connection.close();
@@ -71,7 +70,7 @@ export class WampClient implements OnDestroy {
 
     ngOnDestroy(): void {
         this.close();
-        console.log("WampClient instance destroyed");
+        console.debug("WampClient instance destroyed");
     }
 
     public call<T>(procedure: string, args?: Array<any>) : Observable<T>{

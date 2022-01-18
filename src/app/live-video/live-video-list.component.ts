@@ -20,8 +20,6 @@ export class LiveVideoListComponent implements OnInit {
                 this.videoSources=objs.videoSources.filter(vs => vs.isLive);
             },
             error => {
-                console.log("error");
-                console.log(error);
                 this.errorMessage=<any>error
             }
         );
