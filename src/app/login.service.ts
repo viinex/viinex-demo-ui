@@ -112,8 +112,11 @@ export class LoginService {
         return this.http.get("v1/svc").pipe(map(
             (res:Response) => { 
                 this.setLoginStatusFromCookie();
-            },
-            (error: Response) => { this.handleErrorObservable(error); })
+            }),
+            catchError((error: any, caught: Observable<void>) => { 
+                this.handleErrorObservable(error); 
+                return of<void>(); 
+            })
         );
     }
 
