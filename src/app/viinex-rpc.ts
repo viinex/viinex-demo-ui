@@ -85,7 +85,7 @@ export class HttpRpc implements IViinexRpc {
         }
         if(spatial){
             if(spatial.scale){
-                a+=a.length?"?":"&";
+                a+=a.length?"&":"?";
                 if(Array.isArray(spatial.scale)){
                     a+="width="+spatial.scale[0]+"&height="+spatial.scale[1];
                 }
@@ -94,7 +94,7 @@ export class HttpRpc implements IViinexRpc {
                 }
             }
             if(spatial.roi){
-                a+=a.length?"?":"&";
+                a+=a.length?"&":"?";
                 a+="roi=("+spatial.roi[0]+","+spatial.roi[1]+","+spatial.roi[2]+","+spatial.roi[3]+")";
             }
         }

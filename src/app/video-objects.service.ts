@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 
-import { Observable, of, forkJoin, throwError, BehaviorSubject } from "rxjs";
+import { Observable, of, forkJoin, throwError, ReplaySubject } from "rxjs";
 import {map, mergeMap, shareReplay} from 'rxjs/operators'
 
 import { 
@@ -41,7 +41,7 @@ export class VideoObjectsService {
         });
     }
 
-    private _videoObjects: BehaviorSubject<VideoObjects> = new BehaviorSubject(new VideoObjects());
+    private _videoObjects: ReplaySubject<VideoObjects> = new ReplaySubject(1);
 
     private rebuildVideoObjects(rpc:IViinexRpc){
         let svcs = forkJoin([rpc.svc(), rpc.meta()]);

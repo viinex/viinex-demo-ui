@@ -1,4 +1,4 @@
-import { Observable, throwError, BehaviorSubject } from "rxjs";
+import { Observable, throwError } from "rxjs";
 import { Injectable, NgZone, OnDestroy } from "@angular/core";
 import * as nacl from 'tweetnacl';
 import * as bb from 'bytebuffer';
@@ -16,7 +16,6 @@ export class WampClient implements OnDestroy {
             this.connection.close();
         }
         return new Observable(subscriber => {
-            let res=new BehaviorSubject<boolean>(false);
             let seed = new Uint8Array(bb.fromHex(password).toArrayBuffer());
             let key = nacl.sign.keyPair.fromSeed(seed);
 
