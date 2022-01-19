@@ -17,7 +17,7 @@ export class AppComponent implements OnInit {
   constructor(private loginService: LoginService) { }
 
   ngOnInit(): void {
-    this.loginService.getLoginStatus().subscribe(
+    this.loginService.loginStatus.subscribe(
       ls => {
         this.isServerOnline = ls.isServerAccessible();
         this.isLoginApplicable = ls.isLoginPageRelevant();
@@ -31,6 +31,5 @@ export class AppComponent implements OnInit {
         }
       }
     );
-    this.loginService.initialCheckLoginStatus();
   }
 }

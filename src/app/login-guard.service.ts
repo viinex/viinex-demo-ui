@@ -12,7 +12,7 @@ export class LoginGuardService implements CanActivate, OnInit {
     constructor(private loginService: LoginService, private router: Router){}
     
     canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> {
-        return this.loginService.getLoginStatus().pipe(map(ls => {
+        return this.loginService.loginStatus.pipe(map(ls => {
             if(ls.isServerAccessible() && !ls.isLoginRequired()){
                 return true;
             }
@@ -24,7 +24,6 @@ export class LoginGuardService implements CanActivate, OnInit {
     }
 
   ngOnInit(): void {
-      this.loginService.initialCheckLoginStatus();
   }
   
 } 

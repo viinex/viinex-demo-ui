@@ -23,7 +23,7 @@ export class VideoObjectsComponent implements OnInit {
         this.liveSnapshots={};
     }
     ngOnInit(): void {
-        this.login.getLoginStatus().subscribe(ls => { this.isHttp = ls.isHttp() });
+        this.login.loginStatus.subscribe(ls => { this.isHttp = ls.isHttp() });
         this.videoObjectsService.getObjects().subscribe(
             objs => {
                 this.videoSources=objs.videoSources;

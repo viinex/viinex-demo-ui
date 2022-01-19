@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 
-import { Observable, of, forkJoin, throwError } from "rxjs";
-import {map, mergeMap} from 'rxjs/operators'
+import { Observable, of, forkJoin, throwError, BehaviorSubject } from "rxjs";
+import {map, mergeMap, shareReplay} from 'rxjs/operators'
 
 import { 
     VideoObjects, 
@@ -31,32 +31,33 @@ function trace(msg : string) {
 @Injectable()
 export class VideoObjectsService {
     constructor(private login: LoginService){
-        login.getLoginStatus().subscribe(ls => {
-            if(ls.isLoginRequired()){
-                this._videoObjects=null;
+        login.rpc.subscribe(rpc => {
+            if(rpc==null){
+                this._videoObjects.next(new VideoObjects());
+            }
+            else{
+                this.rebuildVideoObjects(rpc);
             }
         });
     }
 
-    _videoObjects: Observable<VideoObjects>;
+    private _videoObjects: BehaviorSubject<VideoObjects> = new BehaviorSubject(new VideoObjects());
+
+    private rebuildVideoObjects(rpc:IViinexRpc){
+        let svcs = forkJoin([rpc.svc(), rpc.meta()]);
+        svcs.pipe(
+            //trace("TRACE svc meta"),
+            map(([res,resMeta]) => VideoObjectsService.extractSvcData(rpc, res, resMeta)),
+            //trace("TRACE extract svc data"),
+            mergeMap((vo:VideoObjects) => VideoObjectsService.linkWebRTCServers(rpc, vo)),
+            //trace("TRACE link webrtc servers"),
+            mergeMap((vo:VideoObjects) => VideoObjectsService.createAllTracks(rpc, vo)),
+            //trace("TRACE create all tracks")
+        ).subscribe(vo => this._videoObjects.next(vo));
+    }
 
     getObjects(): Observable<VideoObjects>{
-        if(!this.login.rpc){
-            return throwError("No RPC backend. Login first if you're using WAMP");
-        }
-        if(null==this._videoObjects){
-            let svcs = forkJoin([this.login.rpc.svc(), this.login.rpc.meta()]);
-            this._videoObjects=svcs.pipe(
-                //trace("TRACE svc meta"),
-                map(([res,resMeta]) => VideoObjectsService.extractSvcData(this.login.rpc, res, resMeta)),
-                //trace("TRACE extract svc data"),
-                mergeMap((vo:VideoObjects) => VideoObjectsService.linkWebRTCServers(this.login.rpc, vo)),
-                //trace("TRACE link webrtc servers"),
-                mergeMap((vo:VideoObjects) => VideoObjectsService.createAllTracks(this.login.rpc, vo)),
-                //trace("TRACE create all tracks")
-            );
-        }
-        return this._videoObjects;
+        return this._videoObjects.asObservable()
     }
     getVideoSource(videoSourceId: string) : Observable<VideoSource> {
         return this.getObjects().pipe(map(vo => vo.videoSources.find(vs => vs.name==videoSourceId)));

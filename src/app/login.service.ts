@@ -1,5 +1,5 @@
-import { Injectable } from '@angular/core';
-import { Observable, BehaviorSubject, of } from "rxjs";
+import { Injectable, OnInit } from '@angular/core';
+import { Observable, ReplaySubject, of } from "rxjs";
 import { map, mergeMap, catchError } from 'rxjs/operators';
 
 import * as Crypto from 'crypto-js';
@@ -44,33 +44,53 @@ export class LoginStatus {
 export class LoginService {
     constructor(private http: HttpClient, private wamp: WampClient){
         this.lastLoginStatus=new LoginStatus(Transport.None, false);
-        this.loginStatus=new BehaviorSubject(this.lastLoginStatus);
-        this.errorMessage=new BehaviorSubject(null);
+        this._loginStatus=new ReplaySubject(1);
+        this._errorMessage=new ReplaySubject(1);
+        this._rpc=new ReplaySubject(1);
+        console.debug("LoginService ctor");
+        this.initialCheckLoginStatus().subscribe(()=>{
+            console.debug("Login status initialized");
+        });
     }
 
     private lastLoginStatus : LoginStatus;
 
-    private loginStatus : BehaviorSubject<LoginStatus>;
-    private errorMessage : BehaviorSubject<string>;
+    private _loginStatus : ReplaySubject<LoginStatus>;
+    private _errorMessage : ReplaySubject<string>;
 
-    public getLoginStatus() : Observable<LoginStatus>{
-        return this.loginStatus.asObservable();
+    public get loginStatus() : Observable<LoginStatus>{
+        return this._loginStatus.asObservable();
     }
     public getErrorMessage() : Observable<string>{
-        return this.errorMessage.asObservable();
+        return this._errorMessage.asObservable();
     }
 
     private setLoginStatus(ls : LoginStatus){
         this.lastLoginStatus=ls;
-        this.loginStatus.next(ls);
+        this._loginStatus.next(ls);
+        switch(ls.transport){
+            case Transport.Http: 
+                this.setRpc(new HttpRpc(this.http));
+                break;
+            case Transport.Wamp: 
+                this.setRpc(new WampRpc(this.wamp));
+                break;
+            case Transport.None: 
+                this.setRpc(null);
+                break;
+        }
     }
     private setErrorMessage(e : string){
-        this.errorMessage.next(e);
+        this._errorMessage.next(e);
     }
 
-    public initialCheckLoginStatus() {
+    private initialCheckLoginStatus(): Observable<void> {
         if(this.lastLoginStatus.transport==Transport.None){
-            this.checkLoginStatus();
+            console.debug("initial check login status");
+            return this.checkLoginStatus();
+        }
+        else {
+            return of();
         }
     }
 
@@ -88,12 +108,12 @@ export class LoginService {
         this.setErrorMessage(null);
     }
 
-    public checkLoginStatus() {
-        this.http.get("v1/svc").subscribe(
+    private checkLoginStatus(): Observable<void> {
+        return this.http.get("v1/svc").pipe(map(
             (res:Response) => { 
                 this.setLoginStatusFromCookie();
             },
-            (error: Response) => { this.handleErrorObservable(error); }
+            (error: Response) => { this.handleErrorObservable(error); })
         );
     }
 
@@ -112,33 +132,23 @@ export class LoginService {
         }
     }
 
-    private _rpc : IViinexRpc;
-    public get rpc() : IViinexRpc {
-        return this._rpc;
+    private _currentRpc : IViinexRpc = null;
+    private _rpc : ReplaySubject<IViinexRpc>;
+    public get rpc() : Observable<IViinexRpc> {
+        return this._rpc.asObservable();
+    }
+    private setRpc(r: IViinexRpc){
+        console.log("setRpc", r);
+        this._currentRpc=r;
+        this._rpc.next(r);
     }
 
     public login(isWamp : boolean, login : string, password : string){
         if(!isWamp){
-            return this.loginHttp(login, password).pipe(map(v => {
-                if(v){
-                    this._rpc = new HttpRpc(this.http);
-                }
-                else{
-                    this._rpc=null;
-                }
-                return v;
-            }));
+            return this.loginHttp(login, password);
         }
         else{
-            return this.loginWamp(login, password).pipe(map(v => {
-                if(v){
-                    this._rpc = new WampRpc(this.wamp);
-                }
-                else{
-                    this._rpc=null;
-                }
-                return v;
-            }));
+            return this.loginWamp(login, password);
         }
     }
     private loginWamp(login : string, password : string){
@@ -182,12 +192,12 @@ export class LoginService {
     }
     public logout(){
         Cookies.remove("auth");
-        if(this.rpc){
-            this.rpc.close();
-            this._rpc=null;
+        if(this._currentRpc){
+            this._currentRpc.close();
+            this.setRpc(null);
         }
         this.setLoginStatus(new LoginStatus(Transport.None, false));
-        this.checkLoginStatus();
+        return this.checkLoginStatus();
     }
 
 }

@@ -21,8 +21,9 @@ export class LoginComponent implements OnInit {
     constructor(private loginService: LoginService, private router: Router){}
     ngOnInit(): void {
         this.isWamp = false;
-        this.loginService.getLoginStatus().subscribe(
+        this.loginService.loginStatus.subscribe(
             ls => { 
+                console.debug("LoginComponent.ngOnInit");
                 if(null!=ls){
                     this.isServerOnline=true; 
                     this.isLoginRequired = ls.isLoginRequired(); 
@@ -40,7 +41,6 @@ export class LoginComponent implements OnInit {
             }
         );
         this.loginService.getErrorMessage().subscribe(v => { this.errorMessage=v; })
-        this.loginService.initialCheckLoginStatus();
     }
 
     public onLogin(){

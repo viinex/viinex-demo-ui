@@ -125,8 +125,9 @@ export class WebRTCServerSummary {
 }
 
 export class VideoObjects {
-    videoSources: Array<VideoSource>;
-    videoArchives: Array<VideoArchive>;
-    webrtcServers: Array<WebRTCServer>;
+    constructor(){}
+    videoSources: Array<VideoSource> = [];
+    videoArchives: Array<VideoArchive> = [];
+    webrtcServers: Array<WebRTCServer> = [];
 }
 
