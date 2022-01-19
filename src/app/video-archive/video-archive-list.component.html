@@ -3,7 +3,7 @@
 <div class="card">
     <div class="card-body">
     <h4 class="card-title">Storage</h4>
-    <p class="card-text">Select a video archive to extract video data from. A single video source may be written into multiple video archives.</p>
+    <p class="card-text">Select a video archive to extract video data from. </p>
     </div>
     <ul class="nav nav-pills flex-column">
     <li class="nav-item" *ngFor="let va of videoArchives">
@@ -26,7 +26,7 @@
 <div class="card" *ngIf="selectedArchive != null">
     <div class="card-body">
     <h4>Video track</h4>
-    <p>Select the track - a video source previously written to the archive - to display data from.</p>
+    <p>Select the track to display data from.</p>
     </div>
     <ul class="nav nav-pills flex-column">
     <li class="nav-item" *ngFor="let vc of selectedArchive.videoTracks">
