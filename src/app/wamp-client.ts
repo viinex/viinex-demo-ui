@@ -73,7 +73,7 @@ export class WampClient implements OnDestroy {
     }
 
     public call<T>(procedure: string, args?: Array<any>) : Observable<T>{
-        let s=this.connection.session;
+        let s=this.connection?.session;
         if(!s){
             return throwError("WAMP client is not connected");
         }

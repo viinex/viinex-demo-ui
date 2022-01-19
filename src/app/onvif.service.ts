@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 
 import { Observable, throwError } from "rxjs";
-import {map} from 'rxjs/operators';
+import {map, mergeMap} from 'rxjs/operators';
 
 import {OnvifDevice, 
         OnvifDeviceDetails, 
@@ -16,10 +16,10 @@ import { LoginService } from './login.service';
 export class OnvifService {
     constructor(private login: LoginService){}
     getDevices(): Observable<OnvifDevice[]>{
-        return this.login.rpc.pipe(map(rpc => rpc.onvifDiscover()), map(this.extractDiscoveryData));
+        return this.login.rpc.pipe(mergeMap(rpc => rpc.onvifDiscover()), map(this.extractDiscoveryData));
     }
     probeFor(url:string, auth:[string,string]): Observable<any>{
-        return this.login.rpc.pipe(map(rpc => rpc.onvifProbe(url, auth)), map(this.extractProbeData));
+        return this.login.rpc.pipe(mergeMap(rpc => rpc.onvifProbe(url, auth)), map(this.extractProbeData));
     }
     private extractProbeData(res: Object){
         let body=<any>res;

@@ -53,6 +53,8 @@ export class LoginComponent implements OnInit {
         });
     }
     public onLogout(){
-        this.loginService.logout();
+        this.loginService.logout().subscribe(() => {
+            
+        });
     }
 }
