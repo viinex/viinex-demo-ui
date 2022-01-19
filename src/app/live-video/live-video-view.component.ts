@@ -14,8 +14,8 @@ import {VideoSource,VideoObjects, LiveStreamDetails} from '../video-objects'
     template: `
     <div>
     <div id="LiveVideoDiv"></div>
-    <div *ngIf="null != streamDetails">
-    Resolution: {{streamDetails.resolution[0]}}x{{streamDetails.resolution[1]}} |
+    <div *ngIf="streamDetails!=null && streamDetails.resolution!=null">
+    Resolution: {{streamDetails.resolution?" "+streamDetails.resolution[0]+"x"+streamDetails.resolution[1]:""}} |
     Bitrate: {{(streamDetails.bitrate/1000000).toFixed(2)}} Mbps |
     Framerate: {{(streamDetails.framerate).toFixed(2)}} fps
     </div>
