@@ -5,6 +5,7 @@ import {VideoObjectsService} from '../video-objects.service'
 import {VideoArchive,VideoTrack,VideoObjects,VideoArchiveSummary} from '../video-objects'
 
 import {Format} from '../format'
+import { forkJoin } from 'rxjs';
 
 @Component({
     templateUrl: "./video-archive-list.component.html"
@@ -14,6 +15,7 @@ export class VideoArchiveListComponent implements OnInit {
     videoArchives: VideoArchive[];
     selectedArchive: VideoArchive;
     selectedArchiveSummary: VideoArchiveSummary;
+    previewImages: Object;
 
     constructor(private router: Router, 
                 private route: ActivatedRoute,
@@ -31,15 +33,10 @@ export class VideoArchiveListComponent implements OnInit {
                         this.videoArchives=objs.videoArchives;
                         let arch = this.videoArchives.find(va => va.name==archId);
                         if(null!=arch){
-                            arch.getSummary().subscribe(s => { 
-                                    this.selectedArchiveSummary=s;
-                                    this.selectedArchive=arch; // set selected archive only after archive summary was fetched
-                                }
-                            );
+                            this.selectArchive(arch);
                         }
                         else {
-                            this.selectedArchive=null;
-                            this.selectedArchiveSummary=null;
+                            this.selectArchive(null);
                         }
                     },
                     error => this.errorMessage=<any>error
@@ -50,10 +47,27 @@ export class VideoArchiveListComponent implements OnInit {
             }
         });
     }
-    onSelectArchive(va:VideoArchive){
-        this.selectedArchive=va; 
-        //this.selectedArchiveSummary.tracks.
-        //this.router.navigate([vs.name], { relativeTo: this.route })
+    private selectArchive(va:VideoArchive){
+        if(!va){
+            this.selectedArchive=null;
+            this.selectedArchiveSummary=null;
+            this.previewImages=null;
+            return;
+        }
+        va.getSummary().subscribe(s => { 
+            this.selectedArchiveSummary=s;
+            this.selectedArchive=va; // set selected archive only after archive summary was fetched
+            this.previewImages={};
+            forkJoin(this.selectedArchive.videoTracks.map(t => t.getSnapshotImage({cached:0},{width:160}))).subscribe(a => {
+                for(let k=0; k<this.selectedArchive.videoTracks.length; ++k){
+                    this.previewImages[this.selectedArchive.videoTracks[k].videoSource.name]=a[k];
+                }
+            });
+        });
+    }
+
+    onSnapshotError(event: any){
+        event.target.src='./assets/novideo.png';
     }
 
     formatInterval(trackName: string): string {

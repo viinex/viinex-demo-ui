@@ -23,6 +23,7 @@ export interface IViinexRpc {
 
     archiveSummary(name: string): Observable<Object>;
     archiveChannelSummary(name: string, channel: string): Observable<Object>;
+    archiveSnapshotImage(name: string, channel: string, when: any, spatial: any): Observable<string>;
 
 
     close(): void;
@@ -75,13 +76,34 @@ export class HttpRpc implements IViinexRpc {
     archiveChannelSummary(name: string, channel: string): Observable<Object>{
         return this.http.get("v1/svc/"+name+"/"+channel);
     }
+    archiveSnapshotImage(name: string, channel: string, when: any, spatial: any): Observable<string>{
+        return of("v1/svc/"+name+"/"+channel+"/snapshot"+HttpRpc.snapshotRequestParams(when, spatial))
+    }
 
     close(){}
 
-    private static snapshotRequestParams(when: Date, spatial: any): string {
+    private static snapshotTimestamp(when: any): string {
+        if(when !== null){
+            if(when instanceof Date){
+                return "timestamp="+when.toISOString();
+            }
+            else if(when instanceof String){
+                return "timestamp="+when;
+            }
+            else if(!isNaN(+when)){
+                return "cached="+when;
+            }
+            else if('when' in when){
+                return HttpRpc.snapshotTimestamp(when.when);
+            }
+        }
+        return "";
+    }
+    private static snapshotRequestParams(when: any, spatial: any): string {
         let a="";
         if(when){
-            a="?"+when.toISOString();
+            let ts=HttpRpc.snapshotTimestamp(when);
+            a=ts.length?"?"+ts:a;
         }
         if(spatial){
             if(spatial.scale){
@@ -151,6 +173,9 @@ export class WampRpc implements IViinexRpc {
 
     liveSnapshotImage(name: string, spatial: any): Observable<string> {
         return this.wamp.call<string>(this.prefix+name+".snapshot_base64", [null, spatial]).pipe(map(v => "data:image/jpeg;base64,"+v));
+    }
+    archiveSnapshotImage(name: string, channel: string, when: any, spatial: any): Observable<string>{
+        return this.wamp.call<string>(this.prefix+name+".channel_snapshot_base64", [channel,when,spatial]).pipe(map(v => "data:image/jpeg;base64,"+v));
     }
 
     close(): void {

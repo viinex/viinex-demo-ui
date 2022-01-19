@@ -32,7 +32,7 @@
     <li class="nav-item" *ngFor="let vc of selectedArchive.videoTracks">
         <a class="nav-link" routerLink="./{{vc.videoSource.name}}" routerLinkActive="active">
             <div class="row">
-                <div class="col-md-4"><img src="{{'v1/svc/'+selectedArchive.name+'/'+vc.videoSource.name+'/snapshot?cached=0&amp;width=160'}}" width="100%"/></div>
+                <div class="col-md-4"><img src="{{previewImages[vc.videoSource.name]}}" (error)="onSnapshotError($event)" width="100%"/></div>
                 <div class="col-md-8">{{vc.videoSource.displayName}}<small *ngIf="vc.videoSource.displayName != vc.videoSource.name"> ({{vc.videoSource.name}})</small>,
                     <br/>{{gb(selectedArchiveSummary.tracks.get(vc.videoSource.name).diskUsage)}},
                     {{formatInterval(vc.videoSource.name)}}</div>

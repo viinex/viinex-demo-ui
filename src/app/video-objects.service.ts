@@ -154,7 +154,8 @@ export class VideoObjectsService {
         vas.tracks.forEach((t: VideoTrackSummary, n:string) => {
             let vsrc=this.lookupOrAddArchiveVideoSource(vs, n);
             let vt=new VideoTrack(vsrc, a);
-            vt.getTrackData=function(){ return rpc.archiveChannelSummary(a.name,n).pipe(map(VideoObjectsService.extractTrackData)); }
+            vt.getTrackData = () => rpc.archiveChannelSummary(a.name,n).pipe(map(VideoObjectsService.extractTrackData));
+            vt.getSnapshotImage = (temporal,spatial) => rpc.archiveSnapshotImage(a.name, n, temporal, spatial);
             a.videoTracks.push(vt);
             vsrc.videoTracks.push(vt);
         });

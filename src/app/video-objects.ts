@@ -1,4 +1,4 @@
-import { Observable } from "rxjs";
+import { Observable, of } from "rxjs";
 import { map } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 import { IViinexRpc } from "./viinex-rpc";
@@ -37,8 +37,11 @@ export class LiveStreamDetails {
 }
 
 export class VideoTrack {
-    constructor(public videoSource: VideoSource, public videoArchive: VideoArchive){}
+    constructor(public videoSource: VideoSource, public videoArchive: VideoArchive){
+        this.getSnapshotImage = (temporal,spatial) => of("./assets/novideo.png");
+    }
     getTrackData: () => Observable<VideoTrackData>;
+    getSnapshotImage: (temporal: any, spatial: any) => Observable<string>;
 }
 
 export class VideoTrackSummary {
