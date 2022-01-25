@@ -1,15 +1,11 @@
 all: env build
 
-env: ngcli
-	npm install
-
-ngcli: 
-	npm install @angular/cli
-
-NG=node node_modules/@angular/cli/bin/ng
+env:
+	npm update
+	cp autobahn-browser.d.ts node_modules/autobahn-browser/index.d.ts
 
 build:
-	$(NG) build --prod --aot --progress=false
+	npx ng build  --configuration production --progress false
 
 
 
