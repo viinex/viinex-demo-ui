@@ -4,6 +4,10 @@ import { Router } from '@angular/router';
 import {LoginService, LoginStatus, Transport } from './login.service'
 import { Observable, timer } from 'rxjs';
 
+import * as nacl from 'tweetnacl';
+import * as bb from 'bytebuffer';
+import * as sha256 from 'fast-sha256';
+
 @Component({
     selector: 'login',
     templateUrl: './login.component.html'
@@ -11,10 +15,12 @@ import { Observable, timer } from 'rxjs';
 export class LoginComponent implements OnInit {
     isServerOnline: boolean;
     isLoginRequired: boolean;
-    isWamp : boolean;
+    isWamp : boolean = false;
 
-    loginName: string;
-    loginPassword: string;
+    wampUri: string = "";
+    wampRealm: string = "";
+    loginName: string = "";
+    loginPassword: string = "";
 
     errorMessage: string;
 
@@ -31,8 +37,8 @@ export class LoginComponent implements OnInit {
                     this.isWamp = ls.transport==Transport.Wamp;
 
                     if(this.isWamp){
-                        this.loginName = 'user42';
-                        this.loginPassword = 'fb434a5d1f40693ed4a3407c64c0e6d3f5df2ceee9f3c5cf6de67f7a818f8a08';
+                        this.wampUri = "ws://demo.viinex.com:8080/ws";
+                        this.wampRealm = "demo1";
                     }
                 }
                 else{
@@ -44,7 +50,11 @@ export class LoginComponent implements OnInit {
     }
 
     public onLogin(){
-        this.loginService.login(this.isWamp, this.loginName, this.loginPassword).subscribe((loggedOn: boolean) => {
+        let password=this.loginPassword;
+        if(this.isWamp){
+            password=this.privateKeySeedHex(password);
+        }
+        this.loginService.login({login: this.loginName, password: password, isWamp: this.isWamp, uri: this.wampUri, realm: this.wampRealm}).subscribe((loggedOn: boolean) => {
             if(loggedOn){
                 timer(1000).subscribe(() => { 
                     this.router.navigate(['/']); 
@@ -56,5 +66,23 @@ export class LoginComponent implements OnInit {
         this.loginService.logout().subscribe(() => {
             
         });
+    }
+
+    private privateKeySeedHex(password: string) : string {
+        if(password.length==64){
+            return password;
+        }
+        else{
+            let msg = new Uint8Array(bb.fromUTF8(this.loginName+":"+this.wampRealm+":"+this.loginPassword).toArrayBuffer());
+            return bb.wrap(sha256.hash(msg)).toHex();
+        }
+
+    }
+    public publicKey(password: string){
+        let seedHex=this.privateKeySeedHex(password);
+        let seed = new Uint8Array(bb.fromHex(seedHex).toArrayBuffer());
+        let key = nacl.sign.keyPair.fromSeed(seed);
+        return bb.wrap(key.publicKey).toHex();
+
     }
 }

@@ -11,7 +11,7 @@ export class WampClient implements OnDestroy {
 
     constructor(private zone: NgZone){}
 
-    public connect(login : string, password : string) : Observable<void> {
+    public connect(uri: string, realm: string, login : string, password : string) : Observable<void> {
         if(this.connection!=null){
             this.connection.close();
         }
@@ -20,11 +20,11 @@ export class WampClient implements OnDestroy {
             let key = nacl.sign.keyPair.fromSeed(seed);
 
             this.connection = new autobahn.Connection({
-                url: "ws://demo.viinex.com:8080/ws",
+                url: uri,
                 onchallenge: (session: autobahn.Session, method: string, extra: any) => {
                     return bb.wrap(nacl.sign(new Uint8Array(bb.fromHex(extra.challenge).toArrayBuffer()), key.secretKey)).toHex();
                 },
-                realm: "demo1",
+                realm: realm,
                 authid: login,
                 authmethods: ["cryptosign"],
                 authextra: {

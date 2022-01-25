@@ -12,6 +12,14 @@ import { IViinexRpc, HttpRpc, WampRpc } from './viinex-rpc'
 
 export enum Transport { None = 'none', Http = 'http', Wamp = 'wamp' };
 
+export interface LoginParams {
+    login: string,
+    password: string,
+    isWamp: boolean,
+    uri: string,
+    realm: string
+}
+
 export class LoginStatus {
     public readonly transport: Transport = null;
     public readonly anonymous: boolean = true; // if anonymous access *TO VIINEX* is allowed
@@ -146,16 +154,16 @@ export class LoginService {
         this._rpc.next(r);
     }
 
-    public login(isWamp : boolean, login : string, password : string){
+    public login({ login, password, isWamp = false, uri, realm } : LoginParams){
         if(!isWamp){
             return this.loginHttp(login, password);
         }
         else{
-            return this.loginWamp(login, password);
+            return this.loginWamp(uri, realm, login, password);
         }
     }
-    private loginWamp(login : string, password : string){
-        return this.wamp.connect(login, password).pipe(map(() =>{
+    private loginWamp(uri: string, realm: string, login : string, password : string){
+        return this.wamp.connect(uri, realm, login, password).pipe(map(() =>{
             this.setLoginStatus(new LoginStatus(Transport.Wamp, true, login));
             return true;
         }), catchError((e) => {
