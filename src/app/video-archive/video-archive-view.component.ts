@@ -9,6 +9,8 @@ import Hls from 'hls.js'
 
 import {VideoObjectsService} from '../video-objects.service'
 import {VideoSource,VideoObjects, VideoTrack, VideoTrackData, VideoTrackSummary} from '../video-objects'
+import { LoginService, Transport } from '../login.service';
+import { IViinexRpc } from '../viinex-rpc';
 import {Format} from '../format'
 
 const MAX_WINDOW_SIZE_MINUTES=10;
@@ -30,6 +32,9 @@ export class VideoArchiveViewComponent implements OnInit, OnDestroy{
     videoSource: VideoSource;
     readonly isAndroid: boolean;
 
+    isHttp: boolean = false;
+    isWamp: boolean = false;
+
     videoTrack: VideoTrack;
     videoTrackData: VideoTrackData;
 
@@ -41,10 +46,15 @@ export class VideoArchiveViewComponent implements OnInit, OnDestroy{
 
     private hls: Hls; // for destroying the player
 
-    constructor(private route: ActivatedRoute, private router: Router, private videoObjectsService: VideoObjectsService){
+    constructor(private route: ActivatedRoute, private router: Router, private videoObjectsService: VideoObjectsService,
+        private login: LoginService){
         this.isAndroid = /(android)/i.test(navigator.userAgent);
     }
     ngOnInit(): void {
+        this.login.loginStatus.subscribe((ls) => {
+            this.isWamp = ls.transport == Transport.Wamp;
+            this.isHttp = ls.transport == Transport.Http;
+        });
         this.route.params.pipe(
             mergeMap(params => {
                 let archId = this.route.parent.snapshot.params["videoArchiveId"];

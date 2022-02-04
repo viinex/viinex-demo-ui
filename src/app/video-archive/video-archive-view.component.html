@@ -19,11 +19,12 @@
     </div>
     <div class="col-md-7" *ngIf="currentInterval != null">
         <h4>{{formatInterval(currentInterval)}}</h4>
-        <a 
-        href="{{exportUrl(currentInterval, 'isom')}}"
-        class="btn btn-primary" role="button" download target="_blank">Export MP4</a>&nbsp;
-        <a href="{{exportUrl(currentInterval, 'ts')}}"
-        class="btn btn-primary" role="button" download target="_blank">Export MPEG TS</a>
+        <div *ngIf="isHttp">
+            <a href="{{exportUrl(currentInterval, 'isom')}}"
+                class="btn btn-primary" role="button" download target="_blank">Export MP4</a>&nbsp;
+            <a href="{{exportUrl(currentInterval, 'ts')}}"
+                class="btn btn-primary" role="button" download target="_blank">Export MPEG TS</a>
+        </div>
         <div *ngIf="shouldRefine(currentInterval)">
             Please refine a time window within selected interval:
             <div class="dropdown">
@@ -39,4 +40,9 @@
 </div> <!--row-->
 <br/>
 </div>
-<div id="ArchiveVideoDiv"></div>
+<div *ngIf="isHttp" id="ArchiveVideoDiv">
+    HLS playback
+</div>
+<div *ngIf="isWamp" id="WebrtcArchiveVideoDiv">
+    WebRTC playback
+</div>
