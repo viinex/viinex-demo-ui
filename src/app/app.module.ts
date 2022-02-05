@@ -27,6 +27,7 @@ import { AppComponent }  from './app.component';
 import { Component } from '@angular/core';
 import { LoginGuardService } from './login-guard.service';
 import { WampClient } from './wamp-client';
+import { ViewportModule } from './viewport/viewport.module';
 
 
 @NgModule({
@@ -43,6 +44,7 @@ import { WampClient } from './wamp-client';
                   LiveVideoRoutingModule,
                   VideoArchiveRoutingModule,
                   WebrtcVideoRoutingModule,
+                  ViewportModule,
 
                   AppRoutingModule
                 ],

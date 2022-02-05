@@ -7,10 +7,11 @@ import {VideoArchiveRoutingModule} from './video-archive-routing.module'
 import {VideoArchiveListComponent} from './video-archive-list.component'
 import {VideoArchiveViewComponent} from './video-archive-view.component'
 import {VideoArchiveComponent} from './video-archive.component'
+import { ViewportModule } from '../viewport/viewport.module';
 
 
 @NgModule({
-  imports:      [ CommonModule, VideoArchiveRoutingModule, FormsModule ],
+  imports:      [ CommonModule, VideoArchiveRoutingModule, FormsModule, ViewportModule ],
   declarations: [ VideoArchiveComponent, VideoArchiveListComponent, VideoArchiveViewComponent]
 })
 export class VideoArchiveModule { }
