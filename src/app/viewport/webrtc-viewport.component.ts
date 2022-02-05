@@ -1,7 +1,6 @@
-import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild, ChangeDetectorRef, NgZone } from '@angular/core';
+import { Component, ElementRef, Input, OnDestroy, AfterContentInit, ViewChild, ChangeDetectorRef, NgZone } from '@angular/core';
 import { VideoSource, WebRTCServer } from '../video-objects';
 import { VideoObjectsService } from '../video-objects.service';
-import './viewport.component';
 
 @Component({
     selector: 'webrtc-viewport',
@@ -10,11 +9,13 @@ import './viewport.component';
     Connection state is: {{connectionState}}
     `
 })
-export class WebrtcViewportComponent implements OnInit, OnDestroy {
+export class WebrtcViewportComponent implements AfterContentInit, OnDestroy {
     constructor(private videoObjectsService: VideoObjectsService, private changeDetector: ChangeDetectorRef, private zone: NgZone){
         console.log("webrtc viewport component");
     }
-    ngOnInit(): void {
+    ngAfterContentInit(): void {
+        this.clearVideo();
+        this.showVideo();
     }
     ngOnDestroy(): void{
         this.clearVideo();
@@ -133,14 +134,12 @@ export class WebrtcViewportComponent implements OnInit, OnDestroy {
         }
         else {
             console.log("11111SET VIDEO SOURCE ", s);
-            this.clearVideo();
             this._videoSource=<VideoSource>s;
             this.changeDetector.detectChanges();
             console.log("SET VIDEO SOURCE ", this._videoSource);
             if(this._videoSource != null && this._videoSource.webrtcServers.length>0){
                 this.webrtcServer=this._videoSource.webrtcServers[0];
                 console.log("SETTINH WEBRTC SERVER", this.webrtcServer);
-                this.showVideo();
             }
             else {
                 this.webrtcServer=null;
