@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, OnDestroy, AfterContentInit, AfterViewInit, ViewChild, ChangeDetectorRef, NgZone } from '@angular/core';
+import { Component, ElementRef, Input, OnDestroy, AfterContentInit, AfterViewInit, AfterViewChecked, ViewChild, ChangeDetectorRef, NgZone } from '@angular/core';
 import { VideoSource, WebRTCServer } from '../video-objects';
 import { VideoObjectsService } from '../video-objects.service';
 
@@ -9,13 +9,15 @@ import { VideoObjectsService } from '../video-objects.service';
     Connection state is: {{connectionState}}
     `
 })
-export class WebrtcViewportComponent implements AfterViewInit, OnDestroy {
+export class WebrtcViewportComponent implements AfterViewInit, AfterViewChecked, OnDestroy {
     constructor(private videoObjectsService: VideoObjectsService, private changeDetector: ChangeDetectorRef, private zone: NgZone){
         console.log("webrtc viewport component");
     }
     ngAfterViewInit(): void {
-        this.clearVideo();
-        this.showVideo();
+        this.updateMedia();
+    }
+    ngAfterViewChecked(): void {
+        this.updateMedia();
     }
     ngOnDestroy(): void{
         this.clearVideo();
@@ -24,7 +26,7 @@ export class WebrtcViewportComponent implements AfterViewInit, OnDestroy {
     @ViewChild('VideoDiv') videoDiv: ElementRef;
 
     clearVideo(){
-        let videoDiv = <HTMLDivElement>this.videoDiv.nativeElement;
+        let videoDiv = <HTMLDivElement>this.videoDiv?.nativeElement;
         while(videoDiv && videoDiv.firstChild){
             videoDiv.removeChild(videoDiv.firstChild);
         }
@@ -40,7 +42,7 @@ export class WebrtcViewportComponent implements AfterViewInit, OnDestroy {
         }
     }
 
-    showVideo() {
+    initVideo() {
         this.clearVideo();
         let videoDiv = <HTMLDivElement>this.videoDiv.nativeElement;
 
@@ -54,7 +56,7 @@ export class WebrtcViewportComponent implements AfterViewInit, OnDestroy {
 
         this.sessionId=WebrtcViewportComponent.uuidv4();
         this.peerConnection=this.createPeerConnection(video);
-        this.webrtcServer.requestOffer(this.sessionId, this.videoSource).subscribe(
+        this.webrtcServer.requestOffer(this.sessionId, this.makeMediaCommand()).subscribe(
             sdp => {
                 console.log("Got remote offer: ", sdp);
                 this.setRemoteOffer(this.peerConnection, sdp);
@@ -97,7 +99,10 @@ export class WebrtcViewportComponent implements AfterViewInit, OnDestroy {
         }
         pc.oniceconnectionstatechange = (e) => {
             console.log("RTCPeerConnection.iceConnectionState: ", pc.iceConnectionState);
-            this.zone.run(() => {this.connectionState=pc.iceConnectionState;});
+            this.zone.run(() => {
+                this.connectionState=pc.iceConnectionState;
+                this.updateMedia();
+            });
         }
         return pc;
     }
@@ -127,20 +132,103 @@ export class WebrtcViewportComponent implements AfterViewInit, OnDestroy {
         return this._videoSource; 
     }
     set videoSource(s: any){
-        if( typeof s === 'string' || s instanceof String){
-            this.videoObjectsService.getObjects().subscribe(vo => {
-                this.videoSource=vo.videoSources.find(v => v.name == s);
-            });
+        if(typeof s === 'string' || s instanceof String){
+            if(this._videoSource?.name !== s){
+                this.videoObjectsService.getObjects().subscribe(vo => {
+                    this.videoSource=vo.videoSources.find(v => v.name == s);
+                });
+            }
         }
         else {
-            this._videoSource=<VideoSource>s;
-            if(this._videoSource != null && this._videoSource.webrtcServers.length>0){
-                this.webrtcServer=this._videoSource.webrtcServers[0];
-            }
-            else {
-                this.webrtcServer=null;
+            let newVideoSource = <VideoSource>s;
+            if(this._videoSource !== newVideoSource){
+                this.shouldUpdateMedia = true;
+                this._videoSource=<VideoSource>s;
+                if(this._videoSource != null && this._videoSource.webrtcServers.length>0){
+                    let newWebrtcServer = this._videoSource.webrtcServers[0];
+                    if(this.webrtcServer!==newWebrtcServer){
+                        this.clearVideo();
+                        this.webrtcServer=newWebrtcServer;
+                    }
+                }
+                else {
+                    this.clearVideo();
+                    this.webrtcServer=null;
+                }
             }
         }
+    }
+
+    @Input('interval')
+    get interval() { return this._interval; }
+    set interval(i: [Date,Date]){
+        if(this._interval==null && i==null){
+            return;
+        }
+        if(this._interval && i && this._interval[0] == i[0] && this._interval[1] == i[1]){
+            return;
+        }
+        this._interval=i;
+        this.shouldUpdateMedia=true;
+    }
+
+    @Input('speed')
+    get speed() { return this._speed; }
+    set speed(s: Number){
+        if(this._speed==s){
+            return;
+        }
+        this._speed=s;
+        this.shouldUpdateMedia=true;
+    }
+
+    private updateMedia(): void {
+        if(this.peerConnection === null){
+            this.initVideo();
+        }
+        else if(this.peerConnection && this.connectionState==="connected"){
+            if(this.shouldUpdateMedia){
+                if(this.mediaBeingUpdated){
+                    return; // no overlapping updates
+                }
+                this.shouldUpdateMedia=false;
+                this.mediaBeingUpdated = true;
+                this.webrtcServer.updateSession(this.sessionId, this.makeMediaCommand()).subscribe(_ => {
+                    console.log("Media updated for session "+this.sessionId);
+                    this.mediaBeingUpdated = false; // video is not actually updated yet, -- status should be acquired and cookie compared to this.cookie
+                    if(this.shouldUpdateMedia){ // in case if an overlapping update was requested during rpc
+                        this.updateMedia();
+                    }
+                });
+            }
+        }
+    }
+
+    private makeMediaCommand() : Object {
+        this.cookie = this.cookie + 1;
+        if(this._videoSource){
+            if(this._speed == 0){
+                return { command: "stop", cookie: this.cookie };
+            }
+            else{
+                if(this._interval){
+                    return {
+                        command: "play", 
+                        source: this._videoSource.name, 
+                        range: this._interval,
+                        speed: this._speed
+                    };
+                }
+                else{
+                    return {
+                        command: "play", 
+                        source: this._videoSource.name, 
+                        range: "now-"
+                    };
+                }
+            }
+        }
+        return {};
     }
 
     static uuidv4() {
@@ -150,13 +238,20 @@ export class WebrtcViewportComponent implements AfterViewInit, OnDestroy {
         });
       }
 
-    connectionState: string;
-    errorMessage: string;
+    connectionState: string = "none";
+    errorMessage: string = null;
 
-    private peerConnection : RTCPeerConnection;
-    private sessionId : string;
-  
-    private _videoSource: VideoSource;
-    private webrtcServer: WebRTCServer;
+    private peerConnection : RTCPeerConnection = null;
+    private sessionId : string = null;
 
+    private _videoSource: VideoSource = null;
+    private webrtcServer: WebRTCServer = null;
+
+    private _interval: [Date, Date] = null;
+    private _speed: Number = 1.0;
+
+    private cookie: number = 0;
+
+    private shouldUpdateMedia : boolean = false;
+    public mediaBeingUpdated : boolean = false;
 }

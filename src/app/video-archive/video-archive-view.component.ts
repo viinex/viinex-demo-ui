@@ -41,6 +41,7 @@ export class VideoArchiveViewComponent implements OnInit, OnDestroy{
     currentInterval: [Date,Date];
     subintervals: Array<[Date, Date]>;
     refinedInterval: [Date,Date];
+    interval: [Date,Date] = null;
 
     currentStreamUrl: string;
 
@@ -162,9 +163,12 @@ export class VideoArchiveViewComponent implements OnInit, OnDestroy{
             b=new Date(Math.max(rb.valueOf(), b.valueOf()));
             e=new Date(Math.min(re.valueOf(), e.valueOf()));
         }
-        this.currentStreamUrl='v1/svc/' + this.videoTrack.videoArchive.name + "/" + this.videoTrack.videoSource.name + '/stream.m3u8'
-        + '?begin=' + b.valueOf() + '&end=' + e.valueOf();
-        this.showVideo();
+        this.interval = [b,e];
+        if(this.isHttp){
+            this.currentStreamUrl='v1/svc/' + this.videoTrack.videoArchive.name + "/" + this.videoTrack.videoSource.name + '/stream.m3u8'
+            + '?begin=' + b.valueOf() + '&end=' + e.valueOf();
+            this.showVideo();
+        }
     }
 
     exportUrl(interval: [Date,Date], format: string){
