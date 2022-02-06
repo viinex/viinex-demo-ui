@@ -4,10 +4,19 @@ import { VideoObjectsService } from '../video-objects.service';
 
 @Component({
     selector: 'webrtc-viewport',
-    template: `webrtc viewport for {{videoSource?.displayName}}
-    <div #VideoDiv></div>
-    Connection state is: {{connectionState}}
-    `
+    template: `<div><div #VideoDiv></div>
+    <span class="connstatus">&nbsp;{{connectionState}}&nbsp;</span>
+    </div>
+    `,
+    styles: [`span.connstatus { 
+        position: absolute; 
+        top: 10px; right: 40px; 
+        display: block; 
+        background: #888; 
+        color: #00f; 
+        opacity: 0.6; 
+        font-family: monospace; 
+    }`]
 })
 export class WebrtcViewportComponent implements AfterViewInit, AfterViewChecked, OnDestroy {
     constructor(private videoObjectsService: VideoObjectsService, private zone: NgZone){

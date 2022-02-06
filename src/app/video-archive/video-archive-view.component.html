@@ -40,9 +40,9 @@
 </div> <!--row-->
 <br/>
 </div>
-<div *ngIf="isHttp" id="ArchiveVideoDiv">
+<div *ngIf="isHttp && interval" id="ArchiveVideoDiv">
     <hls-viewport [video-source]="videoTrack.videoSource" [interval]="interval"></hls-viewport>
 </div>
-<div *ngIf="isWamp" id="WebrtcArchiveVideoDiv">
+<div *ngIf="isWamp && interval" id="WebrtcArchiveVideoDiv">
     <webrtc-viewport [video-source]="videoTrack.videoSource" [interval]="interval"></webrtc-viewport>
 </div>
