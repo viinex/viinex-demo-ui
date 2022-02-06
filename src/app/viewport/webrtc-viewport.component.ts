@@ -13,7 +13,7 @@ import { VideoObjectsService } from '../video-objects.service';
         top: 10px; right: 40px; 
         display: block; 
         background: #888; 
-        color: #00f; 
+        color: #fff; 
         opacity: 0.6; 
         font-family: monospace; 
     }`]
