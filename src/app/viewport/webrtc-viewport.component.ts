@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, OnDestroy, AfterContentInit, AfterViewInit, AfterViewChecked, ViewChild, ChangeDetectorRef, NgZone } from '@angular/core';
+import { Component, ElementRef, Input, OnDestroy, AfterViewInit, AfterViewChecked, ViewChild, ChangeDetectorRef, NgZone } from '@angular/core';
 import { VideoSource, WebRTCServer } from '../video-objects';
 import { VideoObjectsService } from '../video-objects.service';
 
@@ -10,7 +10,7 @@ import { VideoObjectsService } from '../video-objects.service';
     `
 })
 export class WebrtcViewportComponent implements AfterViewInit, AfterViewChecked, OnDestroy {
-    constructor(private videoObjectsService: VideoObjectsService, private changeDetector: ChangeDetectorRef, private zone: NgZone){
+    constructor(private videoObjectsService: VideoObjectsService, private zone: NgZone){
         console.log("webrtc viewport component");
     }
     ngAfterViewInit(): void {
@@ -49,9 +49,9 @@ export class WebrtcViewportComponent implements AfterViewInit, AfterViewChecked,
         let video=<HTMLVideoElement>document.createElement("video"); 
         video.controls=true;
         video.setAttribute("width", "100%");
-        video.setAttribute("playsinline", "true");
-        video.setAttribute("muted", "true");
-        video.setAttribute("autoplay", "true");
+        video.muted=true;
+        video.autoplay=true;
+        video.playsInline=true;
         videoDiv.appendChild(video);
 
         this.sessionId=WebrtcViewportComponent.uuidv4();
