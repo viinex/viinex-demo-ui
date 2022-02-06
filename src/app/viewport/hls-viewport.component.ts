@@ -10,10 +10,8 @@ import Hls from 'hls.js'
 })
 export class HlsViewportComponent implements AfterViewInit, AfterViewChecked, OnDestroy {
     constructor(private videoObjectsService: VideoObjectsService, private zone: NgZone){
-        this.isAndroid = /(android)/i.test(navigator.userAgent);
-        console.log("hls viewport ctor");
     }
-    readonly isAndroid: boolean;
+
     private hls: Hls;
 
     ngAfterViewInit(): void {
@@ -29,7 +27,6 @@ export class HlsViewportComponent implements AfterViewInit, AfterViewChecked, On
     @ViewChild('VideoDiv') videoDiv: ElementRef;
 
     clearVideo(){
-        console.log("hls viewport clear");
         let videoDiv = <HTMLDivElement>this.videoDiv?.nativeElement;
         while(videoDiv && videoDiv.firstChild){
             videoDiv.removeChild(videoDiv.firstChild);
@@ -38,25 +35,21 @@ export class HlsViewportComponent implements AfterViewInit, AfterViewChecked, On
             let hls=this.hls;
             this.hls=null;
             hls.on(Hls.Events.DESTROYING, function(){
-                //console.log("destroying");
             });
             hls.on(Hls.Events.MEDIA_DETACHED, function(){
-                //console.log("media detached");
             });
             hls.stopLoad(); 
             hls.detachMedia();
             hls.destroy();
-            //console.log(hls);
         }        
     }
 
     initVideo() {
         this.clearVideo();
-        console.log("hls viewport init");
         let videoDiv = <HTMLDivElement>this.videoDiv.nativeElement;
 
         let video=<HTMLVideoElement>document.createElement("video"); 
-        video.controls=this.isAndroid;
+        video.controls=this._interval != null;
         video.setAttribute("width", "100%");
         video.muted=true;
         video.autoplay=true;
@@ -82,7 +75,20 @@ export class HlsViewportComponent implements AfterViewInit, AfterViewChecked, On
     }
     streamUrl(vs: VideoSource): string {
         if(vs!=null){
-            return 'v1/svc/' + vs.name + '/stream.m3u8';
+            if(this._interval){
+                if(vs.videoTracks.length>0){
+                    let t = vs.videoTracks[0];
+                    return "v1/svc/" + t.videoArchive.name + "/" + vs.name + "/stream.m3u8"
+                        + '?begin=' + this._interval[0].valueOf() + '&end=' + this._interval[1].valueOf();
+                }
+                else {
+                    console.error("No video archive for video source",vs.name);
+                    return null;
+                }
+            }
+            else {
+                return 'v1/svc/' + vs.name + '/stream.m3u8';
+            }
         }
         else {
             return "";
@@ -94,7 +100,6 @@ export class HlsViewportComponent implements AfterViewInit, AfterViewChecked, On
         return this._videoSource; 
     }
     set videoSource(s: any){
-        console.log("hls viewport set video source",s);
         if(typeof s === 'string' || s instanceof String){
             if(this._videoSource?.name !== s){
                 this.videoObjectsService.getObjects().subscribe(vo => {

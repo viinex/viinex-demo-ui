@@ -41,9 +41,8 @@
 <br/>
 </div>
 <div *ngIf="isHttp" id="ArchiveVideoDiv">
-    HLS playback
+    <hls-viewport [video-source]="videoTrack.videoSource" [interval]="interval"></hls-viewport>
 </div>
 <div *ngIf="isWamp" id="WebrtcArchiveVideoDiv">
-    WebRTC playback
     <webrtc-viewport [video-source]="videoTrack.videoSource" [interval]="interval"></webrtc-viewport>
 </div>

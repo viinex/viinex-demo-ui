@@ -27,7 +27,7 @@ const MAX_WINDOW_SIZE_MINUTES=10;
     }`
     ]
 })
-export class VideoArchiveViewComponent implements OnInit, OnDestroy{
+export class VideoArchiveViewComponent implements OnInit {
     errorMessage: string;
     videoSource: VideoSource;
     readonly isAndroid: boolean;
@@ -42,10 +42,6 @@ export class VideoArchiveViewComponent implements OnInit, OnDestroy{
     subintervals: Array<[Date, Date]>;
     refinedInterval: [Date,Date];
     interval: [Date,Date] = null;
-
-    currentStreamUrl: string;
-
-    private hls: Hls; // for destroying the player
 
     constructor(private route: ActivatedRoute, private router: Router, private videoObjectsService: VideoObjectsService,
         private login: LoginService){
@@ -69,7 +65,6 @@ export class VideoArchiveViewComponent implements OnInit, OnDestroy{
                 if(oldvt!=null && vt !=null){
                     if(oldvt.videoArchive.name!=vt.videoArchive.name || oldvt.videoSource.name!=vt.videoSource.name){
                         this.currentInterval=null;
-                        this.clearVideo();
                     }
                 }
                 else{
@@ -90,12 +85,9 @@ export class VideoArchiveViewComponent implements OnInit, OnDestroy{
             }
             else{
                 this.currentInterval=null;
-                this.clearVideo();
+                this.interval=null;
             }
         })
-    }
-    ngOnDestroy(): void{
-        this.clearVideo();
     }
 
     formatInterval(x: any): string {
@@ -164,73 +156,11 @@ export class VideoArchiveViewComponent implements OnInit, OnDestroy{
             e=new Date(Math.min(re.valueOf(), e.valueOf()));
         }
         this.interval = [b,e];
-        if(this.isHttp){
-            this.currentStreamUrl='v1/svc/' + this.videoTrack.videoArchive.name + "/" + this.videoTrack.videoSource.name + '/stream.m3u8'
-            + '?begin=' + b.valueOf() + '&end=' + e.valueOf();
-            this.showVideo();
-        }
     }
 
     exportUrl(interval: [Date,Date], format: string){
         return "v1/svc/"+this.videoTrack.videoArchive.name+"/"+
             this.videoTrack.videoSource.name+"/export?format="+format+
             "&begin="+interval[0].valueOf()+"&end="+interval[1].valueOf();
-    }
-
-    clearVideo(){
-        let videoDiv = <HTMLDivElement>document.getElementById("ArchiveVideoDiv");
-        while(videoDiv && videoDiv.firstChild){
-            videoDiv.removeChild(videoDiv.firstChild);
-        }
-        if(this.hls){
-            let hls=this.hls;
-            this.hls=null;
-            hls.on(Hls.Events.DESTROYING, function(){
-                //console.log("destroying");
-            });
-            hls.on(Hls.Events.MEDIA_DETACHED, function(){
-                //console.log("media detached");
-            });
-            hls.stopLoad(); 
-            hls.detachMedia();
-            hls.destroy();
-            //console.log(hls);
-        }        
-    }
-
-    showVideo() {
-        this.clearVideo();
-        let videoDiv = <HTMLDivElement>document.getElementById("ArchiveVideoDiv");
-
-        let video=<HTMLVideoElement>document.createElement("video"); 
-        video.controls=true;
-        video.setAttribute("width", "100%");
-        video.setAttribute("playsinline", "true");
-        let source=<HTMLSourceElement>document.createElement("source");
-        source.src=this.currentStreamUrl;
-        video.appendChild(source);
-        videoDiv.appendChild(video);
-
-        if (Hls.isSupported) {
-            let hls = new Hls({enableWorker:false});
-            hls.loadSource(this.currentStreamUrl);
-            hls.attachMedia(video);
-            hls.on(Hls.Events.MANIFEST_PARSED, function () {
-                //video.play();
-            });
-            this.hls=hls;
-        }
-        else{
-            //this.video.childNodes.item(0).attributes[0]=this.currentStreamUrl;
-            //this.video.currentTime=0;
-        }
-    }
-    streamUrl(vs: VideoSource): string {
-        if(vs!=null){
-            return 'v1/svc/' + vs.name + '/stream.m3u8';
-        }
-        else {
-            return "";
-        }
     }
 }
