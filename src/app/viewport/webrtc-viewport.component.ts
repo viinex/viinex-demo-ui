@@ -4,17 +4,18 @@ import { VideoObjectsService } from '../video-objects.service';
 
 @Component({
     selector: 'webrtc-viewport',
-    template: `<div><div #VideoDiv></div>
-    <span class="connstatus">&nbsp;{{connectionState}}&nbsp;</span>
+    template: `
+    <div style="position: relative;">
+        <div #VideoDiv></div>
+        <span class="connstatus">&nbsp;{{connectionState}}&nbsp;</span>
     </div>
     `,
     styles: [`span.connstatus { 
         position: absolute; 
         top: 10px; right: 40px; 
-        display: block; 
         background: #888; 
         color: #fff; 
-        opacity: 0.6; 
+        opacity: 0.7; 
         font-family: monospace; 
     }`]
 })
