@@ -22,7 +22,7 @@ export interface IViinexRpc {
     liveSnapshotImage(name: string, spatial: any): Observable<string>;
 
     archiveSummary(name: string): Observable<Object>;
-    archiveChannelSummary(name: string, channel: string): Observable<Object>;
+    archiveChannelSummary(name: string, channel: string, interval?: [Date,Date]): Observable<Object>;
     archiveSnapshotImage(name: string, channel: string, when: any, spatial: any): Observable<string>;
 
 
@@ -73,11 +73,20 @@ export class HttpRpc implements IViinexRpc {
     archiveSummary(name: string){
         return this.http.get("v1/svc/"+name);
     }
-    archiveChannelSummary(name: string, channel: string): Observable<Object>{
-        return this.http.get("v1/svc/"+name+"/"+channel);
+    archiveChannelSummary(name: string, channel: string, interval?: [Date,Date]): Observable<Object>{
+        let path="v1/svc/";
+        if(name==null){
+            path=path+channel+"/timeline"
+        }
+        else{
+            path=path+name+"/"+channel;
+        }
+        let query = interval==null?"":"?begin="+interval[0].toISOString()+"&end="+interval[1].toISOString();
+        return this.http.get(path+query);
     }
     archiveSnapshotImage(name: string, channel: string, when: any, spatial: any): Observable<string>{
-        return of("v1/svc/"+name+"/"+channel+"/snapshot"+HttpRpc.snapshotRequestParams(when, spatial))
+        let namep = (name==null) ? "" : name+"/"; // name==null means vms channel
+        return of("v1/svc/"+namep+channel+"/snapshot"+HttpRpc.snapshotRequestParams(when, spatial))
     }
 
     close(){}
@@ -149,36 +158,50 @@ export class WampRpc implements IViinexRpc {
         return this.wamp.call<WebRTCServerSummary>(this.prefix+name+".get_status");
     }
     webrtcSessionCreate(server: string, peerId: string, cmd: Object) : Observable<string>{
-        return this.wamp.call<string>(this.prefix+server+".create_session", [peerId, cmd]);
+        return this.wamp.call<string>(this.prefix+WampRpc.toQuietSnake(server)+".create_session", [peerId, cmd]);
     }
     webrtcSessionAnswer(server: string, peerId: string, sdp: string) : Observable<Object>{
-        return this.wamp.call<Object>(this.prefix+server+".set_answer", [peerId, sdp]);
+        return this.wamp.call<Object>(this.prefix+WampRpc.toQuietSnake(server)+".set_answer", [peerId, sdp]);
     }
     webrtcSessionUpdate(server: string, peerId: string, cmd: Object) : Observable<Object>{
-        return this.wamp.call<Object>(this.prefix+server+".update_session", [peerId, cmd]);
+        return this.wamp.call<Object>(this.prefix+WampRpc.toQuietSnake(server)+".update_session", [peerId, cmd]);
     }
     webrtcSessionDrop(server: string, peerId: string) : Observable<Object>{
-        return this.wamp.call<Object>(this.prefix+server+".drop_session", [peerId]);
+        return this.wamp.call<Object>(this.prefix+WampRpc.toQuietSnake(server)+".drop_session", [peerId]);
     }
 
     liveStreamDetails(name: string){
         return of({});
     }
     archiveSummary(name: string){
-        return this.wamp.call<Object>(this.prefix+name+".summary");
+        return this.wamp.call<Object>(this.prefix+WampRpc.toQuietSnake(name)+".summary");
     }
-    archiveChannelSummary(name: string, channel: string): Observable<Object>{
-        return this.wamp.call<Object>(this.prefix+name+".channel_summary", [channel]);
+    archiveChannelSummary(name: string, channel: string, interval?: [Date,Date]): Observable<Object>{
+        if(name!=null){ // call to video archive
+            return this.wamp.call<Object>(this.prefix+WampRpc.toQuietSnake(name)+".video_storage.channel_summary", [channel, interval]);
+        }
+        else{ // call to vms channel
+            return this.wamp.call<Object>(this.prefix+WampRpc.toQuietSnake(channel)+".timeline_provider.timeline", [interval]);
+        }
     }
 
     liveSnapshotImage(name: string, spatial: any): Observable<string> {
-        return this.wamp.call<string>(this.prefix+name+".snapshot_base64", [null, spatial]).pipe(map(v => "data:image/jpeg;base64,"+v));
+        return this.wamp.call<string>(this.prefix+WampRpc.toQuietSnake(name)+".snapshot_base64", [null, spatial]).pipe(map(v => "data:image/jpeg;base64,"+v));
     }
     archiveSnapshotImage(name: string, channel: string, when: any, spatial: any): Observable<string>{
-        return this.wamp.call<string>(this.prefix+name+".channel_snapshot_base64", [channel,when,spatial]).pipe(map(v => "data:image/jpeg;base64,"+v));
+        if(name!=null){ // name!=null means call to video archive
+            return this.wamp.call<string>(this.prefix+WampRpc.toQuietSnake(name)+".video_storage.channel_snapshot_base64", [channel,when,spatial]).pipe(map(v => "data:image/jpeg;base64,"+v));
+        }
+        else{ //otherwise it's call to vms channel
+            return this.wamp.call<string>(this.prefix+WampRpc.toQuietSnake(channel)+".snapshot_source.snapshot_base64", [when, spatial]).pipe(map(v => "data:image/jpeg;base64,"+v));
+        }
     }
 
     close(): void {
         this.wamp.close();
+    }
+
+    private static toQuietSnake(name: string) : string{
+        return name; // todo: fix this
     }
 }

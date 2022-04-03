@@ -34,6 +34,7 @@ export class VideoArchiveViewComponent implements OnInit {
 
     isHttp: boolean = false;
     isWamp: boolean = false;
+    isNativeArchive = false;
 
     videoTrack: VideoTrack;
     videoTrackData: VideoTrackData;
@@ -55,6 +56,13 @@ export class VideoArchiveViewComponent implements OnInit {
         this.route.params.pipe(
             mergeMap(params => {
                 let archId = this.route.parent.snapshot.params["videoArchiveId"];
+                if(archId=="vms__external"){
+                    archId=null;
+                    this.isNativeArchive=false;
+                }
+                else{
+                    this.isNativeArchive=true;
+                }
                 let srcId = params["videoSourceId"];
                 let t=this.videoObjectsService.getVideoTrack(archId, srcId);
                 return t;
@@ -63,7 +71,7 @@ export class VideoArchiveViewComponent implements OnInit {
                 let oldvt=this.videoTrack;
                 this.videoTrack=vt;
                 if(oldvt!=null && vt !=null){
-                    if(oldvt.videoArchive.name!=vt.videoArchive.name || oldvt.videoSource.name!=vt.videoSource.name){
+                    if(oldvt.videoArchive?.name!=vt.videoArchive?.name || oldvt.videoSource.name!=vt.videoSource.name){
                         this.currentInterval=null;
                     }
                 }

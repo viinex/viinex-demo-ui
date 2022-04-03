@@ -1,19 +1,25 @@
 <div class="row">
 <div class="col-md-4">
-<div class="card">
+
+<div class="card my-2">
     <div class="card-body">
     <h4 class="card-title">Storage</h4>
     <p class="card-text">Select a video archive to extract video data from. </p>
-    </div>
     <ul class="nav nav-pills flex-column">
-    <li class="nav-item" *ngFor="let va of videoArchives">
-        <a class="nav-link" routerLink="/video-archive/{{va.name}}" routerLinkActive="active">
-            {{va.displayName}}<small *ngIf="va.displayName != va.name"> ({{va.name}})</small></a>
-    </li>
+        <li class="nav-item" *ngFor="let va of videoArchives">
+            <a class="nav-link" routerLink="/video-archive/{{va.name}}" routerLinkActive="active">
+                {{va.displayName}}<small *ngIf="va.displayName != va.name"> ({{va.name}})</small></a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" routerLink="/video-archive/vms__external" routerLinkActive="active">
+                External VMS
+            </a>
+        </li>
     </ul>
+    </div>
 </div>
-<br/>
-<div class="card" *ngIf="selectedArchiveSummary != null">
+
+<div class="card my-2" *ngIf="selectedArchiveSummary != null">
     <div class="card-body">
         <h5>Summary</h5>
         Disk usage: {{gb(selectedArchiveSummary.diskUsage)}}<br/>
@@ -22,26 +28,27 @@
     </div>
     
 </div>
-<br/>
-<div class="card" *ngIf="selectedArchive != null">
+
+<div class="card my-2" *ngIf="selectedVideoTracks != null">
     <div class="card-body">
     <h4>Video track</h4>
     <p>Select the track to display data from.</p>
-    </div>
     <ul class="nav nav-pills flex-column">
-    <li class="nav-item" *ngFor="let vc of selectedArchive.videoTracks">
+    <li class="nav-item" *ngFor="let vc of selectedVideoTracks">
         <a class="nav-link" routerLink="./{{vc.videoSource.name}}" routerLinkActive="active">
             <div class="row">
                 <div class="col-md-4"><img src="{{previewImages[vc.videoSource.name]}}" (error)="onSnapshotError($event)" width="100%"/></div>
-                <div class="col-md-8">{{vc.videoSource.displayName}}<small *ngIf="vc.videoSource.displayName != vc.videoSource.name"> ({{vc.videoSource.name}})</small>,
-                    <br/>{{gb(selectedArchiveSummary.tracks.get(vc.videoSource.name).diskUsage)}},
-                    {{formatInterval(vc.videoSource.name)}}</div>
+                <div class="col-md-8">{{vc.videoSource.displayName}}<small *ngIf="vc.videoSource.displayName != vc.videoSource.name"> ({{vc.videoSource.name}})</small>
+                    <p *ngIf="selectedArchiveSummary!=null">{{gb(selectedArchiveSummary.tracks.get(vc.videoSource.name).diskUsage)}},
+                    {{formatInterval(vc.videoSource.name)}}
+                    </p>
+                </div>
             </div>
         </a>
         <!--//{{vc.diskUsage/1000000}} MB, {{vc.timeBoundaries[0]}}-{{vc.timeBoundaries[1]}}-->
     </li>
     </ul>
-
+    </div>
 </div>
 </div>
 

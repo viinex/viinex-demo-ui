@@ -1,5 +1,5 @@
 <div *ngIf="videoTrack != null">
-<h5>Summary for {{videoTrack.videoSource.name}} @ {{videoTrack.videoArchive.name}}</h5>
+<h5>Summary for {{videoTrack.videoSource.name}} @ {{videoTrack.videoArchive != null ? videoTrack.videoArchive.name : "VMS"}}</h5>
 
 <div *ngIf="videoTrackData != null">
     Disk space used: {{gb(videoTrackData.summary.diskUsage)}}<br/>
@@ -19,7 +19,7 @@
     </div>
     <div class="col-md-7" *ngIf="currentInterval != null">
         <h4>{{formatInterval(currentInterval)}}</h4>
-        <div *ngIf="isHttp">
+        <div *ngIf="isHttp && isNativeArchive">
             <a href="{{exportUrl(currentInterval, 'isom')}}"
                 class="btn btn-primary" role="button" download target="_blank">Export MP4</a>&nbsp;
             <a href="{{exportUrl(currentInterval, 'ts')}}"
@@ -41,9 +41,9 @@
 <br/>
 </div>
 
-<ng-container *ngIf="isHttp && interval">
+<ng-container *ngIf="isHttp && isNativeArchive && interval">
     <hls-viewport [video-source]="videoTrack.videoSource" [interval]="interval"></hls-viewport>
 </ng-container>
-<ng-container *ngIf="isWamp && interval">
+<ng-container *ngIf="(isWamp || !isNativeArchive) && interval">
     <webrtc-viewport [video-source]="videoTrack.videoSource" [interval]="interval"></webrtc-viewport>
 </ng-container>

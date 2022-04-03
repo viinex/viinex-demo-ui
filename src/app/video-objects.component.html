@@ -2,9 +2,9 @@
 <p>This page shows the information on video obects, i.e. cameras and archives, already configured at Viinex server. </p>
 <h2>Video sources</h2>
 <div class="card-columns">
-    <div *ngFor="let vs of videoSources" class="card">
+    <div *ngFor="let vs of videoSources" class="card" style="max-width: '400px'">
         <img *ngIf="videoSources.length &lt;= 16 &amp;&amp; vs.getSnapshotImage != null" 
-            class="card-img-top img-fluid" width="100%"
+            class="card-img-top img-fluid"
             src="{{liveSnapshots[vs.name]}}"
             (error)="onSnapshotError($event)" />
         <div class="card-body">

@@ -40,7 +40,7 @@ export class VideoTrack {
     constructor(public videoSource: VideoSource, public videoArchive: VideoArchive){
         this.getSnapshotImage = (temporal,spatial) => of("./assets/novideo.png");
     }
-    getTrackData: () => Observable<VideoTrackData>;
+    getTrackData: (interval?: [Date,Date]) => Observable<VideoTrackData>;
     getSnapshotImage: (temporal: any, spatial: any) => Observable<string>;
 }
 

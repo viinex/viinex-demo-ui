@@ -67,7 +67,12 @@ export class VideoObjectsService {
         return this.getObjects().pipe(map(vo => vo.videoArchives.find(va => va.name==videoArchiveId)));
     }
     getVideoTrack(videoArchiveId: string, videoSourceId: string){
-        return this.getVideoArchive(videoArchiveId).pipe(map(va => va.videoTracks.find(vt => vt.videoSource.name==videoSourceId)));
+        if(videoArchiveId!=null){
+            return this.getVideoArchive(videoArchiveId).pipe(map(va => va.videoTracks.find(vt => vt.videoSource.name==videoSourceId)));
+        }
+        else{
+            return this.getVideoSource(videoSourceId).pipe(map(vs => vs.videoTracks.find(vt => vt.videoArchive==null)));
+        }
     }
     private static extractSvcData(rpc: IViinexRpc, res: Object, resMeta: Object){
         let body=res as Array<Array<string>>;
@@ -86,6 +91,12 @@ export class VideoObjectsService {
                         let [t1,n1]=tn1;
                         if(t1=="SnapshotSource" && n1==n){
                             s.getSnapshotImage = (spatial: any) => rpc.liveSnapshotImage(n, spatial);
+                        }
+                        if(t1=="TimelineProvider" && n1==n) {
+                            let t=new VideoTrack(s, null);
+                            t.getSnapshotImage = (temporal,spatial) => rpc.archiveSnapshotImage(null, n, temporal, spatial);
+                            t.getTrackData = (interval?: [Date,Date]) => rpc.archiveChannelSummary(null,n,interval).pipe(map(VideoObjectsService.extractTrackData));
+                            s.videoTracks.push(t);
                         }
                     }
                     vs.push(s);
@@ -154,7 +165,7 @@ export class VideoObjectsService {
         vas.tracks.forEach((t: VideoTrackSummary, n:string) => {
             let vsrc=this.lookupOrAddArchiveVideoSource(vs, n);
             let vt=new VideoTrack(vsrc, a);
-            vt.getTrackData = () => rpc.archiveChannelSummary(a.name,n).pipe(map(VideoObjectsService.extractTrackData));
+            vt.getTrackData = (interval?: [Date,Date]) => rpc.archiveChannelSummary(a.name,n,interval).pipe(map(VideoObjectsService.extractTrackData));
             vt.getSnapshotImage = (temporal,spatial) => rpc.archiveSnapshotImage(a.name, n, temporal, spatial);
             a.videoTracks.push(vt);
             vsrc.videoTracks.push(vt);
@@ -164,8 +175,19 @@ export class VideoObjectsService {
     private static extractTrackData(res:Object): VideoTrackData {
         let body=<any>res;
         let td=new VideoTrackData();
-        td.summary=new VideoTrackSummary(VideoObjectsService.jsonDateInterval(body.time_boundaries), body.disk_usage);
-        td.timeLine=body.timeline!=null?body.timeline.map(VideoObjectsService.jsonDateInterval):null;
+        if(body.time_boundaries!=null){ // response from Viinex native archive
+            td.summary=new VideoTrackSummary(VideoObjectsService.jsonDateInterval(body.time_boundaries), body.disk_usage);
+            td.timeLine=body.timeline!=null?body.timeline.map(VideoObjectsService.jsonDateInterval):null;
+        }
+        else { // response from timeline provider
+            let bb: [Date,Date]=[null,null];
+            if(body.length){
+                bb=VideoObjectsService.jsonDateInterval([body[0][0], body[body.length-1][1]]);
+            }
+            td.summary=new VideoTrackSummary(bb, 0);
+            console.log(body);
+            td.timeLine=body.map(VideoObjectsService.jsonDateInterval);
+        }
         return td;
     }
 

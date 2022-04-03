@@ -1,5 +1,7 @@
 <div class="row">
-    <div class="col-md-4" *ngIf="(videoSources != null) &amp;&amp; (videoSources.length &lt;= 16); then verboseList else terseList"></div>
+    <div class="col-md-4">
+        <ng-container *ngIf="(videoSources != null) &amp;&amp; (videoSources.length &lt;= 16); then verboseList else terseList"></ng-container>
+    </div>
     <ng-template #terseList>
         <div>
         <h3>Select a live video source</h3>
