@@ -185,7 +185,6 @@ export class VideoObjectsService {
                 bb=VideoObjectsService.jsonDateInterval([body[0][0], body[body.length-1][1]]);
             }
             td.summary=new VideoTrackSummary(bb, 0);
-            console.log(body);
             td.timeLine=body.map(VideoObjectsService.jsonDateInterval);
         }
         return td;

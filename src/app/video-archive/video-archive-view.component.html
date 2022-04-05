@@ -1,30 +1,37 @@
 <div *ngIf="videoTrack != null">
-<h5>Summary for {{videoTrack.videoSource.name}} @ {{videoTrack.videoArchive != null ? videoTrack.videoArchive.name : "VMS"}}</h5>
-
-<div *ngIf="videoTrackData != null">
-    Disk space used: {{gb(videoTrackData.summary.diskUsage)}}<br/>
-    Depth: {{formatDepth(videoTrackData.summary.timeBoundaries)}} ({{formatInterval(videoTrackData.summary.timeBoundaries)}}) <br/>
-    Total video fragments length: {{formatTemporalLength(totalTemporalLength(videoTrackData.timeLine))}} <br/>
-</div>
+<h5>Track {{videoTrack.videoSource.name}} in {{videoTrack.videoArchive != null ? videoTrack.videoArchive.name : "external VMS"}},
+    selected range {{searchBegin | date : 'yyyy-MM-dd'}} -- {{searchEnd | date : 'yyyy-MM-dd'}}
+</h5>
 
 <div class="row">
-    <div class="col-md-5" *ngIf="videoTrackData != null">
-        <ul class="list-group intervals">
+    <div class="col-md-3">
+        <h5>Range</h5>
+        
+        <div class="my-1">
+        <ngb-datepicker #dp (dateSelect)="onDateSelection($event)" [displayMonths]="1" [dayTemplate]="dayTemplate" outsideDays="hidden">
+        </ngb-datepicker>
+        <ng-template #dayTemplate let-date let-focused="focused">
+            <span class="custom-day"
+                [class.focused]="focused"
+                [class.range]="isRange(date)"
+                [class.faded]="isHovered(date) || isInside(date)"
+                (mouseenter)="hoveredDate = date"
+                (mouseleave)="hoveredDate = null">
+            {{ date.day }}
+            </span>
+        </ng-template>
+        </div>
+
+        <h5 *ngIf="videoTrackData != null">{{videoTrackData.timeLine.length}} records</h5>
+        <ul class="list-group intervals my-1" *ngIf="videoTrackData != null">
             <li class="list-group-item list-group-item-action interval-item" *ngFor="let i of videoTrackData.timeLine" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
                 <a routerLink="." [queryParams]="{begin: i[0].valueOf(), end:i[1].valueOf() }" class="ainterval"
-                    routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">{{formatInterval(i)}}</a>
-                    <span *ngIf="shouldRefine(i)"> ...</span>
+                    routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                    {{ i[0] | date : 'yyyy-MM-dd HH:mm:ss'}} - {{ i[1] | date : 'HH:mm:ss'}}
+                </a>
+                <!--span *ngIf="shouldRefine(i)"> ...</span-->
             </li>
         </ul>
-    </div>
-    <div class="col-md-7" *ngIf="currentInterval != null">
-        <h4>{{formatInterval(currentInterval)}}</h4>
-        <div *ngIf="isHttp && isNativeArchive">
-            <a href="{{exportUrl(currentInterval, 'isom')}}"
-                class="btn btn-primary" role="button" download target="_blank">Export MP4</a>&nbsp;
-            <a href="{{exportUrl(currentInterval, 'ts')}}"
-                class="btn btn-primary" role="button" download target="_blank">Export MPEG TS</a>
-        </div>
         <div *ngIf="shouldRefine(currentInterval)">
             Please refine a time window within selected interval:
             <div class="dropdown">
@@ -36,14 +43,35 @@
                 </div>
             </div>
         </div> <!--should refine-->
+
+    </div>
+
+    <div class="col-md-9">
+        <div *ngIf="currentInterval != null">
+            <h4>Record {{ currentInterval[0] | date : 'yyyy-MM-dd HH:mm:ss'}} - {{ currentInterval[1] | date : 'HH:mm:ss'}}</h4>
+            <div *ngIf="isHttp && isNativeArchive">
+                <a href="{{exportUrl(currentInterval, 'isom')}}"
+                    class="btn btn-primary" role="button" download target="_blank">Export MP4</a>&nbsp;
+                <a href="{{exportUrl(currentInterval, 'ts')}}"
+                    class="btn btn-primary" role="button" download target="_blank">Export MPEG TS</a>
+            </div>
+        </div>
+
+        <ng-container *ngIf="isHttp && isNativeArchive && interval">
+            <hls-viewport [video-source]="videoTrack.videoSource" [interval]="interval"></hls-viewport>
+        </ng-container>
+        <ng-container *ngIf="(isWamp || !isNativeArchive) && interval">
+            <webrtc-viewport [video-source]="videoTrack.videoSource" [interval]="interval"></webrtc-viewport>
+        </ng-container>
+            
     </div>
 </div> <!--row-->
-<br/>
+<div class="row">
+    <div class="col-md-9" *ngIf="videoTrackData != null">
+        <ng-container *ngIf="isNativeArchive">Disk space used: {{gb(videoTrackData.summary.diskUsage)}}<br/></ng-container>
+        Total depth within selected range: {{formatDepth(videoTrackData.summary.timeBoundaries)}} ({{formatInterval(videoTrackData.summary.timeBoundaries)}}) <br/>
+        Total video fragments length within selected range: {{formatTemporalLength(totalTemporalLength(videoTrackData.timeLine))}} <br/>
+    </div>
+</div>
 </div>
 
-<ng-container *ngIf="isHttp && isNativeArchive && interval">
-    <hls-viewport [video-source]="videoTrack.videoSource" [interval]="interval"></hls-viewport>
-</ng-container>
-<ng-container *ngIf="(isWamp || !isNativeArchive) && interval">
-    <webrtc-viewport [video-source]="videoTrack.videoSource" [interval]="interval"></webrtc-viewport>
-</ng-container>

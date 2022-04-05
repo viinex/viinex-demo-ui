@@ -13,19 +13,13 @@ import { LoginService, Transport } from '../login.service';
 import { IViinexRpc } from '../viinex-rpc';
 import {Format} from '../format'
 
+import {NgbDate, NgbCalendar, NgbDateNativeAdapter, NgbDateStruct} from '@ng-bootstrap/ng-bootstrap';
+
 const MAX_WINDOW_SIZE_MINUTES=10;
 
 @Component({
     templateUrl: "video-archive-view.component.html",
-    styles: [".intervals { max-height: 200px; overflow-y: scroll }",
-    ".ainterval.active  { color: white !important }",
-    ".archive-refine-menu { max-height: 300px; overflow-y: scroll }",
-    `.interval-item {
-        overflow:visible;  
-        display: block;
-        padding: .25rem .25rem;
-    }`
-    ]
+    styleUrls: ["./video-archive-view.component.css"]
 })
 export class VideoArchiveViewComponent implements OnInit {
     errorMessage: string;
@@ -44,10 +38,16 @@ export class VideoArchiveViewComponent implements OnInit {
     refinedInterval: [Date,Date];
     interval: [Date,Date] = null;
 
+    public searchBegin: Date;
+    public searchEnd: Date;
+    hoveredDate: NgbDate | null = null;
+  
     constructor(private route: ActivatedRoute, private router: Router, private videoObjectsService: VideoObjectsService,
         private login: LoginService){
         this.isAndroid = /(android)/i.test(navigator.userAgent);
-    }
+        this.searchEnd=new Date();
+        this.searchBegin=new Date(this.searchEnd.valueOf() - 24*60*60*1000);
+      }
     ngOnInit(): void {
         this.login.loginStatus.subscribe((ls) => {
             this.isWamp = ls.transport == Transport.Wamp;
@@ -80,7 +80,7 @@ export class VideoArchiveViewComponent implements OnInit {
                         this.gotoInterval();
                     }
                 }
-                return this.videoTrack.getTrackData();
+                return this.videoTrack.getTrackData([this.searchBegin, this.searchEnd]);
             })).subscribe(vtd => this.videoTrackData=vtd);
         this.route.queryParams.subscribe(qp => {
             if(qp.begin!=null && qp.end!=null){
@@ -99,7 +99,7 @@ export class VideoArchiveViewComponent implements OnInit {
     }
 
     formatInterval(x: any): string {
-        if(x==null){
+        if(x==null || x.length!=2 || x[0]==null || x[1]==null){
             return "no data";            
         }
         else {
@@ -109,8 +109,8 @@ export class VideoArchiveViewComponent implements OnInit {
     gb = Format.gb;
     formatTemporalLength = Format.temporalLength;
     formatDepth(x: any): string{
-        if(x==null){
-            return "0"
+        if(x==null || x.length!=2 || x[0]==null || x[1]==null){
+            return "0";
         }
         else {
             let [b, e] = <[Date, Date]>x;
@@ -136,8 +136,19 @@ export class VideoArchiveViewComponent implements OnInit {
         if(xe>e){ xe=e; }
         return [xb,xe];
     }
-    shouldRefine([b,e]:[Date,Date]): boolean{
-        return (e.valueOf() - b.valueOf()) > MAX_WINDOW_SIZE_MINUTES*60*1000;
+    shouldRefine(x: any): boolean{
+        if(x==null || x.length!=2 || x[0]==null || x[1]==null){
+            return false;
+        }
+        else {
+            let [b, e] = <[Date, Date]>x;
+            if(b==null || e==null){
+                return false;
+            }
+            else{
+                return (e.valueOf() - b.valueOf()) > MAX_WINDOW_SIZE_MINUTES*60*1000;
+            }
+        }
     }
     expandInterval(ii:[Date,Date]): Array<[Date,Date]>{
         let [b,e]=ii;
@@ -171,4 +182,59 @@ export class VideoArchiveViewComponent implements OnInit {
             this.videoTrack.videoSource.name+"/export?format="+format+
             "&begin="+interval[0].valueOf()+"&end="+interval[1].valueOf();
     }
+
+    public get fromDate() : NgbDateStruct { return this.fromModel(this.searchBegin); }
+    public set fromDate(date: NgbDateStruct){ this.searchBegin=this.toModel(date, true); }
+    public get toDate() : NgbDateStruct { return this.fromModel(this.searchEnd); }
+    public set toDate(date: NgbDateStruct){this.searchEnd=this.toModel(date, false); }
+    public fromModel(x: Date): NgbDateStruct {
+        if (x == null) {
+            return null;
+        }
+        let v = new Date(x);
+        v.setHours(12, 0, 0, 0);
+        return this.dateAdapter.fromModel(v);
+    }
+    private dateAdapter: NgbDateNativeAdapter = new NgbDateNativeAdapter();
+
+    public toModel(x: NgbDateStruct, begin: boolean): Date {
+        if (x == null) {
+            return null;
+        }
+        let res = this.dateAdapter.toModel(x);
+        if (begin) {
+            res.setHours(0, 0, 0, 0);
+        }
+        else {
+            res.setHours(23, 59, 59, 999);
+        }
+        return res;
+    }
+      
+    // datepicker stuff
+    public onDateSelection(date: NgbDate) {
+        if (!this.fromDate && !this.toDate) {
+            this.fromDate = date;
+        } else if (this.fromDate && !this.toDate && !date.before(this.fromDate)) {
+            this.toDate = date;
+        } else {
+            this.toDate = null;
+            this.fromDate = date;
+        }
+
+        if(this.fromDate!=null && this.toDate!=null && this.videoTrack!=null){
+            this.videoTrackData=null;
+            this.videoTrack.getTrackData([this.searchBegin, this.searchEnd]).subscribe(vtd => this.videoTrackData=vtd);
+        }
+    }
+    isHovered(date: NgbDate) {
+        return this.fromDate && !this.toDate && this.hoveredDate && date.after(this.fromDate) && date.before(this.hoveredDate);
+    }
+    isInside(date: NgbDate) {
+        return this.toDate && date.after(this.fromDate) && date.before(this.toDate);
+    }
+    isRange(date: NgbDate) {
+        return date.equals(this.fromDate) || (this.toDate && date.equals(this.toDate)) || this.isInside(date) || this.isHovered(date);
+    }
+    //end datepicker stuff
 }
