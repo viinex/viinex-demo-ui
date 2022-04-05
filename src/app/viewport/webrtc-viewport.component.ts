@@ -1,5 +1,5 @@
 import { Component, ElementRef, Input, OnDestroy, AfterViewInit, AfterViewChecked, ViewChild, ChangeDetectorRef, NgZone } from '@angular/core';
-import { VideoSource, WebRTCServer } from '../video-objects';
+import { VideoSource, VideoTrack, WebRTCServer } from '../video-objects';
 import { VideoObjectsService } from '../video-objects.service';
 
 @Component({
@@ -137,6 +137,20 @@ export class WebrtcViewportComponent implements AfterViewInit, AfterViewChecked,
         });
     }
 
+    private selectWebrtcServer(){
+        if(this._videoSource != null && this._videoSource.webrtcServers.length>0){
+            let newWebrtcServer = this._videoSource.webrtcServers[0];
+            if(this.webrtcServer!==newWebrtcServer){
+                this.clearVideo();
+                this.webrtcServer=newWebrtcServer;
+            }
+        }
+        else {
+            this.clearVideo();
+            this.webrtcServer=null;
+        }
+    }
+
     @Input('video-source')
     get videoSource(): VideoSource { 
         return this._videoSource; 
@@ -154,18 +168,24 @@ export class WebrtcViewportComponent implements AfterViewInit, AfterViewChecked,
             if(this._videoSource !== newVideoSource){
                 this.shouldUpdateMedia = true;
                 this._videoSource=<VideoSource>s;
-                if(this._videoSource != null && this._videoSource.webrtcServers.length>0){
-                    let newWebrtcServer = this._videoSource.webrtcServers[0];
-                    if(this.webrtcServer!==newWebrtcServer){
-                        this.clearVideo();
-                        this.webrtcServer=newWebrtcServer;
-                    }
-                }
-                else {
-                    this.clearVideo();
-                    this.webrtcServer=null;
-                }
+                this.selectWebrtcServer();
             }
+        }
+    }
+
+    @Input('video-track')
+    get videoTrack(): VideoTrack {
+        return this._videoTrack;
+    }
+    set videoTrack(t: VideoTrack) {
+        if (this._videoTrack?.videoSource?.name == t?.videoSource?.name && this._videoTrack?.videoArchive?.name == t?.videoArchive?.name) {
+            return;
+        }
+        else {
+            this._videoTrack = t;
+            this._videoSource = t?.videoSource;
+            this.shouldUpdateMedia = true;
+            this.selectWebrtcServer();
         }
     }
 
@@ -224,7 +244,10 @@ export class WebrtcViewportComponent implements AfterViewInit, AfterViewChecked,
                 if(this._interval){
                     return {
                         command: "play", 
-                        source: this._videoSource.name, 
+                        source: { 
+                            name: this._videoSource.name, 
+                            storage: this._videoTrack?.videoArchive?.name
+                        },
                         range: this._interval,
                         speed: this._speed
                     };
@@ -255,6 +278,7 @@ export class WebrtcViewportComponent implements AfterViewInit, AfterViewChecked,
     private sessionId : string = null;
 
     private _videoSource: VideoSource = null;
+    private _videoTrack: VideoTrack = null;
     private webrtcServer: WebRTCServer = null;
 
     private _interval: [Date, Date] = null;

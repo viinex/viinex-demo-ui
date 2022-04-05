@@ -175,7 +175,7 @@ export class VideoObjectsService {
     private static extractTrackData(res:Object): VideoTrackData {
         let body=<any>res;
         let td=new VideoTrackData();
-        if(body.time_boundaries!=null){ // response from Viinex native archive
+        if(body.timeline!=null){ // response from Viinex native archive
             td.summary=new VideoTrackSummary(VideoObjectsService.jsonDateInterval(body.time_boundaries), body.disk_usage);
             td.timeLine=body.timeline!=null?body.timeline.map(VideoObjectsService.jsonDateInterval):null;
         }

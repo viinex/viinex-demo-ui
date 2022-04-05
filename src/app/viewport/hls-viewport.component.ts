@@ -1,5 +1,5 @@
 import { Component, ElementRef, Input, OnDestroy, AfterViewInit, AfterViewChecked, ViewChild, NgZone } from '@angular/core';
-import { VideoSource } from '../video-objects';
+import { VideoSource, VideoTrack } from '../video-objects';
 import { VideoObjectsService } from '../video-objects.service';
 
 import Hls from 'hls.js'
@@ -76,15 +76,16 @@ export class HlsViewportComponent implements AfterViewInit, AfterViewChecked, On
     streamUrl(vs: VideoSource): string {
         if(vs!=null){
             if(this._interval){
-                if(vs.videoTracks.length>0){
-                    let t = vs.videoTracks[0];
-                    return "v1/svc/" + t.videoArchive.name + "/" + vs.name + "/stream.m3u8"
-                        + '?begin=' + this._interval[0].valueOf() + '&end=' + this._interval[1].valueOf();
+                let t=this._videoTrack;
+                if(t == null && vs.videoTracks.length>0){
+                    t = vs.videoTracks[0];
                 }
-                else {
+                if(t==null) {
                     console.error("No video archive for video source",vs.name);
                     return null;
                 }
+                return "v1/svc/" + t.videoArchive.name + "/" + vs.name + "/stream.m3u8"
+                    + '?begin=' + this._interval[0].valueOf() + '&end=' + this._interval[1].valueOf();
             }
             else {
                 return 'v1/svc/' + vs.name + '/stream.m3u8';
@@ -116,6 +117,21 @@ export class HlsViewportComponent implements AfterViewInit, AfterViewChecked, On
         }
     }
 
+    @Input('video-track')
+    get videoTrack(): VideoTrack {
+        return this._videoTrack;
+    }
+    set videoTrack(t: VideoTrack) {
+        if (this._videoTrack?.videoSource?.name == t?.videoSource?.name && this._videoTrack?.videoArchive?.name == t?.videoArchive?.name) {
+            return;
+        }
+        else {
+            this._videoTrack = t;
+            this._videoSource = t?.videoSource;
+            this.shouldUpdateMedia = true;
+        }
+    }
+
     @Input('interval')
     get interval() { return this._interval; }
     set interval(i: [Date,Date]){
@@ -140,6 +156,7 @@ export class HlsViewportComponent implements AfterViewInit, AfterViewChecked, On
     errorMessage: string = null;
 
     private _videoSource: VideoSource = null;
+    private _videoTrack: VideoTrack = null;
     private _interval: [Date, Date] = null;
 
     private shouldUpdateMedia : boolean = false;
