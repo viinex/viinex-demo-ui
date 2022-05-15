@@ -99,9 +99,11 @@ export class WebrtcViewportComponent implements AfterViewInit, AfterViewChecked,
         pcany.ontrack = (e : any) => {
             //let e = <RTCTrackEvent>ev;
             console.log("ontrack event received: ");
-            console.log(e.streams[0]);
-            video.srcObject=e.streams[0];
-            console.log(e.track);
+            console.log(e);
+            if(video.srcObject !== e.streams[0]){
+                video.srcObject=e.streams[0];
+            }
+            //console.log(e.track);
             console.log("ice gathering state:", pc.iceGatheringState);
         }
         pc.onsignalingstatechange = e => {

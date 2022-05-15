@@ -3,6 +3,7 @@ import {FormsModule} from '@angular/forms';
 
 import {OnvifService} from './onvif.service'
 import {OnvifDevice, OnvifDeviceDetails} from './onvif-device'
+import { ThisReceiver } from '@angular/compiler';
 
 @Component({
     selector: 'onvif-discovery',
@@ -10,6 +11,7 @@ import {OnvifDevice, OnvifDeviceDetails} from './onvif-device'
 })
 export class OnvifDiscoveryComponent implements OnInit {
     errorMessage: string;
+    errorDetails: string;
     devices: OnvifDevice[];
 
     probeResult: OnvifDeviceDetails;
@@ -42,8 +44,21 @@ export class OnvifDiscoveryComponent implements OnInit {
 
         this.probeResult=null;
         this.onvifService.probeFor(this.probeTarget, auth).subscribe(
-            res => { this.probeResult=res; this.errorMessage=null;},
-            error => this.errorMessage=<any>error);
+            res => { 
+                this.probeResult=res; 
+                this.errorMessage=null;
+                this.errorDetails="";
+            },
+            error => {
+                if(error.error != null && error.error.code != null){
+                    this.errorMessage = error.error.code;
+                    this.errorDetails = error.error.reason;
+                }
+                else{
+                    this.errorMessage=JSON.stringify(error);
+                    this.errorDetails="";
+                }
+            });
     }
     probeForCustom(): void {
         this.probeTarget="http://"+this.probeCustomAddress+

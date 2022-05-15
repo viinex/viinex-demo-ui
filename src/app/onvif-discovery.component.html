@@ -50,7 +50,7 @@ Don't forget to specify the credentials then.
 Total: {{devices != null ? devices.length : "N/A"}} device(s).
 </div>
 <div class="col-md-6">
-    <div class="alert alert-danger" role="alert" *ngIf="errorMessage!=null">Operation failed: {{errorMessage}}</div>
+    <div class="alert alert-danger" role="alert" *ngIf="errorMessage!=null">Operation failed: <b>{{errorMessage}}</b><br>{{errorDetails}}</div>
     <div *ngIf="probeResult!=null">
         <h4>Probe result for {{probeTarget}}</h4>
         <h5>Device information</h5>

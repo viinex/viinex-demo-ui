@@ -23,6 +23,9 @@ export class OnvifService {
     }
     private extractProbeData(res: Object){
         let body=<any>res;
+        if(body != null && body.error!=null){
+            throw body.error;
+        }
         let r=new OnvifDeviceDetails();
         r.videoSources=new Array<OnvifVideoSourceInfo>();
         r.profiles=new Array<OnvifProfileInfo>();
@@ -46,17 +49,5 @@ export class OnvifService {
             o.url=b.xaddrs[0];
             return o;
         });
-    }
-    private handleError(error: Response | any){
-        let errMsg: string;
-        if (error instanceof Response) {
-            const body = error.json() || '';
-            const err = body || JSON.stringify(body);
-            errMsg = `${error.status} - ${error.statusText || ''} ${err}`;
-        } else {
-            errMsg = error.message ? error.message : error.toString();
-        }
-        console.error(errMsg);
-        return throwError(errMsg);
     }
 }
