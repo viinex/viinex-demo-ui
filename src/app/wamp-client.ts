@@ -88,7 +88,14 @@ export class WampClient implements OnDestroy {
                     }
                 });
             },
-            (err: any) => this.zone.run(() => { subscriber.error(err) }));
+            (err: any) => this.zone.run(() => { 
+                if(err.args != null && err.args.length == 1 && err.args[0].code != null){
+                    subscriber.error({error: err.args[0]});
+                }
+                else{
+                    subscriber.error(err);
+                }
+            }));
         });
     }
 }
