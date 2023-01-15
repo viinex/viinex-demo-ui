@@ -37,8 +37,9 @@ export class LoginComponent implements OnInit {
                     this.isWamp = ls.transport==Transport.Wamp;
 
                     if(this.isWamp){
-                        this.wampUri = "ws://demo.viinex.com:8080/ws";
-                        this.wampRealm = "demo1";
+                        this.wampUri = "wss://cloud.viinex.com/ws";
+                        this.wampRealm = "lwo";
+                        this.loginName = "guest";
                     }
                 }
                 else{
