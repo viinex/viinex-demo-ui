@@ -57,10 +57,10 @@
             </div>
         </div>
 
-        <ng-container *ngIf="isHttp && isNativeArchive && interval">
+        <ng-container *ngIf="false && isHttp && isNativeArchive && interval">
             <hls-viewport [video-track]="videoTrack" [interval]="interval"></hls-viewport>
         </ng-container>
-        <ng-container *ngIf="(isWamp || !isNativeArchive) && interval">
+        <ng-container *ngIf="(true || isWamp || !isNativeArchive) && interval">
             <webrtc-viewport [video-track]="videoTrack" [interval]="interval"></webrtc-viewport>
         </ng-container>
             
