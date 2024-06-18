@@ -93,7 +93,10 @@ export class WebRTCServer {
             if(location.hostname.toLowerCase() != "localhost" && location.hostname != "127.0.0.1" && null != metaData.stunsrv){
                 this.iceServers.push({urls:"stun:"+location.hostname+":"+metaData.stunsrv});
             }
-            if(null != metaData.stun){
+            if(null != metaData.ice_servers){
+                this.iceServers=this.iceServers.concat(metaData.ice_servers);
+            }
+            else if(null != metaData.stun){
                 for(let ss of metaData.stun){
                     let [host,port] = ss;
                     this.iceServers.push({urls:"stun:"+host+":"+port});
