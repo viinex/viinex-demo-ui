@@ -6,7 +6,7 @@
     "baseUrl": "",
     "types": []
   },
-  "files":["main.ts","polyfills.ts"],
+  "files":["main.ts"],
   "exclude": [
     "test.ts",
     "**/*.spec.ts"
