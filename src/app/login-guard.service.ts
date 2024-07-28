@@ -2,13 +2,13 @@ import { Injectable, OnInit } from '@angular/core';
 import { Observable } from "rxjs";
 import {map} from 'rxjs/operators';
 
-import { CanActivate, CanActivateChild, Router, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
+import { Router, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 
 import { LoginService } from './login.service'
 
 
 @Injectable()
-export class LoginGuardService implements CanActivate, OnInit {  
+export class LoginGuardService  implements OnInit {  
     constructor(private loginService: LoginService, private router: Router){}
     
     canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> {
