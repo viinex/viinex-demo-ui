@@ -103,5 +103,8 @@
       }
     }
   },
-  "defaultProject": "viinex-ui"
+  "defaultProject": "viinex-ui",
+  "cli": {
+    "analytics": false
+  }
 }
