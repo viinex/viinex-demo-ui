@@ -1,6 +1,6 @@
 import { NgModule }      from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { HttpClientModule } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { RouterModule, Routes }  from '@angular/router';
 import {FormsModule} from '@angular/forms';
 import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
@@ -30,26 +30,17 @@ import { WampClient } from './wamp-client';
 import { ViewportModule } from './viewport/viewport.module';
 
 
-@NgModule({
-  imports:      [ BrowserModule, 
-                  HttpClientModule, 
-                  FormsModule,
-                  RouterModule,
-                  NgbModule,
-
-                  LiveVideoModule,
-                  VideoArchiveModule,
-                  WebrtcVideoModule,
-
-                  LiveVideoRoutingModule,
-                  VideoArchiveRoutingModule,
-                  WebrtcVideoRoutingModule,
-                  ViewportModule,
-
-                  AppRoutingModule
-                ],
-  declarations: [ AppComponent, OnvifDiscoveryComponent, VideoObjectsComponent, PageNotFoundComponent, LoginComponent ],
-  providers:    [ OnvifService, VideoObjectsService, LoginService, LoginGuardService, WampClient ],
-  bootstrap:    [ AppComponent ]
-})
+@NgModule({ declarations: [AppComponent, OnvifDiscoveryComponent, VideoObjectsComponent, PageNotFoundComponent, LoginComponent],
+    bootstrap: [AppComponent], imports: [BrowserModule,
+        FormsModule,
+        RouterModule,
+        NgbModule,
+        LiveVideoModule,
+        VideoArchiveModule,
+        WebrtcVideoModule,
+        LiveVideoRoutingModule,
+        VideoArchiveRoutingModule,
+        WebrtcVideoRoutingModule,
+        ViewportModule,
+        AppRoutingModule], providers: [OnvifService, VideoObjectsService, LoginService, LoginGuardService, WampClient, provideHttpClient(withInterceptorsFromDi())] })
 export class AppModule { }
