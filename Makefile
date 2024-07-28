@@ -1,7 +1,7 @@
 all: env build
 
 env:
-	npm update
+	npm install
 	cp autobahn-browser.d.ts node_modules/autobahn-browser/index.d.ts
 
 build: export NODE_OPTIONS=--openssl-legacy-provider
