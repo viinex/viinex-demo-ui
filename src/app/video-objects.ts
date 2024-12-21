@@ -3,21 +3,40 @@ import { map } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 import { IViinexRpc } from "./viinex-rpc";
 
-export class VideoSource {
-    constructor(public name:string, public isLive: boolean, public metaData: any){
-        this.videoTracks=new Array<VideoTrack>();
-        this.webrtcServers=new Array<WebRTCServer>();
+export class ViinexSvcObject{
+    constructor(protected rpc: IViinexRpc, public name:string, public metaData: any) {
 
         if(null!=metaData){
             this.displayName = metaData.name;
-            this.description = metaData.desc || null ;
+            this.description = metaData.desc;
         }
         else{
             this.displayName = name;
             this.description = null;
-        }
+        }        
+    }
+    public readonly displayName : string;
+    public readonly description : string;
+}
+
+export class VideoSource extends ViinexSvcObject {
+    constructor(rpc: IViinexRpc, public name:string, public metaData: any, public isLive: boolean, types: Array<string>){
+        super(rpc, name, metaData);
+
+        this.getStreamDetails=rpc.liveStreamDetails(name).pipe(map(VideoSource.extractLiveStreamDetails));
+
+        this.videoTracks=new Array<VideoTrack>();
+        this.webrtcServers=new Array<WebRTCServer>();
 
         this.getSnapshotImage=null;
+        if(types.indexOf("SnapshotSource")>=0) {
+            this.getSnapshotImage = (spatial: any) => rpc.liveSnapshotImage(name, spatial);
+        }
+        if(types.indexOf("TimelineProvider")>=0){
+            let t=new VideoTrack(rpc, this, null);
+            this.videoTracks.push(t);
+        }
+
     }
     videoTracks: Array<VideoTrack>;
     webrtcServers: Array<WebRTCServer>;
@@ -25,8 +44,15 @@ export class VideoSource {
     getStreamDetails: Observable<LiveStreamDetails>;
     getSnapshotImage: (spatial: any) => Observable<string>;
 
-    public readonly displayName : string;
-    public readonly description : string;
+    private static extractLiveStreamDetails(body: any){
+        let d=new LiveStreamDetails();
+        d.bitrate=body["bitrate"];
+        d.framerate=body["framerate"];
+        d.resolution=body["resolution"];
+        d.lastFrame=new Date(body["last_frame"]);
+        return d;
+    }
+
 }
 
 export class LiveStreamDetails {
@@ -37,11 +63,33 @@ export class LiveStreamDetails {
 }
 
 export class VideoTrack {
-    constructor(public videoSource: VideoSource, public videoArchive: VideoArchive){
-        this.getSnapshotImage = (temporal,spatial) => of("./assets/novideo.png");
+    constructor(private rpc: IViinexRpc, public videoSource: VideoSource, public videoArchive?: VideoArchive){
+        //this.getSnapshotImage = (temporal,spatial) => of("./assets/novideo.png");
     }
-    getTrackData: (interval?: [Date,Date]) => Observable<VideoTrackData>;
-    getSnapshotImage: (temporal: any, spatial: any) => Observable<string>;
+    getTrackData(this: VideoTrack, interval?: [Date, Date]): Observable<VideoTrackData> {
+        return this.rpc.archiveChannelSummary(this.videoArchive?.name, this.videoSource.name, interval).pipe(map(VideoTrack.extractTrackData));
+    }
+    getSnapshotImage(this: VideoTrack, temporal: any, spatial: any): Observable<string> {
+        return this.rpc.archiveSnapshotImage(this.videoArchive.name, this.videoSource.name, temporal, spatial)
+    }
+
+    private static extractTrackData(res:Object): VideoTrackData {
+        let body=<any>res;
+        let td=new VideoTrackData();
+        if(body.timeline!=null){ // response from Viinex native archive
+            td.summary=new VideoTrackSummary(Misc.jsonDateInterval(body.time_boundaries), body.disk_usage);
+            td.timeLine=body.timeline!=null?body.timeline.map(Misc.jsonDateInterval):null;
+        }
+        else { // response from timeline provider
+            let bb: [Date,Date]=[null,null];
+            if(body.length){
+                bb=Misc.jsonDateInterval([body[0][0], body[body.length-1][1]]);
+            }
+            td.summary=new VideoTrackSummary(bb, 0);
+            td.timeLine=body.map(Misc.jsonDateInterval);
+        }
+        return td;
+    }
 }
 
 export class VideoTrackSummary {
@@ -53,26 +101,47 @@ export class VideoTrackData {
     timeLine: Array<[Date,Date]>;
 }
 
-export class VideoArchive {
-    constructor(public name: string, public metaData: any){
+export class Misc{
+    static jsonDateInterval(ii: any): [Date,Date]{
+        if(ii!=null){
+            return [new Date(ii[0]), new Date(ii[1])];
+        } 
+        else {
+            return null;
+        }
+    }
+}
+
+export class VideoArchive extends ViinexSvcObject {
+    constructor(rpc: IViinexRpc, name: string, metaData: any){
+        super(rpc,name,metaData);
         this.videoTracks=new Array<VideoTrack>();
 
-        if(null!=metaData){
-            this.displayName = metaData.name;
-            this.description = metaData.desc;
-        }
-        else{
-            this.displayName = name;
-            this.description = null;
-        }
     }
     videoTracks: Array<VideoTrack>;
 
-    getSummary: () => Observable<VideoArchiveSummary>;
-    summarySnapshot: VideoArchiveSummary;
+    getSummary(this: VideoArchive): Observable<VideoArchiveSummary>{
+        return this.rpc.archiveSummary(this.name).pipe(map(r => {
+            let s=VideoArchive.extractArchiveSummary(r);
+            this.summarySnapshot=s;
+            return s;
+        }));
 
-    public readonly displayName : string;
-    public readonly description : string;
+    }
+    summarySnapshot: VideoArchiveSummary;
+    private static extractArchiveSummary(res: Object): VideoArchiveSummary{
+        let body=<any>res;
+        let vas=new VideoArchiveSummary();
+        vas.diskFreeSpace=body.disk_free_space;
+        vas.diskUsage=body.disk_usage;
+        vas.tracks=new Map<string,VideoTrackSummary>();
+        for(let tn in body.contexts){
+            let c=<any>body.contexts[tn];
+            let ts=new VideoTrackSummary(Misc.jsonDateInterval(c.time_boundaries), c.disk_usage);
+            vas.tracks.set(tn, ts);
+        }
+        return vas;
+    }
 }
 
 export class VideoArchiveSummary {
@@ -81,14 +150,12 @@ export class VideoArchiveSummary {
     tracks: Map<string, VideoTrackSummary>;
 }
 
-export class WebRTCServer {
-    constructor(private rpc: IViinexRpc, public name: string, public metaData: any){
+export class WebRTCServer extends ViinexSvcObject {
+    constructor(rpc: IViinexRpc, name: string, metaData: any){
+        super(rpc, name, metaData);
         this.videoSources=new Array<VideoSource>();
 
         if(null!=metaData){
-            this.displayName = metaData.name || name;
-            this.description = metaData.desc || null;
-
             this.iceServers=[];
             if(location.hostname.toLowerCase() != "localhost" && location.hostname != "127.0.0.1" && null != metaData.stunsrv){
                 this.iceServers.push({urls:"stun:"+location.hostname+":"+metaData.stunsrv});
@@ -103,14 +170,8 @@ export class WebRTCServer {
                 }
             }
         }
-        else{
-            this.displayName = name;
-            this.description = null;
-        }
     }
     videoSources: Array<VideoSource>;
-    public readonly displayName : string;
-    public readonly description : string;
 
     public readonly iceServers : Array<any>;
 
@@ -133,10 +194,39 @@ export class WebRTCServerSummary {
     live: Array<string>;
 }
 
+export class VnxEventOrigin {
+    constructor(public name: string, public type: string){}
+}
+export class VnxEvent {
+    constructor(public topic: string, public origin: any, public timestamp: Date, public data: any){}
+}
+
+export class EventArchive extends ViinexSvcObject {
+    constructor(rpc: IViinexRpc, name: string, metaData: any){
+        super(rpc, name, metaData);
+    }
+    summary(this: EventArchive, subjects?: Array<string>, origins?: Array<string>, begin?: Date, end?: Date) : Observable<EventArchiveSummary>{
+        return this.rpc.eventsSummary(this.name, subjects, origins, begin, end).pipe(map(v => new EventArchiveSummary(v, begin, end)));
+    }
+    query(this: EventArchive, name: string, subjects?: Array<string>, origins?: Array<string>, begin?: Date, end?: Date, limit?: number, offset?: number){
+        return this.rpc.eventsQuery(this.name, subjects,origins, begin, end, limit, offset);
+    }
+}
+
+export class EventArchiveSummaryRow {
+    public constructor(public topic: string, public origin: string, public count: number){}
+}
+
+export class EventArchiveSummary {
+    public constructor(public rows: Array<EventArchiveSummaryRow>, public begin?: Date, public end?: Date){}
+}
+
+
 export class VideoObjects {
     constructor(){}
     videoSources: Array<VideoSource> = [];
     videoArchives: Array<VideoArchive> = [];
     webrtcServers: Array<WebRTCServer> = [];
+    eventArchives: Array<EventArchive> = [];
 }
 

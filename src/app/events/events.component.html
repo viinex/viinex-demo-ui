@@ -1,0 +1,20 @@
+<button type="button" class="btn btn-outline-primary" [value]="pause" (click)="togglePause()">{{pause?"Un":"P"}}ause</button>
+<span *ngIf="pause">&nbsp;{{skipped}} skipped while on pause</span>
+<table>
+    <thead>
+        <tr>
+            <th width="20%">Topic</th>
+            <th width="15%">Timestamp</th>
+            <th width="15%">Origin</th>
+            <th width="50%">Data</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr *ngFor="let e of lastEvents">
+            <td>{{e.topic}}</td>
+            <td>{{e.timestamp}}</td>
+            <td>{{e.origin}}</td>
+            <td>{{e.data}}</td>
+        </tr>
+    </tbody>
+</table>

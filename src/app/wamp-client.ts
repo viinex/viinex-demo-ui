@@ -1,4 +1,4 @@
-import { Observable, throwError } from "rxjs";
+import { Observable, Subject, throwError } from "rxjs";
 import { Injectable, NgZone, OnDestroy } from "@angular/core";
 import * as nacl from 'tweetnacl';
 import * as bb from 'bytebuffer';
@@ -8,6 +8,7 @@ import * as autobahn from 'autobahn-browser';
 @Injectable()
 export class WampClient implements OnDestroy {
     connection : autobahn.Connection;
+    events : Subject<object> = new Subject();
 
     constructor(private zone: NgZone){}
 
@@ -37,6 +38,9 @@ export class WampClient implements OnDestroy {
                 this.connection.onclose = (reason, details) => {
                     return false;
                 };
+                session.subscribe("com.viinex.api.wamp0", (events: Array<any>) => {
+                    events.forEach(e => this.events.next(e));
+                },  {match: "prefix"});
                 this.zone.run(() => {
                     if(!subscriber.closed){
                         subscriber.next();

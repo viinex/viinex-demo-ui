@@ -1,5 +1,7 @@
 import { Observable, throwError, of, Subject, from } from "rxjs";
 import {map, share} from "rxjs/operators";
+import { webSocket,WebSocketSubjectConfig, WebSocketSubject } from 'rxjs/webSocket';
+
 
 import { HttpClient } from '@angular/common/http';
 import { WampClient } from './wamp-client'
@@ -25,13 +27,36 @@ export interface IViinexRpc {
     archiveChannelSummary(name: string, channel: string, interval?: [Date,Date]): Observable<Object>;
     archiveSnapshotImage(name: string, channel: string, when: any, spatial: any): Observable<string>;
 
+    statefulRead(name: string): Observable<any>;
+    updateableUpdate(name: string, value: any): Observable<any>;
+
+    eventsSummary(name: string, subjects?: Array<string>, origins?: Array<string>, begin?: Date, end?: Date): Observable<Array<any>>;
+    eventsQuery(name: string, subjects?: Array<string>, origins?: Array<string>, begin?: Date, end?: Date, limit?: number, offset?: number): Observable<Array<any>>;
+
+    get events () : Observable<any>;
 
     close(): void;
 }
 
 export class HttpRpc implements IViinexRpc {
+    private _webSocket : WebSocketSubject<any>;    
     constructor(private http: HttpClient){
         console.log("RPC implementation is HTTP");
+        let cfg : WebSocketSubjectConfig<any>={
+            url: location.origin.replace(/^http:/,"ws:").replace(/^https:/,"wss:"),
+            openObserver:{
+              next: ()=>{
+                console.log("websocket connected");
+                // let token = this.cookieService.get("auth");
+                // if(token != null){
+                //     this.webSocket.next(["authenticate", token]);
+                // }
+                this._webSocket.next(["subscribe",{}]);
+                //this.webSocket.next(JSON.stringify(["subscribe",{"topics":["RailcarNumberRecognition"]}]));
+              }
+            }
+          };
+          this._webSocket=webSocket(cfg);        
     }
     svc() : Observable<Object>{
         return this.http.get("v1/svc");
@@ -89,6 +114,39 @@ export class HttpRpc implements IViinexRpc {
         return of("v1/svc/"+namep+channel+"/snapshot"+HttpRpc.snapshotRequestParams(when, spatial))
     }
 
+    statefulRead(name: string): Observable<any> {
+        return this.http.get("v1/svc/"+name);
+    }
+    updateableUpdate(name: string, value: any): Observable<any> {
+        return this.http.post("v1/svc/"+name, value);
+    }
+
+    eventsSummary(name: string, subjects?: Array<string>, origins?: Array<string>, begin?: Date, end?: Date): Observable<Array<any>>{
+        return this.http.get<Array<Object>>("v1/svc/"+name+"/events/summary"+this._formatEventsQuery(subjects, origins, begin, end));
+    }
+    eventsQuery(name: string, subjects?: Array<string>, origins?: Array<string>, begin?: Date, end?: Date, limit?: number, offset?: number): Observable<Array<any>>{
+        return this.http.get<Array<Object>>("v1/svc/"+name+"/events"+this._formatEventsQuery(subjects, origins, begin, end, limit, offset));
+    }
+    _formatEventsQuery(subjects?: Array<string>, origins?: Array<string>, begin?: Date, end?: Date, limit?: number, offset?: number): string {
+        let qsubjects = subjects ? "&topic=" + subjects.join(",") : "";
+        let qorigins = origins ? "&origin=" + origins.join(",") : "";
+        let qbegin = begin ? "&begin=" + begin.toISOString() : "";
+        let qend = end ? "&end=" + end.toISOString() : "";
+        let qlimit = limit ? "&limit=" + limit : "";
+        let qoffset = offset ? "&offset=" + offset : "";
+        let query = (qsubjects + qorigins + qbegin + qend + qlimit + qoffset).slice(1);
+        if(query) {
+            return "?"+query;
+        }
+        else {
+            return "";
+        }
+    }
+    
+    get events () : Observable<any>{
+        return this._webSocket.asObservable();
+    }
+
     close(){}
 
     private static snapshotTimestamp(when: any): string {
@@ -135,6 +193,7 @@ export class HttpRpc implements IViinexRpc {
 }
 
 export class WampRpc implements IViinexRpc {
+    _eventSubject: Subject<any> = new Subject();
     readonly prefix: string;
     constructor(private wamp: WampClient){
         this.prefix = "com.viinex.api.wamp0.";
@@ -195,6 +254,26 @@ export class WampRpc implements IViinexRpc {
         else{ //otherwise it's call to vms channel
             return this.wamp.call<string>(this.prefix+WampRpc.toQuietSnake(channel)+".snapshot_source.snapshot_base64", [when, spatial]).pipe(map(v => "data:image/jpeg;base64,"+v));
         }
+    }
+
+    statefulRead(name: string): Observable<any>{
+        return this.wamp.call<any>(this.prefix+WampRpc.toQuietSnake(name)+".stateful.read");
+    }
+    updateableUpdate(name: string, value: any): Observable<any>{
+        return this.wamp.call<any>(this.prefix+WampRpc.toQuietSnake(name)+".updateable.update", [value]);
+    }
+
+    eventsSummary(name: string, subjects?: Array<string>, origins?: Array<string>, begin?: Date, end?: Date): Observable<Array<any>>{
+        return this.wamp.call<Array<any>>(this.prefix + WampRpc.toQuietSnake(name) + ".event_archive.summary",
+            [{ begin: begin, end: end, origin: origins.join(","), topic: subjects.join(",") }]);
+    }
+    eventsQuery(name: string, subjects?: Array<string>, origins?: Array<string>, begin?: Date, end?: Date, limit?: number, offset?: number): Observable<Array<Object>>{
+        return this.wamp.call<Array<any>>(this.prefix + WampRpc.toQuietSnake(name) + ".event_archive.query",
+            [{ begin: begin, end: end, origin: origins.join(","), topic: subjects.join(","), limit: limit, offset: offset }]);
+    }
+
+    get events () : Observable<any>{
+        return this.wamp.events.asObservable();
     }
 
     close(): void {

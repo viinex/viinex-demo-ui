@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 
-import { Observable, of, forkJoin, throwError, ReplaySubject } from "rxjs";
+import { Observable, of, forkJoin, throwError, ReplaySubject, Subject } from "rxjs";
 import {map, mergeMap, shareReplay} from 'rxjs/operators'
 
 import { 
@@ -13,7 +13,8 @@ import {
     VideoTrackSummary,
     LiveStreamDetails,
     WebRTCServer,
-    WebRTCServerSummary
+    WebRTCServerSummary,
+    Misc
 } from './video-objects'
 import { LoginService } from './login.service';
 import { IViinexRpc } from './viinex-rpc';
@@ -37,11 +38,17 @@ export class VideoObjectsService {
             }
             else{
                 this.rebuildVideoObjects(rpc);
+                rpc.events.subscribe(e => this._events.next(e));
             }
         });
     }
 
     private _videoObjects: ReplaySubject<VideoObjects> = new ReplaySubject(1);
+    private _events : Subject<any> = new Subject();
+
+    public get events () : Observable<any> {
+        return this._events.asObservable();
+    }
 
     private rebuildVideoObjects(rpc:IViinexRpc){
         let svcs = forkJoin([rpc.svc(), rpc.meta()]);
@@ -76,47 +83,32 @@ export class VideoObjectsService {
     }
     private static extractSvcData(rpc: IViinexRpc, res: Object, resMeta: Object){
         let body=res as Array<Array<string>>;
-        let bodyMeta=resMeta;
+        let bodyMeta : any = resMeta;
+        let typesByName: Map<string, Array<string>>=new Map<string, Array<string>>();
+        for (let [type, name] of body) {
+            let types : Array<string> =typesByName.get(name);
+            if(!types){
+                types = [];
+                typesByName.set(name, types);
+            }
+            types.push(type);
+        }
         let vo=new VideoObjects();
         let vs=new Array<VideoSource>();
         let va=new Array<VideoArchive>();
         let wr=new Array<WebRTCServer>();
-        for(let tn of body){
-            let [t,n]=tn;
-            switch(t){
+        for(let [type, name] of body){
+            switch(type){
                 case "VideoSource": {
-                    let s=new VideoSource(n, true, bodyMeta[n]);
-                    s.getStreamDetails=rpc.liveStreamDetails(n).pipe(map(VideoObjectsService.extractLiveStreamDetails));
-                    for(let tn1 of body){
-                        let [t1,n1]=tn1;
-                        if(t1=="SnapshotSource" && n1==n){
-                            s.getSnapshotImage = (spatial: any) => rpc.liveSnapshotImage(n, spatial);
-                        }
-                        if(t1=="TimelineProvider" && n1==n) {
-                            let t=new VideoTrack(s, null);
-                            t.getSnapshotImage = (temporal,spatial) => rpc.archiveSnapshotImage(null, n, temporal, spatial);
-                            t.getTrackData = (interval?: [Date,Date]) => rpc.archiveChannelSummary(null,n,interval).pipe(map(VideoObjectsService.extractTrackData));
-                            s.videoTracks.push(t);
-                        }
-                    }
-                    vs.push(s);
+                    vs.push(new VideoSource(rpc, name, bodyMeta[name], true, typesByName.get(name)));
                     break;
                 }
                 case "VideoStorage": {
-                    let x=new VideoArchive(n, bodyMeta[n]); 
-                    x.getSummary=function(){
-                        return rpc.archiveSummary(n).pipe(map(r => {
-                            let s=VideoObjectsService.extractArchiveSummary(r);
-                            x.summarySnapshot=s;
-                            return s;
-                        }));
-                    };
-                    va.push(x);
+                    va.push(new VideoArchive(rpc, name, bodyMeta[name]));
                     break;
                 }
                 case "WebRTC": {
-                    let w = new WebRTCServer(rpc, n, bodyMeta[n]);
-                    wr.push(w);
+                    wr.push(new WebRTCServer(rpc, name, bodyMeta[name]));
                     break;
                 }
             }
@@ -125,14 +117,6 @@ export class VideoObjectsService {
         vo.videoArchives=va;
         vo.webrtcServers=wr;
         return vo;
-    }
-    private static extractLiveStreamDetails(body: Object){
-        let d=new LiveStreamDetails();
-        d.bitrate=body["bitrate"];
-        d.framerate=body["framerate"];
-        d.resolution=body["resolution"];
-        d.lastFrame=new Date(body["last_frame"]);
-        return d;
     }
     private static createAllTracks(rpc: IViinexRpc, vo: VideoObjects): Observable<VideoObjects> {
         if(vo.videoArchives==null || vo.videoArchives.length==0){
@@ -148,64 +132,22 @@ export class VideoObjectsService {
         ));
     }
 
-    private static extractArchiveSummary(res: Object): VideoArchiveSummary{
-        let body=<any>res;
-        let vas=new VideoArchiveSummary();
-        vas.diskFreeSpace=body.disk_free_space;
-        vas.diskUsage=body.disk_usage;
-        vas.tracks=new Map<string,VideoTrackSummary>();
-        for(let tn in body.contexts){
-            let c=<any>body.contexts[tn];
-            let ts=new VideoTrackSummary(VideoObjectsService.jsonDateInterval(c.time_boundaries), c.disk_usage);
-            vas.tracks.set(tn, ts);
-        }
-        return vas;
-    }
     private static createTracks(rpc: IViinexRpc, vs:Array<VideoSource>, a: VideoArchive, vas:VideoArchiveSummary){
         vas.tracks.forEach((t: VideoTrackSummary, n:string) => {
-            let vsrc=this.lookupOrAddArchiveVideoSource(vs, n);
-            let vt=new VideoTrack(vsrc, a);
-            vt.getTrackData = (interval?: [Date,Date]) => rpc.archiveChannelSummary(a.name,n,interval).pipe(map(VideoObjectsService.extractTrackData));
-            vt.getSnapshotImage = (temporal,spatial) => rpc.archiveSnapshotImage(a.name, n, temporal, spatial);
+            let vsrc=this.lookupOrAddArchiveVideoSource(rpc, vs, n);
+            let vt=new VideoTrack(rpc, vsrc, a);
             a.videoTracks.push(vt);
             vsrc.videoTracks.push(vt);
         });
     }
 
-    private static extractTrackData(res:Object): VideoTrackData {
-        let body=<any>res;
-        let td=new VideoTrackData();
-        if(body.timeline!=null){ // response from Viinex native archive
-            td.summary=new VideoTrackSummary(VideoObjectsService.jsonDateInterval(body.time_boundaries), body.disk_usage);
-            td.timeLine=body.timeline!=null?body.timeline.map(VideoObjectsService.jsonDateInterval):null;
-        }
-        else { // response from timeline provider
-            let bb: [Date,Date]=[null,null];
-            if(body.length){
-                bb=VideoObjectsService.jsonDateInterval([body[0][0], body[body.length-1][1]]);
-            }
-            td.summary=new VideoTrackSummary(bb, 0);
-            td.timeLine=body.map(VideoObjectsService.jsonDateInterval);
-        }
-        return td;
-    }
-
-    static jsonDateInterval(ii: any): [Date,Date]{
-        if(ii!=null){
-            return [new Date(ii[0]), new Date(ii[1])];
-        } 
-        else {
-            return null;
-        }
-    }
-
-    private static lookupOrAddArchiveVideoSource(vs: Array<VideoSource>, n:string): VideoSource
+    private static lookupOrAddArchiveVideoSource(rpc: IViinexRpc, vs: Array<VideoSource>, n:string): VideoSource
     {
         let res=vs.find(x => {
             return x.name==n;
         });
         if(!res){
-            res=new VideoSource(n, false, null);
+            res=new VideoSource(rpc, n, null, false, []);
             vs.push(res);
         }
         return res;

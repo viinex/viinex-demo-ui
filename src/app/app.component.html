@@ -5,14 +5,17 @@
             <li class="nav-item">
                 <a class="nav-link" routerLinkActive="active" routerLink="/video-objects">Overview</a>
             </li>
-            <li class="nav-item" *ngIf="isHttpRpc">
-                <a class="nav-link" routerLinkActive="active" routerLink="/live-video">Live video</a> 
-            </li>
             <li class="nav-item">
-                <a class="nav-link" routerLinkActive="active" routerLink="/webrtc-video">WebRTC</a> 
+                <a class="nav-link" routerLinkActive="active" routerLink="/webrtc-video">WebRTC (live)</a> 
+            </li>
+            <li class="nav-item" *ngIf="isHttpRpc">
+                <a class="nav-link" routerLinkActive="active" routerLink="/live-video">HLS (live)</a> 
             </li>
             <li class="nav-item">
                 <a class="nav-link" routerLinkActive="active" routerLink="/video-archive">Video archive</a> 
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" routerLinkActive="active" routerLink="/events">Events</a> 
             </li>
             <li class="nav-item">
                 <a class="nav-link" routerLinkActive="active" routerLink="/onvif">ONVIF discovery tool</a>
