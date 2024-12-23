@@ -1,7 +1,7 @@
 <nav class="navbar navbar-expand-md nav-fixed-top bg-primary navbar-dark">
     <div class="container-fluid">
         <h1 class="navbar-brand"><img src="assets/viinex.png" height="30px"/></h1>
-        <ul class="navbar-nav mr-auto">
+        <ul class="navbar-nav mr-auto" *ngIf="isAccessGranted">
             <li class="nav-item">
                 <a class="nav-link" routerLinkActive="active" routerLink="/video-objects">Overview</a>
             </li>
@@ -17,6 +17,10 @@
             <li class="nav-item">
                 <a class="nav-link" routerLinkActive="active" routerLink="/events">Events</a> 
             </li>
+            <li class="nav-item" *ngIf="enableApps">
+                <a class="nav-link" routerLinkActive="active" routerLink="/apps">Applications</a> 
+            </li>
+
             <li class="nav-item">
                 <a class="nav-link" routerLinkActive="active" routerLink="/onvif">ONVIF discovery tool</a>
             </li>
@@ -31,8 +35,8 @@
 
 <footer class="footer">
     <div class="container">
-    <p class="text-muted">This is a demo user interface for Viinex video management SDK. 
-    (c) <a href="https://www.viinex.com">Viinex Inc.</a>, 2019-2022. All rights reserved.</p>
+    <p class="text-muted">This is a demo user interface for viinex video management SDK. 
+    (c) <a href="https://www.viinex.com">Viinex Inc.</a>, 2019-2025. All rights reserved.</p>
     </div>
 </footer>
 

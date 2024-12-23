@@ -103,7 +103,7 @@ export class HlsViewportComponent implements AfterViewInit, AfterViewChecked, On
     set videoSource(s: any){
         if(typeof s === 'string' || s instanceof String){
             if(this._videoSource?.name !== s){
-                this.videoObjectsService.getObjects().subscribe(vo => {
+                this.videoObjectsService.objects.subscribe(vo => {
                     this.videoSource=vo.videoSources.find(v => v.name == s);
                 });
             }

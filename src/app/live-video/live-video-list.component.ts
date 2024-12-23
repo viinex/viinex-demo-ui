@@ -15,7 +15,7 @@ export class LiveVideoListComponent implements OnInit {
                 private route: ActivatedRoute,
                 private videoObjectsService: VideoObjectsService){}
     ngOnInit(): void {
-        this.videoObjectsService.getObjects().subscribe(
+        this.videoObjectsService.objects.subscribe(
             objs => {
                 this.videoSources=objs.videoSources.filter(vs => vs.isLive);
             },

@@ -1,6 +1,10 @@
+import { zip, pipe } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { Component, OnInit } from '@angular/core';
 
 import { LoginService } from './login.service'
+import { VideoObjectsService } from './video-objects.service';
+import { Stateful } from './video-objects';
 
 @Component({
   selector: 'my-app',
@@ -8,28 +12,35 @@ import { LoginService } from './login.service'
   styles: ['.active { font-weight: bold; }']
 })
 export class AppComponent implements OnInit {
-  isServerOnline: boolean;
-  isLoginApplicable: boolean;
-  isLoginRequired: boolean;
-  loginRefLabel: string;
-  isHttpRpc: boolean;
+  isServerOnline: boolean = false;
+  isLoginApplicable: boolean = true;
+  isLoginRequired: boolean = true;
+  loginRefLabel: string = "Login";
+  isHttpRpc: boolean = false;
+  isAccessGranted: boolean = false;
 
-  constructor(private loginService: LoginService) { }
+  enableApps: boolean = false;
+
+  constructor(private loginService: LoginService, private videoObjectsService: VideoObjectsService) { }
 
   ngOnInit(): void {
-    this.loginService.loginStatus.subscribe(
-      ls => {
-        this.isServerOnline = ls.isServerAccessible();
-        this.isLoginApplicable = ls.isLoginPageRelevant();
-        this.isLoginRequired = ls.isLoginRequired();
-        this.isHttpRpc = ls.isHttp();
-        if (this.isLoginRequired) {
+      this.loginService.loginStatus.subscribe(ls => {
+        console.log("APP component -- login status and video objects change subscription", ls);
+        console.trace();
+        this.isServerOnline = ls.isServerAccessible;
+        this.isLoginApplicable = ls.isLoginPageRelevant;
+        this.isLoginRequired = ls.isLoginRequired;
+        this.isHttpRpc = ls.isHttp;
+        this.isAccessGranted = ls.isAccessGranted;
+        if (!this.isAccessGranted) {
           this.loginRefLabel = "Login";
         }
         else {
-          this.loginRefLabel = "Logout";//"Logged in as "+ls[1]; 
+          this.loginRefLabel = "Logout "+ls.loginName; 
         }
-      }
-    );
+      });
+      this.videoObjectsService.objects.subscribe(vo =>{
+        this.enableApps = vo.applications.length > 0;
+      });
   }
 }

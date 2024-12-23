@@ -21,7 +21,7 @@ export class WebrtcVideoViewComponent implements AfterContentInit {
     constructor(private route: ActivatedRoute, private router: Router, private videoObjectsService: VideoObjectsService){
     }
     ngAfterContentInit(): void {
-        this.videoObjectsService.getObjects().subscribe(vo => {
+        this.videoObjectsService.objects.subscribe(vo => {
             this.route.params.subscribe(params => {
                     let webrtcServerId = this.route.parent.snapshot.params["webrtcServerId"];
                     let videoSourceId = params["videoSourceId"];

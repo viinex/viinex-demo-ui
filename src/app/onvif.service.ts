@@ -16,10 +16,10 @@ import { LoginService } from './login.service';
 export class OnvifService {
     constructor(private login: LoginService){}
     getDevices(): Observable<OnvifDevice[]>{
-        return this.login.rpc.pipe(mergeMap(rpc => rpc.onvifDiscover()), map(this.extractDiscoveryData));
+        return this.login.loginStatus.pipe(mergeMap(ls => ls.rpc.onvifDiscover()), map(this.extractDiscoveryData));
     }
     probeFor(url:string, auth:[string,string]): Observable<any>{
-        return this.login.rpc.pipe(mergeMap(rpc => rpc.onvifProbe(url, auth)), map(this.extractProbeData));
+        return this.login.loginStatus.pipe(mergeMap(ls => ls.rpc.onvifProbe(url, auth)), map(this.extractProbeData));
     }
     private extractProbeData(res: Object){
         let body=<any>res;

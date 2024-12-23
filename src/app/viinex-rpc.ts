@@ -7,7 +7,10 @@ import { HttpClient } from '@angular/common/http';
 import { WampClient } from './wamp-client'
 import { WebRTCServerSummary } from "./video-objects";
 
+export enum Transport { Http = 'http', Wamp = 'wamp' };
+
 export interface IViinexRpc {
+    get transport() : Transport;
     svc() : Observable<Object>;
     meta() : Observable<Object>;
 
@@ -32,6 +35,10 @@ export interface IViinexRpc {
 
     eventsSummary(name: string, subjects?: Array<string>, origins?: Array<string>, begin?: Date, end?: Date): Observable<Array<any>>;
     eventsQuery(name: string, subjects?: Array<string>, origins?: Array<string>, begin?: Date, end?: Date, limit?: number, offset?: number): Observable<Array<any>>;
+
+    kvstoreGet(name: string, key: string): Observable<any>;
+    kvstorePut(name: string, key: string, value: any): Observable<void>;
+    kvstoreDelete(name: string, key: string): Observable<void>;
 
     get events () : Observable<any>;
 
@@ -58,6 +65,7 @@ export class HttpRpc implements IViinexRpc {
           };
           this._webSocket=webSocket(cfg);        
     }
+    get transport() { return Transport.Http; }
     svc() : Observable<Object>{
         return this.http.get("v1/svc");
     }
@@ -142,6 +150,16 @@ export class HttpRpc implements IViinexRpc {
             return "";
         }
     }
+
+    kvstoreGet(name: string, key: string) : Observable<any> {
+        return this.http.get<any>("v1/svc/"+name+"/kvs/data/"+key);
+    }
+    kvstorePut(name: string, key: string, value: any): Observable<void> {
+        return this.http.post<void>("v1/svc/"+name+"/kvs/data/"+key, value);
+    }
+    kvstoreDelete(name: string, key: string): Observable<void>{
+        return this.http.delete<void>("v1/svc/"+name+"/kvs/data/"+key);
+    }
     
     get events () : Observable<any>{
         return this._webSocket.asObservable();
@@ -199,6 +217,7 @@ export class WampRpc implements IViinexRpc {
         this.prefix = "com.viinex.api.wamp0.";
         console.log("RPC implementation is WAMP");
     }
+    get transport() { return Transport.Wamp; }
     svc() : Observable<Object>{
         return this.wamp.call(this.prefix+"svc");
     }
@@ -270,6 +289,16 @@ export class WampRpc implements IViinexRpc {
     eventsQuery(name: string, subjects?: Array<string>, origins?: Array<string>, begin?: Date, end?: Date, limit?: number, offset?: number): Observable<Array<Object>>{
         return this.wamp.call<Array<any>>(this.prefix + WampRpc.toQuietSnake(name) + ".event_archive.query",
             [{ begin: begin, end: end, origin: origins.join(","), topic: subjects.join(","), limit: limit, offset: offset }]);
+    }
+
+    kvstoreGet(name: string, key: string) : Observable<any> {
+        return this.wamp.call<any>(this.prefix + WampRpc.toQuietSnake(name) + ".key_value_store.get", [key]); 
+    }
+    kvstorePut(name: string, key: string, value: any): Observable<void> {
+        return this.wamp.call<any>(this.prefix + WampRpc.toQuietSnake(name) + ".key_value_store.put", [key, value]); 
+    }
+    kvstoreDelete(name: string, key: string): Observable<void>{
+        return this.wamp.call<any>(this.prefix + WampRpc.toQuietSnake(name) + ".key_value_store.delete", [key]); 
     }
 
     get events () : Observable<any>{

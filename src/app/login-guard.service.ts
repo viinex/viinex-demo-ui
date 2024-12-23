@@ -13,7 +13,7 @@ export class LoginGuardService  implements OnInit {
     
     canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> {
         return this.loginService.loginStatus.pipe(map(ls => {
-            if(ls.isServerAccessible() && !ls.isLoginRequired()){
+            if(ls.isServerAccessible && !ls.isLoginRequired){
                 return true;
             }
             else{

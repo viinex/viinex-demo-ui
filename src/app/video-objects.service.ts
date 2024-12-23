@@ -14,10 +14,15 @@ import {
     LiveStreamDetails,
     WebRTCServer,
     WebRTCServerSummary,
-    Misc
+    Misc,
+    EventArchive,
+    Stateful,
+    Updateable,
+    KeyValueStore
 } from './video-objects'
 import { LoginService } from './login.service';
 import { IViinexRpc } from './viinex-rpc';
+import { AutoCheckpoint, RailwayTrack } from './apps/apps-objects';
 
 function trace(msg : string) {
     return (o: Observable<any>) => {
@@ -32,13 +37,13 @@ function trace(msg : string) {
 @Injectable()
 export class VideoObjectsService {
     constructor(private login: LoginService){
-        login.rpc.subscribe(rpc => {
-            if(rpc==null){
+        login.loginStatus.subscribe(ls => {
+            if(ls.rpc==null){
                 this._videoObjects.next(new VideoObjects());
             }
             else{
-                this.rebuildVideoObjects(rpc);
-                rpc.events.subscribe(e => this._events.next(e));
+                this.rebuildVideoObjects(ls.rpc);
+                ls.rpc.events.subscribe(e => this._events.next(e));
             }
         });
     }
@@ -63,15 +68,15 @@ export class VideoObjectsService {
         ).subscribe(vo => this._videoObjects.next(vo));
     }
 
-    getObjects(): Observable<VideoObjects>{
+    get objects(): Observable<VideoObjects>{
         return this._videoObjects.asObservable()
     }
     getVideoSource(videoSourceId: string) : Observable<VideoSource> {
-        return this.getObjects().pipe(map(vo => vo.videoSources.find(vs => vs.name==videoSourceId)));
+        return this.objects.pipe(map(vo => vo.videoSources.find(vs => vs.name==videoSourceId)));
     }
     getVideoArchive(videoArchiveId: string) : Observable <VideoArchive>
     {
-        return this.getObjects().pipe(map(vo => vo.videoArchives.find(va => va.name==videoArchiveId)));
+        return this.objects.pipe(map(vo => vo.videoArchives.find(va => va.name==videoArchiveId)));
     }
     getVideoTrack(videoArchiveId: string, videoSourceId: string){
         if(videoArchiveId!=null){
@@ -94,28 +99,52 @@ export class VideoObjectsService {
             types.push(type);
         }
         let vo=new VideoObjects();
-        let vs=new Array<VideoSource>();
-        let va=new Array<VideoArchive>();
-        let wr=new Array<WebRTCServer>();
         for(let [type, name] of body){
+            let meta = bodyMeta[name];
             switch(type){
                 case "VideoSource": {
-                    vs.push(new VideoSource(rpc, name, bodyMeta[name], true, typesByName.get(name)));
+                    vo.videoSources.push(new VideoSource(rpc, name, meta, true, typesByName.get(name)));
                     break;
                 }
                 case "VideoStorage": {
-                    va.push(new VideoArchive(rpc, name, bodyMeta[name]));
+                    vo.videoArchives.push(new VideoArchive(rpc, name, meta));
                     break;
                 }
                 case "WebRTC": {
-                    wr.push(new WebRTCServer(rpc, name, bodyMeta[name]));
+                    vo.webrtcServers.push(new WebRTCServer(rpc, name, meta));
+                    break;
+                }
+                case "EventArchive":{
+                    vo.eventArchives.push(new EventArchive(rpc, name, meta));
+                    break;
+                }
+                case "Stateful":{
+                    let s = new Stateful(rpc, name,meta);
+                    vo.statefuls.push(s);
+                    if(["RailwayTrack","AutoCheckpoint"].indexOf(s.metaData?.type)>=0){
+                        vo.applications.push(s);
+                    }
+                    break;
+                }
+                case "Updateable":{
+                    vo.updateables.push(new Updateable(rpc, name,meta));
+                    break;
+                }
+                case "KeyValueStore":{
+                    vo.keyValueStores.push(new KeyValueStore(rpc, name, meta));
                     break;
                 }
             }
         }
-        vo.videoSources=vs;
-        vo.videoArchives=va;
-        vo.webrtcServers=wr;
+        // assembly "vertical applications" objects
+        vo.applications.forEach(a => {
+            if(a.metaData.type===AutoCheckpoint.type){
+                vo.appsAutoCheckpoint.push(new AutoCheckpoint(a, vo));
+            }
+            if(a.metaData.type===RailwayTrack.type){
+                vo.appsRailwayTrack.push(new RailwayTrack(a, vo));
+            }
+        });
         return vo;
     }
     private static createAllTracks(rpc: IViinexRpc, vo: VideoObjects): Observable<VideoObjects> {

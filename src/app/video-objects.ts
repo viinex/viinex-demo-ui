@@ -2,6 +2,7 @@ import { Observable, of } from "rxjs";
 import { map } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 import { IViinexRpc } from "./viinex-rpc";
+import { AutoCheckpoint, RailwayTrack } from "./apps/apps-objects";
 
 export class ViinexSvcObject{
     constructor(protected rpc: IViinexRpc, public name:string, public metaData: any) {
@@ -221,6 +222,37 @@ export class EventArchiveSummary {
     public constructor(public rows: Array<EventArchiveSummaryRow>, public begin?: Date, public end?: Date){}
 }
 
+export class Stateful extends ViinexSvcObject {
+    constructor(rpc: IViinexRpc, name: string, metaData: any){
+        super(rpc, name, metaData);
+    }
+    read(this: Stateful): Observable<any> {
+        return this.rpc.statefulRead(this.name);
+    }
+}
+export class Updateable extends ViinexSvcObject {
+    constructor(rpc: IViinexRpc, name: string, metaData: any){
+        super(rpc, name, metaData);
+    }
+    update(this: Updateable, value: any): Observable<any>{
+        return this.rpc.updateableUpdate(this.name, value);
+    }
+}
+
+export class KeyValueStore extends ViinexSvcObject {
+    constructor(rpc: IViinexRpc, name: string, metaData: any){
+        super(rpc, name, metaData);
+    }
+    get(this: KeyValueStore, key: string): Observable<any> {
+        return this.rpc.kvstoreGet(this.name, key);
+    }
+    set(this: KeyValueStore, key: string, value: any): Observable<void> {
+        return this.rpc.kvstorePut(this.name, key, value);
+    }
+    delete(this: KeyValueStore, key: string): Observable<void> {
+        return this.rpc.kvstoreDelete(this.name, key);
+    }
+}
 
 export class VideoObjects {
     constructor(){}
@@ -228,5 +260,13 @@ export class VideoObjects {
     videoArchives: Array<VideoArchive> = [];
     webrtcServers: Array<WebRTCServer> = [];
     eventArchives: Array<EventArchive> = [];
+    statefuls: Array<Stateful> = [];
+    updateables: Array<Updateable> = [];
+    keyValueStores: Array<KeyValueStore> = [];
+
+    // the objects exposing Stateful endpoint and having a property "type" set in metadata
+    applications: Array<Stateful> = [];
+    appsAutoCheckpoint: Array<AutoCheckpoint> = [];
+    appsRailwayTrack: Array<RailwayTrack> = [];
 }
 

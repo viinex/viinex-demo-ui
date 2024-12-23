@@ -1,0 +1,51 @@
+<p *ngIf="appsRailwayTrack.length==0 && appsAutoCheckpoint.length==0">No applications configured on the server</p>
+<div *ngIf="appsRailwayTrack.length > 0">
+    <h2>Railway tracks</h2>
+    <div class="card-columns">
+        <div *ngFor="let a of appsRailwayTrack" class="card">
+            <ngb-carousel>
+                <ng-template ngbSlide *ngFor="let s of a.videoSources">
+                    <div class="picsum-img-wrapper">
+                        <img class="d-block w-100" [src]="s.getSnapshotImage+'?width=320'" />
+                    </div>
+                    <div class="carousel-caption">
+                        <h3>{{s.displayName}}</h3>
+                        <p>{{s.description}}</p>
+                    </div>                
+                </ng-template>
+            </ngb-carousel>
+            <div class="card-block p-3">
+                <h4>
+                <a routerLink="RailwayTrack/{{a.name}}">
+                    {{a.displayName}}
+                </a>
+                </h4>
+            </div>
+        </div>
+    </div>
+</div>
+<div *ngIf="appsAutoCheckpoint.length > 0">
+    <h2>Auto checkpoints</h2>
+    <div class="card-columns">
+        <div *ngFor="let a of appsAutoCheckpoint" class="card">
+            <ngb-carousel>
+                <ng-template ngbSlide *ngFor="let s of a.directions">
+                    <div class="picsum-img-wrapper">
+                        <img class="d-block w-100" [src]="s.videoSource.getSnapshotImage+'?width=320'" />
+                    </div>
+                    <div class="carousel-caption">
+                        <h3>{{s.name}}</h3>
+                        <p>{{s.direction}}</p>
+                    </div>                
+                </ng-template>
+            </ngb-carousel>
+            <div class="card-block p-3">
+                <h4>
+                <a routerLink="AutoCheckpoint/{{a.name}}">
+                    {{a.displayName}}
+                </a>
+                </h4>
+            </div>
+        </div>
+    </div>
+</div>

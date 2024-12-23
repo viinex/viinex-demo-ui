@@ -21,7 +21,7 @@ export class WebrtcVideoListComponent implements OnInit {
         this.route.params.subscribe(params => {
             let srvId = params["webrtcServerId"];
             if(null==this.webrtcServers){
-                this.videoObjectsService.getObjects().subscribe(
+                this.videoObjectsService.objects.subscribe(
                     objs => {
                         this.webrtcServers=objs.webrtcServers;
                         if(this.webrtcServers.length==1){

@@ -1,7 +1,8 @@
 import {Component, OnInit} from '@angular/core';
 import { Router } from '@angular/router';
 
-import {LoginService, LoginStatus, Transport } from './login.service'
+import {LoginService, LoginStatus } from './login.service'
+import { Transport } from './viinex-rpc';
 import { Observable, timer } from 'rxjs';
 
 import * as nacl from 'tweetnacl';
@@ -29,12 +30,12 @@ export class LoginComponent implements OnInit {
         this.isWamp = false;
         this.loginService.loginStatus.subscribe(
             ls => { 
-                console.debug("LoginComponent.ngOnInit");
+                console.debug("LoginComponent::login status change subscription", ls);
                 if(null!=ls){
                     this.isServerOnline=true; 
-                    this.isLoginRequired = ls.isLoginRequired(); 
+                    this.isLoginRequired = ls.isLoginRequired; 
                     this.loginName = ls.loginName; 
-                    this.isWamp = ls.transport==Transport.Wamp;
+                    this.isWamp = ls.rpc?.transport==Transport.Wamp;
 
                     if(this.isWamp){
                         this.wampUri = "wss://cloud.viinex.com/ws";
@@ -64,9 +65,7 @@ export class LoginComponent implements OnInit {
         });
     }
     public onLogout(){
-        this.loginService.logout().subscribe(() => {
-            
-        });
+        this.loginService.logout();
     }
 
     private privateKeySeedHex(password: string) : string {
@@ -81,6 +80,7 @@ export class LoginComponent implements OnInit {
     }
     public publicKey(password: string){
         let seedHex=this.privateKeySeedHex(password);
+        console.log(seedHex);
         let seed = new Uint8Array(bb.fromHex(seedHex).toArrayBuffer());
         let key = nacl.sign.keyPair.fromSeed(seed);
         return bb.wrap(key.publicKey).toHex();

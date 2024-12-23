@@ -17,7 +17,7 @@ export class VideoArchiveListComponent implements OnInit {
     selectedArchive: VideoArchive;
     selectedArchiveSummary: VideoArchiveSummary;
     externalVideoTracks: Array<VideoTrack> = [];
-    previewImages: Object;
+    previewImages: any;
     selectedVideoTracks : Array<VideoTrack>;
 
     constructor(private router: Router, 
@@ -28,7 +28,7 @@ export class VideoArchiveListComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        this.videoObjectsService.getObjects().subscribe(
+        this.videoObjectsService.objects.subscribe(
             objs => {
                 this.videoArchives=objs.videoArchives;
                 objs.videoSources.forEach(vs => {

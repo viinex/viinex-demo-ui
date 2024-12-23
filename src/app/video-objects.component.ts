@@ -14,7 +14,7 @@ export class VideoObjectsComponent implements OnInit {
     errorMessage: string;
     videoSources: VideoSource[];
     videoArchives: VideoArchive[];
-    liveSnapshots: Object;
+    liveSnapshots: any;
     isHttp: boolean;
 
     constructor(private videoObjectsService: VideoObjectsService, private login: LoginService){
@@ -23,8 +23,8 @@ export class VideoObjectsComponent implements OnInit {
         this.liveSnapshots={};
     }
     ngOnInit(): void {
-        this.login.loginStatus.subscribe(ls => { this.isHttp = ls.isHttp() });
-        this.videoObjectsService.getObjects().subscribe(
+        this.login.loginStatus.subscribe(ls => { this.isHttp = ls.isHttp });
+        this.videoObjectsService.objects.subscribe(
             objs => {
                 this.videoSources=objs.videoSources;
                 this.videoArchives=objs.videoArchives;

@@ -28,6 +28,8 @@ import { Component } from '@angular/core';
 import { LoginGuardService } from './login-guard.service';
 import { WampClient } from './wamp-client';
 import { ViewportModule } from './viewport/viewport.module';
+import { AppsModule } from './apps/apps.module';
+import { AppsRoutingModule } from './apps/apps-routing.module';
 
 
 @NgModule({ declarations: [AppComponent, OnvifDiscoveryComponent, VideoObjectsComponent, PageNotFoundComponent, LoginComponent],
@@ -42,5 +44,7 @@ import { ViewportModule } from './viewport/viewport.module';
         VideoArchiveRoutingModule,
         WebrtcVideoRoutingModule,
         ViewportModule,
+        AppsModule,
+        AppsRoutingModule,
         AppRoutingModule], providers: [OnvifService, VideoObjectsService, LoginService, LoginGuardService, WampClient, provideHttpClient(withInterceptorsFromDi())] })
 export class AppModule { }

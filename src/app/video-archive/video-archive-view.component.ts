@@ -9,8 +9,8 @@ import Hls from 'hls.js'
 
 import {VideoObjectsService} from '../video-objects.service'
 import {VideoSource,VideoObjects, VideoTrack, VideoTrackData, VideoTrackSummary} from '../video-objects'
-import { LoginService, Transport } from '../login.service';
-import { IViinexRpc } from '../viinex-rpc';
+import { LoginService } from '../login.service';
+import { IViinexRpc, Transport } from '../viinex-rpc';
 import {Format} from '../format'
 
 import {NgbDate, NgbCalendar, NgbDateNativeAdapter, NgbDateStruct} from '@ng-bootstrap/ng-bootstrap';
@@ -50,8 +50,8 @@ export class VideoArchiveViewComponent implements OnInit {
       }
     ngOnInit(): void {
         this.login.loginStatus.subscribe((ls) => {
-            this.isWamp = ls.transport == Transport.Wamp;
-            this.isHttp = ls.transport == Transport.Http;
+            this.isWamp = ls.rpc?.transport == Transport.Wamp;
+            this.isHttp = ls.rpc?.transport == Transport.Http;
         });
         this.route.params.pipe(
             mergeMap(params => {
