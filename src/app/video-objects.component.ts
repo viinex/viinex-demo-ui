@@ -5,6 +5,7 @@ import {VideoSource,VideoArchive,VideoObjects,VideoTrack} from './video-objects'
 import {Format} from './format'
 import { forkJoin, of } from 'rxjs';
 import { LoginService } from './login.service';
+import { LiveSnapshotService } from './live-snapshot.service';
 
 @Component({
     selector: 'video-objects',
@@ -17,7 +18,7 @@ export class VideoObjectsComponent implements OnInit {
     liveSnapshots: any;
     isHttp: boolean;
 
-    constructor(private videoObjectsService: VideoObjectsService, private login: LoginService){
+    constructor(private videoObjectsService: VideoObjectsService, private login: LoginService, private liveSnapshotsService: LiveSnapshotService){
         this.videoSources=new Array<VideoSource>();
         this.videoArchives=new Array<VideoArchive>();
         this.liveSnapshots={};
@@ -28,17 +29,10 @@ export class VideoObjectsComponent implements OnInit {
             objs => {
                 this.videoSources=objs.videoSources;
                 this.videoArchives=objs.videoArchives;
-                forkJoin(this.videoSources.map(vs => {
-                    if(vs.getSnapshotImage){
-                        return vs.getSnapshotImage({scale:[160,0]});
-                    }
-                    else{
-                        return of("");
-                    }
-                })).subscribe(ss => {
-                    for(let k=0; k<this.videoSources.length; ++k){
-                        this.liveSnapshots[this.videoSources[k].name]=ss[k];
-                    }
+                objs.videoSources.forEach(vs => {
+                    this.liveSnapshotsService.get(vs.name).subscribe(image => {
+                        this.liveSnapshots[vs.name]=image;
+                    }, e => { console.log(e); this.liveSnapshots[vs.name]='assets/novideo.jpg'; });
                 });
             },
             error => this.errorMessage=<any>error

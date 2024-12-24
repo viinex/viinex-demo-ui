@@ -5,6 +5,7 @@ import { AutoCheckpoint, RailwayTrack } from './apps-objects';
 import { NgFor, NgForOf, NgIf } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { NgbCarousel, NgbSlide } from '@ng-bootstrap/ng-bootstrap';
+import { LiveSnapshotService } from '../live-snapshot.service';
 
 @Component({
   selector: 'app-apps-list',
@@ -17,11 +18,21 @@ export class AppsListComponent implements OnInit {
   appsAutoCheckpoint: Array<AutoCheckpoint>=[];
   appsRailwayTrack: Array<RailwayTrack>=[];
 
-  constructor(private videoObjectsService: VideoObjectsService){}
+  public liveSnapshots: any={};
+
+  constructor(private videoObjectsService: VideoObjectsService, private liveSnapshotsService: LiveSnapshotService){}
   ngOnInit(): void {
     this.videoObjectsService.objects.subscribe(vo => {
       this.appsAutoCheckpoint=vo.appsAutoCheckpoint;
       this.appsRailwayTrack=vo.appsRailwayTrack;
+
+      vo.appsAutoCheckpoint.forEach(a =>{
+        a.videoSources.forEach(v => {
+          this.liveSnapshotsService.get(v.name).subscribe(res => {
+            this.liveSnapshots[v.name]=res;
+          })
+        })
+      })
 
       console.log("this.appsAutoCheckpoint:", this.appsAutoCheckpoint);
     });

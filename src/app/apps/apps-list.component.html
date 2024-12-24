@@ -31,7 +31,7 @@
             <ngb-carousel>
                 <ng-template ngbSlide *ngFor="let s of a.directions">
                     <div class="picsum-img-wrapper">
-                        <img class="d-block w-100" [src]="s.videoSource.getSnapshotImage+'?width=320'" />
+                        <img class="d-block w-100" [src]="liveSnapshots[s.videoSource.name]" />
                     </div>
                     <div class="carousel-caption">
                         <h3>{{s.name}}</h3>
