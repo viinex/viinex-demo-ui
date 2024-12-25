@@ -5,6 +5,7 @@ import {VideoObjectsService} from '../video-objects.service'
 import {VideoSource,VideoObjects} from '../video-objects'
 
 @Component({
+    standalone: false,
     templateUrl: 'live-video-list.component.html'
 })
 export class LiveVideoListComponent implements OnInit {

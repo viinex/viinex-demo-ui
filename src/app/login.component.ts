@@ -6,10 +6,11 @@ import { Transport } from './viinex-rpc';
 import { Observable, timer } from 'rxjs';
 
 import * as nacl from 'tweetnacl';
-import * as bb from 'bytebuffer';
+import {default as bb} from 'bytebuffer';
 import * as sha256 from 'fast-sha256';
 
 @Component({
+    standalone: false,
     selector: 'login',
     templateUrl: './login.component.html'
 })

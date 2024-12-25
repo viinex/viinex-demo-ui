@@ -1,6 +1,7 @@
 import {Component} from '@angular/core';
 
 @Component({
+    standalone: false,
     template: `
     <h1>Not found</h1>
     The page you're looking for was not found.

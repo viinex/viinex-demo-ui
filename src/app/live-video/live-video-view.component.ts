@@ -9,6 +9,7 @@ import {VideoObjectsService} from '../video-objects.service'
 import {VideoSource, LiveStreamDetails} from '../video-objects'
 
 @Component({
+    standalone: false,
     template: `
     <div>
     <hls-viewport [video-source]="videoSource?.name"></hls-viewport>

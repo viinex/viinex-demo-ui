@@ -3,6 +3,7 @@ import { VideoSource, VideoTrack, WebRTCServer } from '../video-objects';
 import { VideoObjectsService } from '../video-objects.service';
 
 @Component({
+    standalone: false,
     selector: 'webrtc-viewport',
     template: `
     <div style="position: relative;">

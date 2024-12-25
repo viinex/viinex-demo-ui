@@ -1,11 +1,12 @@
 import {Component, OnInit} from '@angular/core';
-import {FormsModule} from '@angular/forms';
+import {FormsModule, NgModel} from '@angular/forms';
 
 import {OnvifService} from './onvif.service'
 import {OnvifDevice, OnvifDeviceDetails} from './onvif-device'
 import { ThisReceiver } from '@angular/compiler';
 
 @Component({
+    standalone: false,
     selector: 'onvif-discovery',
     templateUrl: './onvif-discovery.component.html'
 })

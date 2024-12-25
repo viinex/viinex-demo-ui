@@ -30,7 +30,7 @@
         <div *ngFor="let a of appsAutoCheckpoint" class="card">
             <ngb-carousel>
                 <ng-template ngbSlide *ngFor="let s of a.directions">
-                    <div class="picsum-img-wrapper">
+                    <div class="wrapper">
                         <img class="d-block w-100" [src]="liveSnapshots[s.videoSource.name]" />
                     </div>
                     <div class="carousel-caption">

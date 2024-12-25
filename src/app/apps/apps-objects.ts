@@ -46,7 +46,7 @@ export class AutoCheckpoint extends AppsObject {
     }
 }
 
-enum AcpDirectionEnum { Entrance, Exit };
+enum AcpDirectionEnum { Entrance = 'entrance', Exit = 'exit' };
 export class AcpDirection {
     public name: string;
     public videoSource: VideoSource;

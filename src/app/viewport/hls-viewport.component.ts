@@ -5,6 +5,7 @@ import { VideoObjectsService } from '../video-objects.service';
 import Hls from 'hls.js'
 
 @Component({
+    standalone: false,
     selector: 'hls-viewport',
     template: `<div #VideoDiv></div>`
 })

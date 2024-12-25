@@ -9,6 +9,7 @@ import { forkJoin } from 'rxjs';
 import { fstatSync } from 'fs';
 
 @Component({
+    standalone: false,
     templateUrl: "./video-archive-list.component.html"
 })
 export class VideoArchiveListComponent implements OnInit {

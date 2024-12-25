@@ -264,7 +264,15 @@ export class WampRpc implements IViinexRpc {
     }
 
     liveSnapshotImage(name: string, spatial: any): Observable<string> {
-        return this.wamp.call<string>(this.prefix+WampRpc.toQuietSnake(name)+".snapshot_base64", [null, spatial]).pipe(map(v => "data:image/jpeg;base64,"+v));
+        return this.wamp.call<string>(this.prefix+WampRpc.toQuietSnake(name)+".snapshot_base64", [null, spatial]).pipe(map(v => {
+            if(typeof v === "object" && v && "error" in v){
+                console.debug("error while trying to get live snapshot for ", name, v);
+                return "assets/novideo.png";
+            }
+            else
+                return "data:image/jpeg;base64,"+v;
+
+        }));
     }
     archiveSnapshotImage(name: string, channel: string, when: any, spatial: any): Observable<string>{
         if(name!=null){ // name!=null means call to video archive

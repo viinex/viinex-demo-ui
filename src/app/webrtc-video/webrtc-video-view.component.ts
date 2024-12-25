@@ -9,6 +9,7 @@ import {VideoSource, WebRTCServer} from '../video-objects'
 import { WebrtcViewportComponent } from '../viewport/webrtc-viewport.component';
 
 @Component({
+    standalone: false,
     templateUrl: "webrtc-video-view.component.html"
 })
 export class WebrtcVideoViewComponent implements AfterContentInit {

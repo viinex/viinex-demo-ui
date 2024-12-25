@@ -2,8 +2,10 @@ import { NgModule }      from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { RouterModule, Routes }  from '@angular/router';
-import {FormsModule} from '@angular/forms';
+import {FormsModule, NgModel} from '@angular/forms';
 import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
+import { NgbCarousel, NgbCarouselConfig, NgbSlide } from '@ng-bootstrap/ng-bootstrap';
+
 
 import {LoginService} from './login.service';
 import {OnvifService} from './onvif.service';
@@ -32,11 +34,14 @@ import { AppsModule } from './apps/apps.module';
 import { AppsRoutingModule } from './apps/apps-routing.module';
 
 
-@NgModule({ declarations: [AppComponent, OnvifDiscoveryComponent, VideoObjectsComponent, PageNotFoundComponent, LoginComponent],
-    bootstrap: [AppComponent], imports: [BrowserModule,
+@NgModule({ 
+    declarations: [AppComponent, OnvifDiscoveryComponent, VideoObjectsComponent, PageNotFoundComponent, LoginComponent],
+    bootstrap: [AppComponent], 
+    imports: [BrowserModule,
         FormsModule,
         RouterModule,
         NgbModule,
+        NgbCarousel,
         LiveVideoModule,
         VideoArchiveModule,
         WebrtcVideoModule,
@@ -46,5 +51,7 @@ import { AppsRoutingModule } from './apps/apps-routing.module';
         ViewportModule,
         AppsModule,
         AppsRoutingModule,
-        AppRoutingModule], providers: [OnvifService, VideoObjectsService, LoginService, LoginGuardService, WampClient, provideHttpClient(withInterceptorsFromDi())] })
+        NgModule,
+        AppRoutingModule], 
+    providers: [OnvifService, VideoObjectsService, LoginService, LoginGuardService, WampClient, provideHttpClient(withInterceptorsFromDi())] })
 export class AppModule { }

@@ -1,7 +1,7 @@
 import { Observable, Subject, throwError } from "rxjs";
 import { Injectable, NgZone, OnDestroy } from "@angular/core";
 import * as nacl from 'tweetnacl';
-import * as bb from 'bytebuffer';
+import {default as bb} from 'bytebuffer';
 
 import * as autobahn from 'autobahn-browser';
 
@@ -32,10 +32,10 @@ export class WampClient implements OnDestroy {
                     pubkey: bb.wrap(key.publicKey).toHex()
                 }, 
             });
-            this.connection.onopen = (session, details) => { 
+            this.connection.onopen = (session: any, details: any) => { 
                 console.debug("WAMP session established, id = ", session.id, details);
                 // enable autoreconnect
-                this.connection.onclose = (reason, details) => {
+                this.connection.onclose = (reason: any, details: any) => {
                     return false;
                 };
                 session.subscribe("com.viinex.api.wamp0", (events: Array<any>) => {
@@ -48,7 +48,7 @@ export class WampClient implements OnDestroy {
                     }
                 });
             };
-            this.connection.onclose = (reason, details) => {
+            this.connection.onclose = (reason: any, details: any) => {
                 console.debug("WAMP connection closed, reason: ", reason, details);
                 this.zone.run(() => {
                     if(!subscriber.closed){
@@ -62,7 +62,7 @@ export class WampClient implements OnDestroy {
     }
     public close() {
         if(this.connection){
-            this.connection.onclose = (reason, details) => {
+            this.connection.onclose = (reason: any, details: any) => {
                 console.debug("WampClient.close(): WAMP connection closed, ", reason);
                 return true;
             };

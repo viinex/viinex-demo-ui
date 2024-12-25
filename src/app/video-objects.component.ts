@@ -8,6 +8,7 @@ import { LoginService } from './login.service';
 import { LiveSnapshotService } from './live-snapshot.service';
 
 @Component({
+    standalone: false,
     selector: 'video-objects',
     templateUrl: './video-objects.component.html'
 })

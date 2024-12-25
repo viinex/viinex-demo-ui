@@ -18,6 +18,7 @@ import {NgbDate, NgbCalendar, NgbDateNativeAdapter, NgbDateStruct} from '@ng-boo
 const MAX_WINDOW_SIZE_MINUTES=10;
 
 @Component({
+    standalone: false,
     templateUrl: "video-archive-view.component.html",
     styleUrls: ["./video-archive-view.component.css"]
 })

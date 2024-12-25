@@ -5,6 +5,7 @@ import {VideoObjectsService} from '../video-objects.service'
 import {WebRTCServer,VideoObjects} from '../video-objects'
 
 @Component({
+    standalone: false,
     templateUrl: "./webrtc-video-list.component.html"
 })
 export class WebrtcVideoListComponent implements OnInit {

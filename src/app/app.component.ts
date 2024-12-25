@@ -7,6 +7,7 @@ import { VideoObjectsService } from './video-objects.service';
 import { Stateful } from './video-objects';
 
 @Component({
+  standalone: false,
   selector: 'my-app',
   templateUrl: './app.component.html',
   styles: ['.active { font-weight: bold; }']
