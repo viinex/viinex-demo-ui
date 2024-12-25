@@ -6,7 +6,7 @@ import * as Crypto from 'crypto-js';
 import * as Cookies from 'js-cookie';
 
 import jwtDecode, { JwtPayload } from 'jwt-decode'
-import { HttpClient } from '@angular/common/http'
+import { HttpClient, HttpErrorResponse } from '@angular/common/http'
 import { WampClient } from './wamp-client'
 import { IViinexRpc, HttpRpc, WampRpc, Transport } from './viinex-rpc'
 import { trace } from 'console';
@@ -94,6 +94,7 @@ export class LoginService {
     }
 
     private setLoginStatusFromCookie(){
+        console.debug("setLoginStatusFromCookie");
         var c=this;
         var authCookie=Cookies.get('auth');
         if(null != authCookie){
@@ -108,8 +109,8 @@ export class LoginService {
     }
 
     private checkLoginStatus(): Observable<void> {
-        return this.http.get("v1/svc").pipe(map(
-            (res:Response) => { 
+        return this.http.get<Array<Array<string>>>("v1/svc").pipe(map(
+            (_) => { 
                 this.setLoginStatusFromCookie();
             }),
             catchError((error: any, caught: Observable<void>) => { 
@@ -120,11 +121,12 @@ export class LoginService {
     }
 
     private handleErrorObservable (error: Response) {
+        console.log(error);
         if(error.status==403) {
             this.setLoginStatus(new LoginStatus(new HttpRpc(this.http), false)); 
             this.setErrorMessage(null);
         }
-        else if(error.status==404){
+        else if(error.status==404 || error.status==200 ){ // not found or found yet error -- probably cannot parse
             this.setLoginStatus(new LoginStatus(new WampRpc(this.wamp), true)); 
             this.setErrorMessage(null);
         }

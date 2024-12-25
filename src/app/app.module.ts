@@ -2,7 +2,7 @@ import { NgModule }      from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { RouterModule, Routes }  from '@angular/router';
-import {FormsModule, NgModel} from '@angular/forms';
+import {FormsModule} from '@angular/forms';
 import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
 import { NgbCarousel, NgbCarouselConfig, NgbSlide } from '@ng-bootstrap/ng-bootstrap';
 
@@ -51,7 +51,6 @@ import { AppsRoutingModule } from './apps/apps-routing.module';
         ViewportModule,
         AppsModule,
         AppsRoutingModule,
-        NgModule,
         AppRoutingModule], 
     providers: [OnvifService, VideoObjectsService, LoginService, LoginGuardService, WampClient, provideHttpClient(withInterceptorsFromDi())] })
 export class AppModule { }

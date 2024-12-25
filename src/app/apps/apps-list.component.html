@@ -1,7 +1,7 @@
 <p *ngIf="appsRailwayTrack.length==0 && appsAutoCheckpoint.length==0">No applications configured on the server</p>
 <div *ngIf="appsRailwayTrack.length > 0">
     <h2>Railway tracks</h2>
-    <div class="card-columns">
+    <div class="card-group">
         <div *ngFor="let a of appsRailwayTrack" class="card">
             <ngb-carousel>
                 <ng-template ngbSlide *ngFor="let s of a.videoSources">
@@ -26,8 +26,8 @@
 </div>
 <div *ngIf="appsAutoCheckpoint.length > 0">
     <h2>Auto checkpoints</h2>
-    <div class="card-columns">
-        <div *ngFor="let a of appsAutoCheckpoint" class="card">
+    <div class="card-group">
+        <div *ngFor="let a of appsAutoCheckpoint" class="card w-25 col-md-4">
             <ngb-carousel>
                 <ng-template ngbSlide *ngFor="let s of a.directions">
                     <div class="wrapper">

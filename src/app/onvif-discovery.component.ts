@@ -3,7 +3,7 @@ import {FormsModule, NgModel} from '@angular/forms';
 
 import {OnvifService} from './onvif.service'
 import {OnvifDevice, OnvifDeviceDetails} from './onvif-device'
-import { ThisReceiver } from '@angular/compiler';
+
 
 @Component({
     standalone: false,

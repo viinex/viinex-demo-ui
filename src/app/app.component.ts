@@ -5,6 +5,7 @@ import { Component, OnInit } from '@angular/core';
 import { LoginService } from './login.service'
 import { VideoObjectsService } from './video-objects.service';
 import { Stateful } from './video-objects';
+import { RouterOutlet } from '@angular/router';
 
 @Component({
   standalone: false,

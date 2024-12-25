@@ -1,8 +1,8 @@
 <h1>Overview</h1>
 <p>This page shows the information on video obects, i.e. cameras and archives, already configured at Viinex server. </p>
 <h2>Video sources</h2>
-<div class="card-columns">
-    <div *ngFor="let vs of videoSources" class="card" style="max-width: '400px'">
+<div class="card-group">
+    <div *ngFor="let vs of videoSources" class="card col-md-4 col-sm-6" style="max-width: '400px'">
         <img *ngIf="videoSources.length &lt;= 16 &amp;&amp; vs.getSnapshotImage != null" 
             class="card-img-top img-fluid"
             src="{{liveSnapshots[vs.name]}}"
@@ -19,7 +19,7 @@
 <div *ngIf="videoArchives.length!=0">
     <h2>Video archives</h2>
     <div class="card-group">
-        <div class="card" *ngFor="let va of videoArchives">
+        <div class="card col-md-4 col-sm-6" *ngFor="let va of videoArchives">
             <div class="card-body" *ngIf="va.summarySnapshot!=null">
                     <h4><a routerLink="/video-archive/{{va.name}}">{{va.displayName}}</a></h4>
                     <p *ngIf="va.description != null">{{va.description}}</p>

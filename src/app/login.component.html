@@ -1,36 +1,35 @@
-<div class="col-12">
-<div *ngIf="isServerOnline &amp;&amp; isLoginRequired">
-    <div class="row">
+<div class="row" *ngIf="isServerOnline &amp;&amp; isLoginRequired">
+    <div class="col-md-4 col-sm-12">
         <form class="form">
-            <div class="form-group row">
+            <div class="form-group">
                 <h2 class="col-12">Login is required</h2>
                 <h5 class="col-12" *ngIf='isWamp'>WAMP transport is going to be used</h5>
                 <div class="col-12 alert alert-danger" *ngIf="null!=errorMessage">{{errorMessage}}</div>
             </div>
-            <div class="form-group row" *ngIf="isWamp">
+            <div class="form-group" *ngIf="isWamp">
                 <label class="col-form-label col-sm-4" for="wampUri">URI to connect to:</label>
                 <input [(ngModel)]="wampUri" type="text" class="form-control col-sm-8" name="wampUri" id="realm" placeholder="ws://example.com:8080/path"/>
             </div>
-            <div class="form-group row" *ngIf="isWamp">
+            <div class="form-group" *ngIf="isWamp">
                 <label class="col-form-label col-sm-4" for="wampRealm">WAMP realm:</label>
                 <input [(ngModel)]="wampRealm" type="text" class="form-control col-sm-8" name="wampRealm" id="realm" placeholder="realm1"/>
             </div>
-            <div class="form-group row">
+            <div class="form-group">
                 <label class="col-form-label col-sm-4" for="username">User name:</label>
                 <input [(ngModel)]="loginName" type="email" class="form-control col-sm-8" name="loginName" id="username" placeholder="username"/>
             </div>
-            <div class="form-group row">
+            <div class="form-group">
                 <label class="col-form-label col-sm-4" for="password">Password:</label>
                 <input [(ngModel)]="loginPassword" type="password" class="form-control col-sm-8" id="password" name="loginPassword" placeholder="password"/>
             </div>
-            <div class="form-group row">
-                <div class="col-sm-4">            
-                    <button type="submit" class="btn btn-primary" (click)="onLogin()">Login</button>
-                </div>
+            <br>
+            <div class="form-group">
+                <button type="submit" id="submit" class="btn btn-primary" (click)="onLogin()">Login</button>
             </div>
         </form>
     </div>
-    <div class="row" *ngIf="isWamp">
+    <br>
+    <div class="col-12" *ngIf="isWamp">
         Matching ed25519 public key:&nbsp; <pre>{{publicKey(loginPassword)}}</pre>
     </div>
 </div>
@@ -49,5 +48,4 @@
 
 <div *ngIf="!isServerOnline">
     <div class="alert alert-danger">The server is currently not accessible. Please try again later.</div>
-</div>
 </div>
