@@ -91,6 +91,14 @@ export class VideoTrack {
         }
         return td;
     }
+    public get routerLink(): string {
+        if(this.videoArchive){
+            return `/video-archive/${this.videoArchive.name}/${this.videoSource.name}`;
+        }
+        else{
+            return `/video-archive/vms__external/${this.videoSource.name}`;
+        }
+    }
 }
 
 export class VideoTrackSummary {

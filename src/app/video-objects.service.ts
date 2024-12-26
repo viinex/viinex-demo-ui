@@ -1,6 +1,6 @@
-import { Injectable } from '@angular/core';
+import { Injectable, OnDestroy } from '@angular/core';
 
-import { Observable, of, forkJoin, throwError, ReplaySubject, Subject } from "rxjs";
+import { Observable, of, forkJoin, throwError, ReplaySubject, Subject, Subscription } from "rxjs";
 import {map, mergeMap, shareReplay} from 'rxjs/operators'
 
 import { 
@@ -35,7 +35,7 @@ function trace(msg : string) {
 
 
 @Injectable()
-export class VideoObjectsService {
+export class VideoObjectsService implements OnDestroy {
     constructor(private login: LoginService){
         login.loginStatus.subscribe(ls => {
             if(ls.rpc==null){
@@ -43,13 +43,28 @@ export class VideoObjectsService {
             }
             else{
                 this.rebuildVideoObjects(ls.rpc);
-                ls.rpc.events.subscribe(e => this._events.next(e));
+                if(this._subscription){
+                    this._subscription.unsubscribe();
+                    this._subscription=null;
+                }
+                this._subscription=ls.rpc.events.subscribe(e => {
+                    this._events.next(e);
+
+                });
             }
         });
     }
 
     private _videoObjects: ReplaySubject<VideoObjects> = new ReplaySubject(1);
     private _events : Subject<any> = new Subject();
+    private _subscription: Subscription;
+
+    ngOnDestroy(): void {
+        if(this._subscription){
+            this._subscription.unsubscribe();
+            this._subscription=null;
+        }
+    }
 
     public get events () : Observable<any> {
         return this._events.asObservable();

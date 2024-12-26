@@ -1,0 +1,12 @@
+.masonry-item {
+    padding-bottom: 8px;
+}
+.masonry-item-inner {
+    max-width: 320px;
+}
+.card-body {
+    min-height: 5em;
+}
+.btn-pad-right {
+    margin-right: 4px;
+}

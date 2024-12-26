@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnInit, ViewChild, ElementRef} from '@angular/core';
 
 import {VideoObjectsService} from './video-objects.service'
 import {VideoSource,VideoArchive,VideoObjects,VideoTrack} from './video-objects'
@@ -6,11 +6,13 @@ import {Format} from './format'
 import { forkJoin, of } from 'rxjs';
 import { LoginService } from './login.service';
 import { LiveSnapshotService } from './live-snapshot.service';
+import { NgxMasonryComponent } from 'ngx-masonry';
 
 @Component({
     standalone: false,
     selector: 'video-objects',
-    templateUrl: './video-objects.component.html'
+    templateUrl: './video-objects.component.html',
+    styleUrl: './video-objects.component.css'
 })
 export class VideoObjectsComponent implements OnInit {
     errorMessage: string;
@@ -19,11 +21,20 @@ export class VideoObjectsComponent implements OnInit {
     liveSnapshots: any;
     isHttp: boolean;
 
+    public masonryConfig = {
+        columnWidth: 320, 
+        gutter: 8,
+        horizontalOrder: false,
+        transitionDuration: 0,
+    }
+
     constructor(private videoObjectsService: VideoObjectsService, private login: LoginService, private liveSnapshotsService: LiveSnapshotService){
         this.videoSources=new Array<VideoSource>();
         this.videoArchives=new Array<VideoArchive>();
         this.liveSnapshots={};
     }
+    @ViewChild('masonry') masonry: NgxMasonryComponent;
+
     ngOnInit(): void {
         this.login.loginStatus.subscribe(ls => { this.isHttp = ls.isHttp });
         this.videoObjectsService.objects.subscribe(
@@ -35,6 +46,7 @@ export class VideoObjectsComponent implements OnInit {
                         this.liveSnapshots[vs.name]=image;
                     }, e => { console.log(e); this.liveSnapshots[vs.name]='assets/novideo.jpg'; });
                 });
+                this.masonry.layout();
             },
             error => this.errorMessage=<any>error
         );

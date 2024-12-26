@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { VideoObjectsService } from '../video-objects.service';
 import { NgFor, NgIf } from '@angular/common';
 import { NgModel } from '@angular/forms';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-events',
@@ -10,16 +11,25 @@ import { NgModel } from '@angular/forms';
   templateUrl: './events.component.html',
   styleUrl: './events.component.css'
 })
-export class EventsComponent {
+export class EventsComponent implements OnInit, OnDestroy {
   constructor(private videoObjectsService: VideoObjectsService){
-    this.videoObjectsService.events.subscribe(e => this._appendEvent(e));
+  }
+
+  ngOnInit(): void {
+    this._subscription = this.videoObjectsService.events.subscribe(e => this._appendEvent(e));
+  }
+  ngOnDestroy(): void {
+    this._subscription.unsubscribe();
   }
 
   public lastEvents: Array<any> = [];
   public pause: boolean = false;
   public skipped: number = 0;
 
-  _appendEvent(e: any){
+  private _subscription: Subscription;
+
+  _appendEvent(this: EventsComponent, e: any){
+    console.log(e);
     if(this.pause){
       this.skipped++;
       return;

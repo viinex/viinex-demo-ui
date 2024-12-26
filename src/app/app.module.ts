@@ -32,6 +32,8 @@ import { WampClient } from './wamp-client';
 import { ViewportModule } from './viewport/viewport.module';
 import { AppsModule } from './apps/apps.module';
 import { AppsRoutingModule } from './apps/apps-routing.module';
+import { NgxMasonryModule } from 'ngx-masonry';
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 
 
 @NgModule({ 
@@ -42,6 +44,7 @@ import { AppsRoutingModule } from './apps/apps-routing.module';
         RouterModule,
         NgbModule,
         NgbCarousel,
+        NgxMasonryModule,
         LiveVideoModule,
         VideoArchiveModule,
         WebrtcVideoModule,
@@ -52,5 +55,13 @@ import { AppsRoutingModule } from './apps/apps-routing.module';
         AppsModule,
         AppsRoutingModule,
         AppRoutingModule], 
-    providers: [OnvifService, VideoObjectsService, LoginService, LoginGuardService, WampClient, provideHttpClient(withInterceptorsFromDi())] })
+    providers: [OnvifService, 
+        VideoObjectsService, 
+        LoginService, 
+        LoginGuardService, 
+        WampClient, 
+        provideHttpClient(withInterceptorsFromDi()),
+        provideAnimationsAsync()
+    ] 
+})
 export class AppModule { }

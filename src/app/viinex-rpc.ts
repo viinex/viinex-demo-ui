@@ -211,7 +211,6 @@ export class HttpRpc implements IViinexRpc {
 }
 
 export class WampRpc implements IViinexRpc {
-    _eventSubject: Subject<any> = new Subject();
     readonly prefix: string;
     constructor(private wamp: WampClient){
         this.prefix = "com.viinex.api.wamp0.";
@@ -310,7 +309,7 @@ export class WampRpc implements IViinexRpc {
     }
 
     get events () : Observable<any>{
-        return this.wamp.events.asObservable();
+        return this.wamp.events;
     }
 
     close(): void {
