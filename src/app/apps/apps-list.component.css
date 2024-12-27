@@ -1,3 +1,10 @@
 .visually-hidden {
     visibility: hidden !important;
 }
+.masonry-item {
+    padding-bottom: 8px;
+    width: 320px;
+}
+.masonry-item-inner {
+    width: 320px;
+}

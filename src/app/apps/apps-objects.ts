@@ -21,6 +21,14 @@ export class RailwayTrack extends AppsObject {
     public static type : string = 'RailwayTrack';
     constructor(stateful: Stateful, vo: VideoObjects) {
         super(stateful, vo);
+        if(stateful.metaData.channels){
+            stateful.metaData.channels.forEach((c: string) => {
+                let vs=vo.videoSources.find(vs => vs.name==c);
+                if(vs){
+                    this.videoSources.push(vs);
+                }
+            });
+        }
     }
 }
 

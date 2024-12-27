@@ -1,51 +1,61 @@
+<div class="row">
 <p *ngIf="appsRailwayTrack.length==0 && appsAutoCheckpoint.length==0">No applications configured on the server</p>
 <div *ngIf="appsRailwayTrack.length > 0">
     <h2>Railway tracks</h2>
-    <div class="card-group">
-        <div *ngFor="let a of appsRailwayTrack" class="card">
-            <ngb-carousel>
-                <ng-template ngbSlide *ngFor="let s of a.videoSources">
-                    <div class="picsum-img-wrapper">
-                        <img class="d-block w-100" [src]="s.getSnapshotImage+'?width=320'" />
-                    </div>
-                    <div class="carousel-caption">
-                        <h3>{{s.displayName}}</h3>
-                        <p>{{s.description}}</p>
-                    </div>                
-                </ng-template>
-            </ngb-carousel>
-            <div class="card-block p-3">
-                <h4>
-                <a routerLink="RailwayTrack/{{a.name}}">
-                    {{a.displayName}}
-                </a>
-                </h4>
+    <ngx-masonry [options]="masonryConfig" [ordered]="true" id="masonryRailwayTracks">
+        <div ngxMasonryItem class="masonry-item" *ngFor="let a of appsRailwayTrack">
+            <div class="card masonry-item-inner">
+                <div class="card-img-top">
+                    <ngb-carousel>
+                        <ng-template ngbSlide *ngFor="let s of a.videoSources">
+                            <div class="picsum-img-wrapper">
+                                <img class="d-block w-100" [src]="liveSnapshots[s.name]" />
+                            </div>
+                            <div class="carousel-caption">
+                                <h3>{{s.displayName}}</h3>
+                                <p>{{s.description}}</p>
+                            </div>
+                        </ng-template>
+                    </ngb-carousel>
+                </div>
+                <div class="card-body p-3">
+                    <h4>
+                        <a routerLink="RailwayTrack/{{a.name}}">
+                            {{a.displayName}}
+                        </a>
+                    </h4>
+                </div>
             </div>
         </div>
-    </div>
+    </ngx-masonry>
 </div>
 <div *ngIf="appsAutoCheckpoint.length > 0">
     <h2>Auto checkpoints</h2>
-    <div class="card-group">
-        <div *ngFor="let a of appsAutoCheckpoint" class="card w-25 col-md-4">
-            <ngb-carousel>
-                <ng-template ngbSlide *ngFor="let s of a.directions">
-                    <div class="wrapper">
-                        <img class="d-block w-100" [src]="liveSnapshots[s.videoSource.name]" />
-                    </div>
-                    <div class="carousel-caption">
-                        <h3>{{s.name}}</h3>
-                        <p>{{s.direction}}</p>
-                    </div>                
-                </ng-template>
-            </ngb-carousel>
-            <div class="card-block p-3">
+    <ngx-masonry [options]="masonryConfig" [ordered]="true" id="masonryAutoCheckpoints">
+        <div ngxMasonryItem class="masonry-item" *ngFor="let a of appsAutoCheckpoint">
+            <div class="card masonry-item-inner">
+                <div class="card-img-top">
+                    <ngb-carousel>
+                        <ng-template ngbSlide *ngFor="let s of a.directions">
+                            <div class="picsum-img-wrapper">
+                                <img class="d-block w-100" [src]="liveSnapshots[s.videoSource.name]" />
+                            </div>
+                            <div class="carousel-caption">
+                                <h3>{{s.name}}</h3>
+                                <p>{{s.direction}}</p>
+                            </div>
+                        </ng-template>
+                    </ngb-carousel>
+                </div>
+            </div>
+            <div class="card-body p-3">
                 <h4>
-                <a routerLink="AutoCheckpoint/{{a.name}}">
-                    {{a.displayName}}
-                </a>
+                    <a routerLink="AutoCheckpoint/{{a.name}}">
+                        {{a.displayName}}
+                    </a>
                 </h4>
             </div>
         </div>
-    </div>
+    </ngx-masonry>
+</div>
 </div>

@@ -46,7 +46,8 @@ export class VideoObjectsComponent implements OnInit {
                         this.liveSnapshots[vs.name]=image;
                     }, e => { console.log(e); this.liveSnapshots[vs.name]='assets/novideo.jpg'; });
                 });
-                this.masonry.layout();
+                if(this.masonry)
+                    this.masonry.layout();
             },
             error => this.errorMessage=<any>error
         );
