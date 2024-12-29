@@ -1,12 +1,12 @@
-<div class="row">
+<div class="row gx-2 gy-2">
 <h1>Overview</h1>
 <p>This page shows the information on video obects, i.e. cameras and archives, already configured at Viinex server. </p>
 <h2>Video sources</h2>
-<ngx-masonry [options]="masonryConfig" [ordered]="true" id="masonry">
-    <div ngxMasonryItem class="masonry-item" *ngFor="let vs of videoSources">
-        <div class="card masonry-item-inner">
+    <div class="col-sm-6 col-md-3" *ngFor="let vs of videoSources">
+        <div class="card">
             <div class="card-img-top">
-            <img *ngIf="videoSources.length &lt;= 16 &amp;&amp; vs.getSnapshotImage != null" 
+            <img *ngIf="videoSources.length &lt;= 16 &amp;&amp; vs.getSnapshotImage != null"
+                class="card-img-top"
                 width="320px"
                 src="{{liveSnapshots[vs.name]}}"
                 (error)="onSnapshotError($event)" />
@@ -22,23 +22,20 @@
                     type="button" class="btn btn-outline-primary btn-sm btn-pad-right">Live (HLS)</a>
                 <a *ngIf="vs.videoTracks.length>0"
                     routerLink="{{vs.videoTracks[0].routerLink}}"
-                    type="button" class="btn btn-outline-primary btn-sm">Archive ({{vs.videoTracks.length}})</a>
+                    type="button" class="btn btn-outline-primary btn-sm">Archive{{vs.videoTracks.length>1?'s ('+vs.videoTracks.length+')':''}}</a>
             </div>
         </div>
     </div>
 
-</ngx-masonry>
-
-<div *ngIf="videoArchives.length!=0">
-    <h2>Video archives</h2>
-    <div class="card-group">
-        <div class="card col-md-4 col-sm-6" *ngFor="let va of videoArchives">
-            <div class="card-body" *ngIf="va.summarySnapshot!=null">
-                    <h4><a routerLink="/video-archive/{{va.name}}">{{va.displayName}}</a></h4>
-                    <p *ngIf="va.description != null">{{va.description}}</p>
-                    {{gb(va.summarySnapshot.diskUsage)}} used, {{va.summarySnapshot.tracks.size}} track(s)
-            </div>
+<h2>Video archives</h2>
+<div class="card-group">
+    <div class="card col-md-4 col-sm-6" *ngFor="let va of videoArchives">
+        <div class="card-body" *ngIf="va.summarySnapshot!=null">
+                <h4><a routerLink="/video-archive/{{va.name}}">{{va.displayName}}</a></h4>
+                <p *ngIf="va.description != null">{{va.description}}</p>
+                {{gb(va.summarySnapshot.diskUsage)}} used, {{va.summarySnapshot.tracks.size}} track(s)
         </div>
     </div>
 </div>
+
 </div>

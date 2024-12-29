@@ -14,7 +14,7 @@ import { NgxMasonryComponent, NgxMasonryModule, NgxMasonryOptions } from 'ngx-ma
   imports: [NgIf, NgForOf, NgFor, RouterLink, NgbCarousel, NgbSlide, NgxMasonryModule],
   providers:[NgbCarouselConfig],
   templateUrl: './apps-list.component.html',
-  styleUrl: './apps-list.component.css'
+  styleUrl: './apps-list.component.css',
 })
 export class AppsListComponent implements OnInit {
   appsAutoCheckpoint: Array<AutoCheckpoint>=[];
@@ -30,7 +30,7 @@ export class AppsListComponent implements OnInit {
     originLeft: true,
     originTop: true,
     resize: true,
-    animations: null
+    animations: {}
   };
   @ViewChild('masonryRailwayTracks') masonryRailwayTracks: NgxMasonryComponent;
   @ViewChild('masonryAutoCheckpoints') masonryAutoCheckpoints: NgxMasonryComponent;

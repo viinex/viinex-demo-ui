@@ -41,6 +41,10 @@ export class LiveSnapshotService {
       }
       if(renew){
         this.videoObjectsService.getVideoSource(videoSourceId).subscribe(vs =>{
+          if(!vs.getSnapshotImage){
+            subj.next('assets/novideo.png');
+            return;            
+          }
           vs.getSnapshotImage({width: 320}).subscribe(image => {
             console.log("got new live snapshot for ", videoSourceId, image.length);
             subj.next(image);

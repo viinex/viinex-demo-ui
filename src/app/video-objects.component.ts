@@ -53,7 +53,6 @@ export class VideoObjectsComponent implements OnInit {
         );
     }
     gb = Format.gb;
-
     onSnapshotError(event: any){
         event.target.src='./assets/novideo.png';
     }
