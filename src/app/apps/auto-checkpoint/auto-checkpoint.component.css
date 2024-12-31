@@ -6,13 +6,3 @@
     margin-left: 6px;
     padding: 0;
 }
-.rec-result {
-    border: 1px solid;
-    border-radius: 2px;
-    background-color: beige;
-    font-family: fantasy;
-    font-size: large;
-}
-.log-timestamp {
-    font-family: monospace;
-}

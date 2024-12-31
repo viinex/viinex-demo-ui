@@ -1,29 +1,27 @@
-<div *ngIf="autoCheckpoint" class="row">
+<div *ngIf="autoCheckpoint" class="row gx-4 gy-4">
 <h1>{{autoCheckpoint.displayName}}</h1>
 <h2>{{autoCheckpoint.description}}</h2>
 <div class="col-md-4"> 
-    <div class="card card-fact">
+    <div class="card card-fact" *ngIf="current" [@fadeOut]>
+        <img class="card-img-top" src="{{current.car_photo}}" *ngIf="current.car_photo" />
         <div class="card-body">
-            <h4>entrance at 14:00:13</h4>
-            
+            <h4>At {{current.direction?.name}} on {{current.alpr_result.timestamp | date : 'HH:mm:ss' }}</h4>
         </div>
         <ul class="list-group list-group-flush">
-            <li class="list-group-item"><span class="log-timestamp">14:00:13</span>Recognition result <span class="rec-result">FOO456BAR</span></li>
-            <li class="list-group-item"><span class="log-timestamp">14:00:14</span>Request to ACS sent</li>
-            <li class="list-group-item"><span class="log-timestamp">14:00:14</span>Request to ACS received <span class="badge bg-success">allow</span></li>
-            <li class="list-group-item"><span class="log-timestamp">14:00:14</span>Gate <span class="badge bg-success">open</span></li>
+            <li class="list-group-item" *ngFor="let e of current.log">
+                <acp-log-record [log-record]="e" [lr-is-current]="true"/>
+            </li>
         </ul>
-        <img class="card-img-bottom" src="https://img03.platesmania.com/241227/o/26769628.jpg" />
     </div>
 </div>
 
 <div *ngFor="let direction of autoCheckpoint.directions" class="col-md-3">
     <div class="card w-100 card-direction-view">
-    <div class="card-body">
-        <webrtc-viewport [video-source]="direction.videoSource.name"></webrtc-viewport>
-        <h4 class="card-title">{{direction.direction}}</h4>
-        <p class="card-text">{{direction.name}}</p>
-    </div>
+        <div class="card-body">
+            <webrtc-viewport [video-source]="direction.videoSource.name"></webrtc-viewport>
+            <h4 class="card-title">{{direction.direction}}</h4>
+            <p class="card-text">{{direction.name}}</p>
+        </div>
     </div>
 </div>
 </div>

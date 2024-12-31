@@ -1,0 +1,44 @@
+<div [ngSwitch]="topic">
+    <span class="log-timestamp">{{timestamp | date : dateFormat }}</span>
+    <div *ngSwitchCase="'CheckpointLog'" class="log-text">
+        <div [ngSwitch]="subject" class="log-text">
+            <div *ngSwitchCase="'ProcessingStarted'" class="log-text">
+                Processing started. Recognized <span class="rec-result">{{data.alpr_result.plate_text}}</span>
+            </div>
+            <div *ngSwitchCase="'ProcessingComplete'" class="log-text">
+                Processing complete.
+            </div>
+            <div *ngSwitchCase="'RecognizedWhileBusy'" class="log-text">
+                Got another recognition result: <span class="rec-result">{{data.alpr_result.plate_text}}</span>
+            </div>
+        </div>
+    </div>
+    <div *ngSwitchCase="'CheckpointActuatorTriggered'" class="log-text">
+        <div [ngSwitch]="subject" class="log-text">
+            <div *ngSwitchCase="'open'" class="log-text">
+                Gate is <span class="badge bg-success">OPENED</span>
+            </div>
+            <div *ngSwitchCase="'close'" class="log-text">
+                Gate is <span class="badge bg-secondary">CLOSED</span>
+            </div>
+        </div>
+    </div>
+    <div *ngSwitchCase="'CheckpointAcsDecision'" class="log-text">
+        Got decision from access control system:
+        <div [ngSwitch]="data.acs_decision_allow" class="log-text">
+            <div *ngSwitchCase="true" class="log-text">
+                <span class="badge bg-success">ALLOW</span>
+            </div>
+            <div *ngSwitchCase="false" class="log-text">
+                <span class="badge bg-danger">DENY</span>
+            </div>
+        </div>
+        <!-- <br/>
+        Detailed response from ACS: 
+        <pre>{{ data.acs_response | json }}</pre> -->
+    </div>
+    <div *ngSwitchCase="'CheckpointAcsNoDecision'" class="log-text">
+        Failed to get decision from ACS.
+        <pre>{{ data | json }}</pre>
+    </div>
+</div>

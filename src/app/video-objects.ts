@@ -217,7 +217,7 @@ export class EventArchive extends ViinexSvcObject {
     summary(this: EventArchive, subjects?: Array<string>, origins?: Array<string>, begin?: Date, end?: Date) : Observable<EventArchiveSummary>{
         return this.rpc.eventsSummary(this.name, subjects, origins, begin, end).pipe(map(v => new EventArchiveSummary(v, begin, end)));
     }
-    query(this: EventArchive, name: string, subjects?: Array<string>, origins?: Array<string>, begin?: Date, end?: Date, limit?: number, offset?: number){
+    query(this: EventArchive, subjects?: Array<string>, origins?: Array<string>, begin?: Date, end?: Date, limit?: number, offset?: number){
         return this.rpc.eventsQuery(this.name, subjects,origins, begin, end, limit, offset);
     }
 }

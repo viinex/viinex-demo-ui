@@ -1,0 +1,14 @@
+.rec-result {
+    border: 1px solid;
+    border-radius: 2px;
+    background-color: whitesmoke;
+    font-family: monospace;
+    font-size: large;
+    padding: 3px;
+}
+.log-text {
+    display: inline;
+}
+.log-timestamp {
+    font-family: monospace;
+}
