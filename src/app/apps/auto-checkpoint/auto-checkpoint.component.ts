@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { VideoObjectsService } from '../../video-objects.service';
 import { Subscription, merge, of } from 'rxjs';
 import { delay, mergeAll } from 'rxjs/operators';
@@ -16,7 +16,7 @@ import { Fact, ReduceCtx } from './fact';
 @Component({
   selector: 'app-auto-checkpoint',
   standalone: true,
-  imports: [NgIf, NgForOf, ViewportModule, DatePipe, AcpLogRecordComponent],
+  imports: [NgIf, NgForOf, ViewportModule, DatePipe, AcpLogRecordComponent, RouterLink],
   templateUrl: './auto-checkpoint.component.html',
   styleUrl: './auto-checkpoint.component.css',
   animations: [
@@ -33,6 +33,8 @@ export class AutoCheckpointComponent implements OnInit, OnDestroy {
 
   private subscriptions: Array<Subscription>=[];
   private autoCheckpointId: string = null;
+  private queryTimestamp: Date = null;
+  private queryInterval: [Date, Date] = null;
   private videoObjects: VideoObjects = null;
   private eventArchive: EventArchive = null;
 
@@ -40,13 +42,38 @@ export class AutoCheckpointComponent implements OnInit, OnDestroy {
   public autoCheckpoint: AutoCheckpoint=null;
 
   public current : Fact = null;
-  public history: Array<Fact> = [];
+  private _history: Array<Fact> = [];
+  public historyWindow : Array<Fact>;
+
+  public get history(): Array<Fact> { return this._history; }
+  public set history(h: Array<Fact>){ 
+    this._history = h;
+    this.updateHistoryWindow();
+  }
+  public updateHistoryWindow() {
+    this.historyWindow = this.history.slice().reverse().slice(0, 200);
+  }
   
   ngOnInit(): void {
     this.subscriptions.push(this.activatedRoute.params.subscribe(p => {
       this.autoCheckpointId = p["autoCheckpointId"];
       this.completeInit();
     }));
+    this.subscriptions.push(this.activatedRoute.queryParams.subscribe(qp => {
+      if(qp["timestamp"]){
+        this.queryTimestamp=qp["timestamp"];
+      }
+      else{
+        this.queryTimestamp=null;
+      }
+      if(qp["begin"] && qp["end"]){
+        this.queryInterval=[qp["begin"], qp["end"]];
+      }
+      else {
+        this.queryInterval=null;
+      }
+      this.completeInit();
+    }))
     this.videoObjectsService.objects.subscribe(vo => {
       this.videoObjects=vo;
       this.completeInit();

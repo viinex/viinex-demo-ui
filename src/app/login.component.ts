@@ -8,6 +8,7 @@ import { Observable, timer } from 'rxjs';
 import * as nacl from 'tweetnacl';
 import {default as bb} from 'bytebuffer';
 import * as sha256 from 'fast-sha256';
+import { LoginGuardService } from './login-guard.service';
 
 @Component({
     standalone: false,
@@ -26,7 +27,7 @@ export class LoginComponent implements OnInit {
 
     errorMessage: string;
 
-    constructor(private loginService: LoginService, private router: Router){}
+    constructor(private loginService: LoginService, private router: Router, private loginGuardService: LoginGuardService){}
     ngOnInit(): void {
         this.isWamp = false;
         this.loginService.loginStatus.subscribe(
@@ -56,11 +57,8 @@ export class LoginComponent implements OnInit {
             password=this.privateKeySeedHex(password);
         }
         this.loginService.login({login: this.loginName, password: password, isWamp: this.isWamp, uri: this.wampUri, realm: this.wampRealm}).subscribe((loggedOn: boolean) => {
-            if(loggedOn){
-                timer(1000).subscribe(() => { 
-                    this.router.navigate(['/']); 
-                });
-            }
+            if(loggedOn)
+                this.loginGuardService.returnToRequestedRoute('/');
         });
     }
     public onLogout(){

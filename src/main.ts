@@ -1,7 +1,7 @@
 /// <reference types="@angular/localize" />
+import '@angular/localize/init';
 
 import 'zone.js';
-import '@angular/compiler';
 import { enableProdMode } from '@angular/core';
 import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 

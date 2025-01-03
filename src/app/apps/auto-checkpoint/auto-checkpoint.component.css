@@ -1,8 +1,27 @@
 .card-direction-view {
     margin-left: 6px;
+    margin-bottom: 6px;
     padding: 0;
 }
 .card-fact {
     margin-left: 6px;
     padding: 0;
+}
+.col-history {
+    overflow-y: scroll;
+    position: sticky;
+    height: calc(100vh - 150px);
+}
+.col-history-inner {
+
+}
+
+.rec-result {
+    font-family: monospace;
+}
+.log-text {
+    display: inline;
+}
+.log-timestamp {
+    font-family: monospace;
 }

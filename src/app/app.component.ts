@@ -17,7 +17,7 @@ export class AppComponent implements OnInit {
   isServerOnline: boolean = false;
   isLoginApplicable: boolean = true;
   isLoginRequired: boolean = true;
-  loginRefLabel: string = "Login";
+  loginRefLabel: string = $localize`Login`;
   isHttpRpc: boolean = false;
   isAccessGranted: boolean = false;
 
@@ -35,10 +35,10 @@ export class AppComponent implements OnInit {
         this.isHttpRpc = ls.isHttp;
         this.isAccessGranted = ls.isAccessGranted;
         if (!this.isAccessGranted) {
-          this.loginRefLabel = "Login";
+          this.loginRefLabel = $localize`Login`;
         }
         else {
-          this.loginRefLabel = "Logout "+ls.loginName; 
+          this.loginRefLabel = $localize`Logout `+ls.loginName; 
         }
       });
       this.videoObjectsService.objects.subscribe(vo =>{

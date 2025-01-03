@@ -13,10 +13,19 @@
       "root": "",
       "sourceRoot": "src",
       "prefix": "app",
+      "i18n":{
+        "sourceLocale":"en-US",
+        "locales": {
+          "uk": {
+            "translation": "src/locale/messages.uk.xlf"
+          }
+        }
+      },
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
+            "localize": true,
             "outputPath": {
               "base": "dist"
             },
@@ -63,8 +72,12 @@
               "extractLicenses": false,
               "sourceMap": true,
               "namedChunks": true
+            },
+            "uk": {
+              "localize": ["uk"]
             }
-          },
+        },
+          
           "defaultConfiguration": "production"
         },
         "serve": {
@@ -74,7 +87,7 @@
               "buildTarget": "viinex-ui:build:production"
             },
             "development": {
-              "buildTarget": "viinex-ui:build:development"
+              "buildTarget": "viinex-ui:build:development,uk"
             }
           },
           "defaultConfiguration": "development"

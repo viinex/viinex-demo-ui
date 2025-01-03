@@ -1,7 +1,22 @@
 <div *ngIf="autoCheckpoint" class="row gx-4 gy-4">
-<h1>{{autoCheckpoint.displayName}}</h1>
+    <div class="col-4 col-history">
+        <div class="col-history-inner"> 
+            <ul>
+                <li *ngFor="let h of historyWindow">
+                    <a routerLink="." [queryParams]="{timestamp: h.alpr_result.timestamp}">
+                    <span class="log-timestamp">{{h.alpr_result.timestamp | date : 'dd-MM-yyyy HH:mm:ss' }}</span>
+                    </a>
+                    {{h.direction.name}}
+                    <span class="rec-result">{{h.alpr_result.plate_text}}</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="col-8">
+    <h1>{{autoCheckpoint.displayName}}</h1>
 <h2>{{autoCheckpoint.description}}</h2>
-<div class="col-md-4"> 
+<div class="row">
+    <div class="col-6"> 
     <div class="card card-fact" *ngIf="current" [@fadeOut]>
         <img class="card-img-top" src="{{current.car_photo}}" *ngIf="current.car_photo" />
         <div class="card-body">
@@ -15,8 +30,8 @@
     </div>
 </div>
 
-<div *ngFor="let direction of autoCheckpoint.directions" class="col-md-3">
-    <div class="card w-100 card-direction-view">
+<div class="col-5">
+    <div *ngFor="let direction of autoCheckpoint.directions" class="card w-100 card-direction-view">
         <div class="card-body">
             <webrtc-viewport [video-source]="direction.videoSource.name"></webrtc-viewport>
             <h4 class="card-title">{{direction.direction}}</h4>
@@ -25,5 +40,5 @@
     </div>
 </div>
 </div>
-<div class="row">
+</div>
 </div>
