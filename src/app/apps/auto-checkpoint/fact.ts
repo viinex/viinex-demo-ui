@@ -22,7 +22,7 @@ export class Fact {
     public constructor(directions: Array<AcpDirection>, e: VnxEvent){
         if(Fact.isInitial(e)){
             this.alpr_result = e.data.alpr_result;
-            this.timestamp = e.data.timestamp;
+            this.timestamp = new Date(Date.parse(this.alpr_result.timestamp));
             this.direction = directions.find(d => d.io_type === e.data.io_type);
             this.log.push(e);
         }
@@ -31,10 +31,10 @@ export class Fact {
         }
     }
     public static fromCheckpointResponse(directions: Array<AcpDirection>, s: any){
-        let res=new Fact(directions, new VnxEvent(Acp.CheckpointLog, null, s.timestamp, {
+        let res=new Fact(directions, new VnxEvent(Acp.CheckpointLog, null, s.alpr_result, {
             subject: Acp.ProcessingStarted,
             alpr_result: s.alpr_result,
-            timestamp: s.timestamp
+            timestamp: new Date(Date.parse(s.alpr_result.timestamp))
         }));
         res.car_photo="data:image/jpeg;base64,"+s.car_photo;
         res.acs_response=s.acs_response;
@@ -76,6 +76,7 @@ export class ReduceCtx {
 
 export class AlprResult {
     public plate_text: string;
+    public timestamp: string;
     public country? : string;
     public template?: string;
     public confidence: number;

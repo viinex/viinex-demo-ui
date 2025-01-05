@@ -16,11 +16,12 @@ import { NgbDate, NgbDatepicker, NgbModule, NgbTimepicker } from '@ng-bootstrap/
 import { NgIcon, provideIcons, provideNgIconsConfig, withExceptionLogger } from '@ng-icons/core';
 import { bootstrapCalendar3, bootstrapPlayBtn } from '@ng-icons/bootstrap-icons';
 import { FormsModule, NgModel } from '@angular/forms';
+import { AcpFactComponent } from './acp-fact.component';
 
 @Component({
   selector: 'app-auto-checkpoint',
   standalone: true,
-  imports: [NgIf, NgForOf, ViewportModule, DatePipe, AcpLogRecordComponent, RouterLink, RouterLinkActive, NgbModule, NgIcon, FormsModule],
+  imports: [NgIf, NgForOf, ViewportModule, DatePipe, RouterLink, RouterLinkActive, NgbModule, NgIcon, FormsModule, AcpFactComponent],
   providers:[provideIcons({bootstrapCalendar3, bootstrapPlayBtn}), NgModel],
   templateUrl: './auto-checkpoint.component.html',
   styleUrl: './auto-checkpoint.component.css',
@@ -86,10 +87,15 @@ export class AutoCheckpointComponent implements OnInit, OnDestroy {
     }));
     this.subscriptions.push(this.activatedRoute.queryParams.subscribe(qp => {
       if(qp["timestamp"]){
-        this.queryTimestamp=qp["timestamp"];
+        let queryTimestamp=new Date(Date.parse(qp["timestamp"]));
+        if(!this.queryTimestamp || this.queryTimestamp != queryTimestamp){
+          this.queryTimestamp=queryTimestamp;
+          this.updateSelectedFact();
+        }
       }
       else{
         this.queryTimestamp=null;
+        this.selectedFact=null;
       }
       if(qp["begin"] && qp["end"]) {
         if(!this.selectedDate){
@@ -97,7 +103,6 @@ export class AutoCheckpointComponent implements OnInit, OnDestroy {
           let end : Date=new Date(Date.parse(qp["end"]));
           let mid : Date = new Date((begin.valueOf()+end.valueOf())/2);
           this.selectedDate=new NgbDate(mid.getUTCFullYear(), mid.getUTCMonth()+1, mid.getUTCDate());
-          //console.log("setting selectedDate", this.selectedDate, begin, end, mid);
         }
         if(!this.queryInterval || this.queryInterval[0]!=qp["begin"] || this.queryInterval[1]!=qp["end"])
           this.loaded=false;
@@ -148,7 +153,6 @@ export class AutoCheckpointComponent implements OnInit, OnDestroy {
   }
   private loadInterval(){
     if(this.videoObjects && this.autoCheckpoint && this.eventArchive){
-      console.log("going to load events from server, queryinterval=", this.queryInterval);
       this.history=[];
       this.loading=true;
       this.eventArchive.query(null, [this.autoCheckpointId], this.queryInterval[0],this.queryInterval[1], 20000, 0)
@@ -157,6 +161,7 @@ export class AutoCheckpointComponent implements OnInit, OnDestroy {
           this.current=null;
           this.loading=false;
           this.loaded=true;
+          this.updateSelectedFact();
         });
     }
   }
@@ -171,11 +176,11 @@ export class AutoCheckpointComponent implements OnInit, OnDestroy {
         this.arrangeEvents(events);
         this.loading=false;
         this.loaded=true;
+        this.updateSelectedFact();        
 
         this.autoCheckpoint.stateful.read().subscribe(s => {
           if(s.processing && this.current && !this.current.car_photo){
             this.current.car_photo="data:image/jpeg;base64,"+s.car_photo;
-            //console.log("COMPARE", this.current, Fact.fromCheckpointResponse(this.autoCheckpoint.directions, s));
           }
         });
         if(!this.subscriptionEvents){
@@ -206,12 +211,16 @@ export class AutoCheckpointComponent implements OnInit, OnDestroy {
         ctx.current.append(e);
         if(ctx.current.complete){
           ctx.history.push(ctx.current);
-          //console.log("Moving Fact to history: ", ctx.current)
           ctx.current=null;
         }
       }
     }
     return ctx;
+  }
+  private updateSelectedFact(){
+    if(this.loaded && this.queryTimestamp){
+      this.selectedFact=this._history.find(f => Math.abs(f.timestamp.valueOf() - this.queryTimestamp.valueOf()) < 500);
+    }
   }
 
   onDateSelect(this: AutoCheckpointComponent, e: any){

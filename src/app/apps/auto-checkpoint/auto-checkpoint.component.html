@@ -44,17 +44,8 @@
 <h2>{{autoCheckpoint.description}}</h2>
 <div class="row">
     <div class="col-6"> 
-    <div class="card card-fact" *ngIf="current" [@fadeOut]>
-        <img class="card-img-top" src="{{current.car_photo}}" *ngIf="current.car_photo" />
-        <div class="card-body">
-            <h4>At {{current.direction?.name}} on {{current.alpr_result.timestamp | date : 'HH:mm:ss' }}</h4>
-        </div>
-        <ul class="list-group list-group-flush">
-            <li class="list-group-item" *ngFor="let e of current.log">
-                <acp-log-record [log-record]="e" [lr-is-current]="true"/>
-            </li>
-        </ul>
-    </div>
+    <acp-fact class="card-fact" [fact]="current" *ngIf="current && !selectedFact" [@fadeOut] />
+    <acp-fact class="card-fact" [fact]="selectedFact" *ngIf="selectedFact" />
 </div>
 
 <div class="col-5">
