@@ -275,10 +275,10 @@ export class WampRpc implements IViinexRpc {
     }
     archiveSnapshotImage(name: string, channel: string, when: any, spatial: any): Observable<string>{
         if(name!=null){ // name!=null means call to video archive
-            return this.wamp.call<string>(this.prefix+WampRpc.toQuietSnake(name)+".video_storage.channel_snapshot_base64", [channel,when,spatial]).pipe(map(v => "data:image/jpeg;base64,"+v));
+            return this.wamp.call<string>(this.prefix+WampRpc.toQuietSnake(name)+".video_storage.channel_snapshot_base64", [channel,when,spatial]).pipe(map(WampRpc.toDataUrl));
         }
         else{ //otherwise it's call to vms channel
-            return this.wamp.call<string>(this.prefix+WampRpc.toQuietSnake(channel)+".snapshot_source.snapshot_base64", [when, spatial]).pipe(map(v => "data:image/jpeg;base64,"+v));
+            return this.wamp.call<string>(this.prefix+WampRpc.toQuietSnake(channel)+".snapshot_source.snapshot_base64", [when, spatial]).pipe(map(WampRpc.toDataUrl));
         }
     }
 
@@ -318,5 +318,11 @@ export class WampRpc implements IViinexRpc {
 
     private static toQuietSnake(name: string) : string{
         return name; // todo: fix this
+    }
+    private static toDataUrl(image: string): string{
+        if(image)
+            return "data:image/jpeg;base64,"+image;
+        else
+            return null;
     }
 }

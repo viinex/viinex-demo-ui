@@ -219,7 +219,8 @@ export class AutoCheckpointComponent implements OnInit, OnDestroy {
   }
   private updateSelectedFact(){
     if(this.loaded && this.queryTimestamp){
-      this.selectedFact=this._history.find(f => Math.abs(f.timestamp.valueOf() - this.queryTimestamp.valueOf()) < 500);
+      // plain "==" doesn't work because JS Date rouds to 1ms while viinex may produce values with up to 6 digits after decimal point
+      this.selectedFact=this._history.find(f => Math.abs(f.timestamp.valueOf() - this.queryTimestamp.valueOf()) < 1);
     }
   }
 
@@ -242,18 +243,6 @@ export class AutoCheckpointComponent implements OnInit, OnDestroy {
     let {current, history}=this.appendEvent({current: this.current, history: this.history}, e);
     this.current=current;
     this.history=history;
-
-    if(this.current && Fact.isInitial(e)){
-      let tracks = this.current.direction.videoSource.videoTracks;
-      if(tracks && tracks.length>0){
-        of({}).pipe(delay(2000)).subscribe(_ => {
-          tracks[0].getSnapshotImage(this.current.timestamp, {}).subscribe((image: string) => {
-            this.current.car_photo = image;
-          });
-        });
-                      
-      }
-    }
 
     if(this.history.length>100){
       this.history=this.history.slice(50);

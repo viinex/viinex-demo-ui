@@ -44,7 +44,7 @@
 <h2>{{autoCheckpoint.description}}</h2>
 <div class="row">
     <div class="col-6"> 
-    <acp-fact class="card-fact" [fact]="current" *ngIf="current && !selectedFact" [@fadeOut] />
+    <acp-fact class="card-fact" [fact]="current" [snapshotRequestDelay]="2000" *ngIf="current && !selectedFact" [@fadeOut] />
     <acp-fact class="card-fact" [fact]="selectedFact" *ngIf="selectedFact" />
 </div>
 
