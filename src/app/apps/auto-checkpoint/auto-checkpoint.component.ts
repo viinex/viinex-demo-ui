@@ -1,5 +1,5 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ActivatedRoute, IsActiveMatchOptions, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { VideoObjectsService } from '../../video-objects.service';
 import { Subscription, merge, of } from 'rxjs';
 import { delay, mergeAll } from 'rxjs/operators';
@@ -12,11 +12,16 @@ import { DatePipe } from '@angular/common';
 import { AcpLogRecordComponent } from './acp-log-record.component';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { Fact, ReduceCtx } from './fact';
+import { NgbDate, NgbDatepicker, NgbModule, NgbTimepicker } from '@ng-bootstrap/ng-bootstrap';
+import { NgIcon, provideIcons, provideNgIconsConfig, withExceptionLogger } from '@ng-icons/core';
+import { bootstrapCalendar3, bootstrapPlayBtn } from '@ng-icons/bootstrap-icons';
+import { FormsModule, NgModel } from '@angular/forms';
 
 @Component({
   selector: 'app-auto-checkpoint',
   standalone: true,
-  imports: [NgIf, NgForOf, ViewportModule, DatePipe, AcpLogRecordComponent, RouterLink],
+  imports: [NgIf, NgForOf, ViewportModule, DatePipe, AcpLogRecordComponent, RouterLink, RouterLinkActive, NgbModule, NgIcon, FormsModule],
+  providers:[provideIcons({bootstrapCalendar3, bootstrapPlayBtn}), NgModel],
   templateUrl: './auto-checkpoint.component.html',
   styleUrl: './auto-checkpoint.component.css',
   animations: [
@@ -28,20 +33,27 @@ import { Fact, ReduceCtx } from './fact';
   ]
 })
 export class AutoCheckpointComponent implements OnInit, OnDestroy {
-  constructor(private activatedRoute: ActivatedRoute, private videoObjectsService: VideoObjectsService){
+  constructor(private activatedRoute: ActivatedRoute, private router: Router, private videoObjectsService: VideoObjectsService){
   }
 
   private subscriptions: Array<Subscription>=[];
+  private subscriptionEvents: Subscription=null;
   private autoCheckpointId: string = null;
   private queryTimestamp: Date = null;
   private queryInterval: [Date, Date] = null;
+  private selectedDate: NgbDate = null;
   private videoObjects: VideoObjects = null;
   private eventArchive: EventArchive = null;
 
-  private initialized=false;
+  private loaded: boolean = false; // means that data
+  // which corresponds to current query params has already been obtained from DB
+
   public autoCheckpoint: AutoCheckpoint=null;
 
+  public loading: boolean = false;
   public current : Fact = null;
+  public selectedFact : Fact = null;
+
   private _history: Array<Fact> = [];
   public historyWindow : Array<Fact>;
 
@@ -51,9 +63,22 @@ export class AutoCheckpointComponent implements OnInit, OnDestroy {
     this.updateHistoryWindow();
   }
   public updateHistoryWindow() {
-    this.historyWindow = this.history.slice().reverse().slice(0, 200);
+    if(this.isFollowingCurrentEvents)
+      this.historyWindow = this._history.slice().reverse().slice(0, 200);
+    else
+      this.historyWindow=this._history;
+  }
+  public get isFollowingCurrentEvents(): boolean{
+    return !this.queryInterval;
   }
   
+  public readonly historyLinkActiveOptions: IsActiveMatchOptions = {
+    paths:'exact',
+    queryParams:'subset',
+    matrixParams:'ignored',
+    fragment:'ignored'
+  }
+
   ngOnInit(): void {
     this.subscriptions.push(this.activatedRoute.params.subscribe(p => {
       this.autoCheckpointId = p["autoCheckpointId"];
@@ -66,34 +91,86 @@ export class AutoCheckpointComponent implements OnInit, OnDestroy {
       else{
         this.queryTimestamp=null;
       }
-      if(qp["begin"] && qp["end"]){
+      if(qp["begin"] && qp["end"]) {
+        if(!this.selectedDate){
+          let begin: Date=new Date(Date.parse(qp["begin"]));
+          let end : Date=new Date(Date.parse(qp["end"]));
+          let mid : Date = new Date((begin.valueOf()+end.valueOf())/2);
+          this.selectedDate=new NgbDate(mid.getUTCFullYear(), mid.getUTCMonth()+1, mid.getUTCDate());
+          //console.log("setting selectedDate", this.selectedDate, begin, end, mid);
+        }
+        if(!this.queryInterval || this.queryInterval[0]!=qp["begin"] || this.queryInterval[1]!=qp["end"])
+          this.loaded=false;
+
         this.queryInterval=[qp["begin"], qp["end"]];
       }
       else {
+        this.selectedDate=null;
+        if(this.queryInterval)
+          this.loaded=false;
         this.queryInterval=null;
       }
-      this.completeInit();
+
+      if(!this.loaded)
+        this.completeInit();
     }))
     this.videoObjectsService.objects.subscribe(vo => {
       this.videoObjects=vo;
+      if(!vo){
+        this.autoCheckpoint=null;
+        this.eventArchive=null;
+        return;
+      }
+      this.autoCheckpoint=this.videoObjects.appsAutoCheckpoint.find(a => a.name==this.autoCheckpointId);
+      this.eventArchive=this.videoObjects.eventArchives[0];
       this.completeInit();
     });
   }
   ngOnDestroy(): void {
     this.subscriptions.forEach(s => { s.unsubscribe(); })
+    this.subscriptions=[];
+    if(this.subscriptionEvents){
+      this.subscriptionEvents.unsubscribe();
+      this.subscriptionEvents=null;
+    }
   }
 
   private completeInit(this: AutoCheckpointComponent){
-    if(this.initialized)
-      return;
-    if(this.videoObjects && this.autoCheckpointId){
-      this.autoCheckpoint=this.videoObjects.appsAutoCheckpoint.find(a => a.name==this.autoCheckpointId);
-      this.eventArchive=this.videoObjects.eventArchives[0];
+    if(this.queryInterval){
+      if(this.subscriptionEvents){
+        this.subscriptionEvents.unsubscribe();
+        this.subscriptionEvents=null;
+      }
+      this.loadInterval();
+    }
+    else
+      this.loadCurrent();
+  }
+  private loadInterval(){
+    if(this.videoObjects && this.autoCheckpoint && this.eventArchive){
+      console.log("going to load events from server, queryinterval=", this.queryInterval);
+      this.history=[];
+      this.loading=true;
+      this.eventArchive.query(null, [this.autoCheckpointId], this.queryInterval[0],this.queryInterval[1], 20000, 0)
+        .subscribe((events: Array<VnxEvent>) => {
+          this.arrangeEvents(events);
+          this.current=null;
+          this.loading=false;
+          this.loaded=true;
+        });
+    }
+  }
+  private loadCurrent() {
+    if(this.videoObjects && this.autoCheckpoint && this.eventArchive){
       let now: Date = new Date();
       let begin=new Date(now.valueOf()-3600000);
       let end = new Date(now.valueOf()+360000);
+      this.history=[];
+      this.loading=true;
       this.eventArchive.query(null, [this.autoCheckpointId], begin,end, 10000, 0).subscribe((events: Array<VnxEvent>) => {
         this.arrangeEvents(events);
+        this.loading=false;
+        this.loaded=true;
 
         this.autoCheckpoint.stateful.read().subscribe(s => {
           if(s.processing && this.current && !this.current.car_photo){
@@ -101,12 +178,13 @@ export class AutoCheckpointComponent implements OnInit, OnDestroy {
             //console.log("COMPARE", this.current, Fact.fromCheckpointResponse(this.autoCheckpoint.directions, s));
           }
         });
-        this.subscriptions.push(this.videoObjectsService.events.subscribe(event => {
-          if(event.origin.name===this.autoCheckpointId){
-            this.processEvent(event);
-          }
-          this.initialized=true;
-        }));
+        if(!this.subscriptionEvents){
+          this.subscriptionEvents=this.videoObjectsService.events.subscribe(event => {
+            if(event.origin.name===this.autoCheckpointId){
+              this.processEvent(event);
+            }
+          });
+        }
       });
     }
   }
@@ -128,12 +206,24 @@ export class AutoCheckpointComponent implements OnInit, OnDestroy {
         ctx.current.append(e);
         if(ctx.current.complete){
           ctx.history.push(ctx.current);
-          console.log("Moving Fact to history: ", ctx.current)
+          //console.log("Moving Fact to history: ", ctx.current)
           ctx.current=null;
         }
       }
     }
     return ctx;
+  }
+
+  onDateSelect(this: AutoCheckpointComponent, e: any){
+    if(this.selectedDate){
+      let begin=new Date(this.selectedDate.year, this.selectedDate.month-1, this.selectedDate.day);
+      let end=new Date(begin.valueOf()+24*3600*1000);
+      let qp={
+        begin: begin.toISOString(), 
+        end: end.toISOString()
+      };
+      this.router.navigate([], {relativeTo: this.activatedRoute, queryParams: qp});
+    }
   }
 
   processEvent(this: AutoCheckpointComponent, e: any){

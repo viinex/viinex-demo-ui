@@ -1,15 +1,42 @@
 <div *ngIf="autoCheckpoint" class="row gx-4 gy-4">
     <div class="col-4 col-history">
         <div class="col-history-inner"> 
-            <ul>
-                <li *ngFor="let h of historyWindow">
-                    <a routerLink="." [queryParams]="{timestamp: h.alpr_result.timestamp}">
-                    <span class="log-timestamp">{{h.alpr_result.timestamp | date : 'dd-MM-yyyy HH:mm:ss' }}</span>
+            <nav class="nav nav-pills">
+                <div class="navbar navbar-light bg-white sticky-top w-100">
+                    <div class="nav-item">
+                    <a routerLink="." [queryParams]="{}"
+                        class="nav-link mb-2"
+                        [routerLinkActiveOptions]="{exact:true}"
+                        routerLinkActive="active">
+                        Follow current events
                     </a>
-                    {{h.direction.name}}
-                    <span class="rec-result">{{h.alpr_result.plate_text}}</span>
-                </li>
-            </ul>
+                    <div class="input-group nav-item">
+                        <input
+                            class="form-control"
+                            placeholder="yyyy-mm-dd"
+                            [(ngModel)]="selectedDate"
+                            (dateSelect)="onDateSelect($event)"
+                            ngbDatepicker
+                            #datepicker="ngbDatepicker"
+                        />
+                        <button class="btn btn-outline-secondary" (click)="datepicker.toggle()" type="button">
+                            <ng-icon name="bootstrapCalendar3"></ng-icon>
+                        </button>
+                    </div>
+                </div>
+                </div>
+                <div class="nav-item"><span *ngIf="loading">Loading...</span></div>
+                <div *ngFor="let h of historyWindow" class="nav-item">
+                    <a routerLink="." [queryParams]="queryInterval ? {timestamp: h.alpr_result.timestamp, begin: queryInterval[0], end: queryInterval[1]} : {timestamp: h.alpr_result.timestamp}" replaceUrl="true"
+                        class="nav-link"
+                        [routerLinkActiveOptions]="this.historyLinkActiveOptions"
+                        routerLinkActive="active">
+                        <span class="log-timestamp">{{h.alpr_result.timestamp | date : 'dd-MM-yyyy HH:mm:ss' }}</span>
+                        {{h.direction.name}}
+                        <span class="rec-result">{{h.alpr_result.plate_text}}</span>
+                    </a>
+                </div>
+            </nav>
         </div>
     </div>
     <div class="col-8">

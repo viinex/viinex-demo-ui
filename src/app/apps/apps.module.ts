@@ -5,6 +5,9 @@ import { RouterModule } from '@angular/router';
 import { AppsRoutingModule } from './apps-routing.module';
 import { NgxMasonryComponent, NgxMasonryDirective, NgxMasonryModule } from 'ngx-masonry';
 import { NgbCarouselModule } from '@ng-bootstrap/ng-bootstrap';
+import { NgIconsModule } from '@ng-icons/core';
+import { bootstrapCalendar3 } from '@ng-icons/bootstrap-icons';
+import { NgModel } from '@angular/forms';
 
 
 @NgModule({
@@ -15,7 +18,8 @@ import { NgbCarouselModule } from '@ng-bootstrap/ng-bootstrap';
     NgxMasonryModule,
     AppsRoutingModule,
     CommonModule,
-    NgbCarouselModule
+    NgbCarouselModule,
+    NgIconsModule.withIcons({bootstrapCalendar3})
   ]
 })
 export class AppsModule { }
