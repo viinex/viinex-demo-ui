@@ -14,10 +14,14 @@
       "sourceRoot": "src",
       "prefix": "app",
       "i18n":{
-        "sourceLocale":"en-US",
+        "sourceLocale": { 
+          "code": "en", 
+          "baseHref": ""
+        },
         "locales": {
           "uk": {
-            "translation": "src/locale/messages.uk.xlf"
+            "translation": "src/locale/messages.uk.xlf",
+            "baseHref": ""
           }
         }
       },
@@ -75,8 +79,11 @@
             },
             "uk": {
               "localize": ["uk"]
-            }
-        },
+            },
+      	    "en": {
+              "localize": ["en"]
+	          }
+          },
           
           "defaultConfiguration": "production"
         },
