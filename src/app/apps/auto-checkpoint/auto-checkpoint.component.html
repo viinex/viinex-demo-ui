@@ -51,7 +51,11 @@
 <div class="col-5">
     <div *ngFor="let direction of autoCheckpoint.directions" class="card w-100 card-direction-view">
         <div class="card-body">
-            <webrtc-viewport [video-source]="direction.videoSource.name"></webrtc-viewport>
+            <webrtc-viewport 
+                [video-source]="direction.videoSource" 
+                [video-track]="direction.videoTrack"
+                [interval]="playbackInterval">
+            </webrtc-viewport>
             <h4 class="card-title">{{direction.direction}}</h4>
             <p class="card-text">{{direction.name}}</p>
         </div>

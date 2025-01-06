@@ -1,5 +1,5 @@
 import { Observable } from "rxjs";
-import { EventArchive, Stateful, Updateable, VideoObjects, VideoSource } from "../video-objects";
+import { EventArchive, Stateful, Updateable, VideoObjects, VideoSource, VideoTrack } from "../video-objects";
 
 export class AppsObject {
     public get name(): string { return this.stateful.name; }
@@ -64,5 +64,11 @@ export class AcpDirection {
             case 1: return AcpDirectionEnum.Entrance;
             case 2: return AcpDirectionEnum.Exit;
         }
+    }
+    public get videoTrack() : VideoTrack {
+        if(this.videoSource.videoTracks.length>0)
+            return this.videoSource.videoTracks[0];
+        else
+            return null;
     }
 }

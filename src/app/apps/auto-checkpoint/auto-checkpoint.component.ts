@@ -72,6 +72,8 @@ export class AutoCheckpointComponent implements OnInit, OnDestroy {
   public get isFollowingCurrentEvents(): boolean{
     return !this.queryInterval;
   }
+
+  public playbackInterval : [Date,Date] = null;
   
   public readonly historyLinkActiveOptions: IsActiveMatchOptions = {
     paths:'exact',
@@ -96,6 +98,7 @@ export class AutoCheckpointComponent implements OnInit, OnDestroy {
       else{
         this.queryTimestamp=null;
         this.selectedFact=null;
+        this.playbackInterval=null;
       }
       if(qp["begin"] && qp["end"]) {
         if(!this.selectedDate){
@@ -221,6 +224,10 @@ export class AutoCheckpointComponent implements OnInit, OnDestroy {
     if(this.loaded && this.queryTimestamp){
       // plain "==" doesn't work because JS Date rouds to 1ms while viinex may produce values with up to 6 digits after decimal point
       this.selectedFact=this._history.find(f => Math.abs(f.timestamp.valueOf() - this.queryTimestamp.valueOf()) < 1);
+      if(this.selectedFact){
+        let lastEvent = this.selectedFact.log[this.selectedFact.log.length-1];
+        this.playbackInterval=[this.selectedFact.timestamp, lastEvent.timestamp];
+      }
     }
   }
 
