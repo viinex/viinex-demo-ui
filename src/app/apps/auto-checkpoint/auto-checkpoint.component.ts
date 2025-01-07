@@ -101,16 +101,16 @@ export class AutoCheckpointComponent implements OnInit, OnDestroy {
         this.playbackInterval=null;
       }
       if(qp["begin"] && qp["end"]) {
-        if(!this.selectedDate){
-          let begin: Date=new Date(Date.parse(qp["begin"]));
-          let end : Date=new Date(Date.parse(qp["end"]));
+        let begin: Date=new Date(Date.parse(qp["begin"]));
+        let end : Date=new Date(Date.parse(qp["end"]));
+      if(!this.selectedDate){
           let mid : Date = new Date((begin.valueOf()+end.valueOf())/2);
           this.selectedDate=new NgbDate(mid.getUTCFullYear(), mid.getUTCMonth()+1, mid.getUTCDate());
         }
-        if(!this.queryInterval || this.queryInterval[0]!=qp["begin"] || this.queryInterval[1]!=qp["end"])
+        if(!this.queryInterval || this.queryInterval[0]!=begin || this.queryInterval[1]!=end)
           this.loaded=false;
 
-        this.queryInterval=[qp["begin"], qp["end"]];
+        this.queryInterval=[begin, end];
       }
       else {
         this.selectedDate=null;
