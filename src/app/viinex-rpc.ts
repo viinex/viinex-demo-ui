@@ -1,5 +1,5 @@
-import { Observable, throwError, of, Subject, from } from "rxjs";
-import {map, share} from "rxjs/operators";
+import { Observable, throwError, of, Subject, from, forkJoin } from "rxjs";
+import {filter, flatMap, map, mergeMap, share} from "rxjs/operators";
 import { webSocket,WebSocketSubjectConfig, WebSocketSubject } from 'rxjs/webSocket';
 
 
@@ -11,6 +11,9 @@ export enum Transport { Http = 'http', Wamp = 'wamp' };
 
 export interface IViinexRpc {
     get transport() : Transport;
+
+    clusters(): Observable<Array<IViinexRpc>>;
+
     svc() : Observable<Object>;
     meta() : Observable<Object>;
 
@@ -66,6 +69,11 @@ export class HttpRpc implements IViinexRpc {
           this._webSocket=webSocket(cfg);        
     }
     get transport() { return Transport.Http; }
+
+    clusters() {
+        return of<Array<IViinexRpc>>([this]);
+    }
+
     svc() : Observable<Object>{
         return this.http.get("v1/svc");
     }
@@ -210,13 +218,43 @@ export class HttpRpc implements IViinexRpc {
 
 }
 
+class WampRegListInfo {
+    public exact: Array<number>;
+    public prefix: Array<number>;
+    public widlcard: Array<number>;
+}
+class WampRegInfo {
+    id: number;
+    created: string; //date
+    uri: string;
+    match: string;
+    invoke: string;
+}
+
 export class WampRpc implements IViinexRpc {
-    readonly prefix: string;
-    constructor(private wamp: WampClient){
-        this.prefix = "com.viinex.api.wamp0.";
-        console.log("RPC implementation is WAMP");
+    constructor(private wamp: WampClient, private readonly prefix: string = null){
+        console.log("RPC implementation is WAMP, prefix", prefix);
     }
     get transport() { return Transport.Wamp; }
+
+    clusters(){
+        // let res=new Subject<Array<IViinexRpc>>();
+        // this.wamp.call("wamp.registration.list", []).subscribe((regInfo: any) => {
+        //     let registrationIds : Array<number> = regInfo.prefix;
+        //     forkJoin(registrationIds.map(r => this.wamp.call("wamp.registration.get", [r]))).subscribe((registrations: Array<any>) => {
+        //         res.next(registrations.map((r: any) => new WampRpc(this.wamp, r.uri+".")));
+        //         res.complete();
+        //     });
+        // });
+        return this.wamp.call<WampRegListInfo>("wamp.registration.list", []).pipe(
+            mergeMap((rli: WampRegListInfo) => 
+                forkJoin(rli.prefix.map((rid: number) => 
+                    this.wamp.call<WampRegInfo>("wamp.registration.get", [rid])))),
+            map((registrations: Array<WampRegInfo>) => 
+                registrations.filter(r => r.uri.startsWith(WampClient.VIINEX_API_PREFIX)).map(r => new WampRpc(this.wamp, r.uri+".")))
+        );
+    }
+
     svc() : Observable<Object>{
         return this.wamp.call(this.prefix+"svc");
     }

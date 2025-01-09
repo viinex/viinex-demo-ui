@@ -7,6 +7,7 @@ import * as autobahn from 'autobahn-browser';
 
 @Injectable()
 export class WampClient implements OnDestroy {
+    public static readonly VIINEX_API_PREFIX = "com.viinex.api";
     private connection : autobahn.Connection;
     private _events : Subject<any> = new Subject();
 
@@ -40,7 +41,7 @@ export class WampClient implements OnDestroy {
                 this.connection.onclose = (reason: any, details: any) => {
                     return false;
                 };
-                session.subscribe("com.viinex.api.wamp0", (events: Array<any>) => {
+                session.subscribe(WampClient.VIINEX_API_PREFIX, (events: Array<any>) => {
                     events.forEach(e => this._events.next(e));
                 },  {match: "prefix"});
                 this.zone.run(() => {

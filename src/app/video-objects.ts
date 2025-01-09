@@ -276,5 +276,23 @@ export class VideoObjects {
     applications: Array<Stateful> = [];
     appsAutoCheckpoint: Array<AutoCheckpoint> = [];
     appsRailwayTrack: Array<RailwayTrack> = [];
+
+    static concat(x: VideoObjects, y: VideoObjects) : VideoObjects {
+        const selectors = [
+            { get: (v: VideoObjects) => v.videoSources,       set: (v: VideoObjects, x: any) => { v.videoSources=x; }},
+            { get: (v: VideoObjects) => v.videoArchives,      set: (v: VideoObjects, x: any) => { v.videoArchives=x; }},
+            { get: (v: VideoObjects) => v.webrtcServers,      set: (v: VideoObjects, x: any) => { v.webrtcServers=x; }},
+            { get: (v: VideoObjects) => v.eventArchives,      set: (v: VideoObjects, x: any) => { v.eventArchives=x; }},
+            { get: (v: VideoObjects) => v.statefuls,          set: (v: VideoObjects, x: any) => { v.statefuls=x; }},
+            { get: (v: VideoObjects) => v.updateables,        set: (v: VideoObjects, x: any) => { v.updateables=x; }},
+            { get: (v: VideoObjects) => v.keyValueStores,     set: (v: VideoObjects, x: any) => { v.keyValueStores=x; }},
+            { get: (v: VideoObjects) => v.applications,       set: (v: VideoObjects, x: any) => { v.applications=x; }},
+            { get: (v: VideoObjects) => v.appsAutoCheckpoint, set: (v: VideoObjects, x: any) => { v.appsAutoCheckpoint=x; }},
+            { get: (v: VideoObjects) => v.appsRailwayTrack,   set: (v: VideoObjects, x: any) => { v.appsRailwayTrack=x; }},
+        ]
+        let res=new VideoObjects();
+        selectors.forEach(s => { s.set(res, s.get(x).concat(s.get(y))); });
+        return res;
+    }
 }
 

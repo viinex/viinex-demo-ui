@@ -42,7 +42,12 @@ export class VideoObjectsService implements OnDestroy {
                 this._videoObjects.next(new VideoObjects());
             }
             else{
-                this.rebuildVideoObjects(ls.rpc);
+                ls.rpc.clusters().subscribe((rpcs: Array<IViinexRpc>) => {
+                    forkJoin(rpcs.map(rpc => VideoObjectsService.rebuildVideoObjects(rpc))).pipe(
+                        map((vos: Array<VideoObjects>) => vos.reduce(VideoObjects.concat, new VideoObjects()))
+                    ).subscribe(vo => { this._videoObjects.next(vo); });
+
+                });
                 if(this._subscription){
                     this._subscription.unsubscribe();
                     this._subscription=null;
@@ -70,9 +75,10 @@ export class VideoObjectsService implements OnDestroy {
         return this._events.asObservable();
     }
 
-    private rebuildVideoObjects(rpc:IViinexRpc){
+    private static rebuildVideoObjects(rpc:IViinexRpc){
+        console.log("rebuildVideoObjects", rpc);
         let svcs = forkJoin([rpc.svc(), rpc.meta()]);
-        svcs.pipe(
+        return svcs.pipe(
             //trace("TRACE svc meta"),
             map(([res,resMeta]) => VideoObjectsService.extractSvcData(rpc, res, resMeta)),
             //trace("TRACE extract svc data"),
@@ -80,7 +86,7 @@ export class VideoObjectsService implements OnDestroy {
             //trace("TRACE link webrtc servers"),
             mergeMap((vo:VideoObjects) => VideoObjectsService.createAllTracks(rpc, vo)),
             //trace("TRACE create all tracks")
-        ).subscribe(vo => this._videoObjects.next(vo));
+        );
     }
 
     get objects(): Observable<VideoObjects>{
