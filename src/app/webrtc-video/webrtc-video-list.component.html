@@ -1,6 +1,6 @@
 <div class="row">
     <div class="col-md-4">
-            <ul *ngIf="webrtcServers!=null &amp;&amp; webrtcServers.length &gt; 1" class="nav nav-pills flex-column">
+            <ul *ngIf="webrtcServers!=null &amp;&amp; webrtcServers.length &gt; 1" class="nav nav-tabs">
                 <li class="nav-item" *ngFor="let wr of webrtcServers">
                     <a class="nav-link" routerLink="/webrtc-video/{{wr.name}}" routerLinkActive="active">{{wr.displayName}}</a>
                     

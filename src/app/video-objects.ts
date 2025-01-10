@@ -11,13 +11,11 @@ export class ViinexSvcObject{
             this.displayName = metaData.name;
             this.description = metaData.desc;
         }
-        else{
+        if(!this.displayName)
             this.displayName = name;
-            this.description = null;
-        }        
     }
     public readonly displayName : string;
-    public readonly description : string;
+    public readonly description : string = null;
 }
 
 export class VideoSource extends ViinexSvcObject {
