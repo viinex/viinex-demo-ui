@@ -1,11 +1,12 @@
-import { Observable, throwError, of, Subject, from, forkJoin } from "rxjs";
-import {filter, flatMap, map, mergeMap, share} from "rxjs/operators";
+import { Observable, throwError, of, Subject, from, forkJoin, merge, EMPTY, zip, NEVER, Subscriber } from "rxjs";
+import {catchError, filter, flatMap, map, mergeMap, share, switchMap, take, timeoutWith} from "rxjs/operators";
 import { webSocket,WebSocketSubjectConfig, WebSocketSubject } from 'rxjs/webSocket';
 
 
 import { HttpClient } from '@angular/common/http';
 import { WampClient } from './wamp-client'
 import { WebRTCServerSummary } from "./video-objects";
+import { OnvifDiscoveryResult } from "./onvif-device";
 
 export enum Transport { Http = 'http', Wamp = 'wamp' };
 
@@ -17,7 +18,7 @@ export interface IViinexRpc {
     svc() : Observable<Object>;
     meta() : Observable<Object>;
 
-    onvifDiscover(): Observable<Object>;
+    onvifDiscover(): Observable<Array<OnvifDiscoveryResult>>;
     onvifProbe(url: string, auth: [string, string]): Observable<Object>;
 
     webrtcServerSummary(name: string) : Observable<WebRTCServerSummary>;
@@ -81,8 +82,8 @@ export class HttpRpc implements IViinexRpc {
         return this.http.get("v1/svc/meta");
     }
 
-    onvifDiscover(): Observable<Object>{
-        return this.http.get("v1/env/onvif");
+    onvifDiscover(): Observable<Array<OnvifDiscoveryResult>>{
+        return this.http.get<Array<OnvifDiscoveryResult>>("v1/env/onvif");
     }
     onvifProbe(url: string, auth: [string, string]): Observable<Object>{
         return this.http.post("v1/env/onvif/probe", {url: url, auth: auth});
@@ -238,14 +239,6 @@ export class WampRpc implements IViinexRpc {
     get transport() { return Transport.Wamp; }
 
     clusters(){
-        // let res=new Subject<Array<IViinexRpc>>();
-        // this.wamp.call("wamp.registration.list", []).subscribe((regInfo: any) => {
-        //     let registrationIds : Array<number> = regInfo.prefix;
-        //     forkJoin(registrationIds.map(r => this.wamp.call("wamp.registration.get", [r]))).subscribe((registrations: Array<any>) => {
-        //         res.next(registrations.map((r: any) => new WampRpc(this.wamp, r.uri+".")));
-        //         res.complete();
-        //     });
-        // });
         return this.wamp.call<WampRegListInfo>("wamp.registration.list", []).pipe(
             mergeMap((rli: WampRegListInfo) => 
                 forkJoin(rli.prefix.map((rid: number) => 
@@ -262,11 +255,40 @@ export class WampRpc implements IViinexRpc {
         return this.wamp.call(this.prefix+"svc.meta");
     }
 
-    onvifDiscover(): Observable<Object>{
-        return this.wamp.call(this.prefix+"discovery.onvif.discover");
+    onvifDiscover(): Observable<Array<OnvifDiscoveryResult>>{
+        if(this.prefix)
+            return this.wamp.call<Array<OnvifDiscoveryResult>>(this.prefix+"discovery.onvif.discover");
+        else {
+            return this.clusters().pipe(
+                mergeMap((rpcs: Array<IViinexRpc>) => 
+                    forkJoin(rpcs.map(rpc => rpc.onvifDiscover()))),
+                map((o: Array<Array<OnvifDiscoveryResult>>) => o.reduce((a, b) => a.concat(b), []))
+            );
+        }
     }
     onvifProbe(url: string, auth: [string, string]): Observable<Object>{
-        return this.wamp.call(this.prefix+"discovery.onvif.probe", [url, auth]);
+        if(this.prefix)
+            return this.wamp.call(this.prefix+"discovery.onvif.probe", [url, auth]);
+        else {
+            let errors: Array<Error>=[];
+            let reportError = new Observable((s: Subscriber<Object>) => {
+                console.log("Following errors occured while attempt to probe an ONVIF device:", errors); 
+                if(errors.length)
+                    s.error(errors[0]);
+                else
+                    s.error({error:{code:'Timeout', reason:"Probe operation for specified ONVIF device has timed out"}})
+            });
+            return this.clusters().pipe(
+                mergeMap((rpcs: Array<IViinexRpc>) => 
+                    merge(...rpcs.map(rpc => rpc.onvifProbe(url, auth).pipe(catchError(err => {
+                        errors.push(err); 
+                        return NEVER;
+                    }))))),
+                //map(v => {console.log("PROBE RESULT: ", v); return v;}),
+                take(1),
+                timeoutWith(3000, reportError),
+            );
+        }
     }
 
     webrtcServerSummary(name: string){

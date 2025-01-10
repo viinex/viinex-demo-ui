@@ -36,3 +36,13 @@ export class OnvifDeviceDetails {
     videoSources: Array<OnvifVideoSourceInfo>;
     profiles: Array<OnvifProfileInfo>;
 }
+
+// response from viinex api
+export class OnvifDiscoveryResult {
+    scopes : {
+        hardware: string;
+        location: string;
+        name: string;
+    };
+    xaddrs: Array<string>;
+}

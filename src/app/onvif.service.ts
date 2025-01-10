@@ -6,6 +6,7 @@ import {map, mergeMap} from 'rxjs/operators';
 import {OnvifDevice, 
         OnvifDeviceDetails, 
         OnvifDeviceInfo, 
+        OnvifDiscoveryResult, 
         OnvifProfileInfo, 
         OnvifVideoCodecInfo, 
         OnvifVideoSourceInfo 
@@ -39,9 +40,8 @@ export class OnvifService {
         }
         return r;
     }
-    private extractDiscoveryData(res: Object){
-        let body=<any[]>res;
-        return body.map(function(b: any) {
+    private extractDiscoveryData(res: Array<OnvifDiscoveryResult>){
+        return res.map(function(b: OnvifDiscoveryResult) {
             let o=new OnvifDevice();
             o.hardware=b.scopes.hardware;
             o.location=b.scopes.location;
