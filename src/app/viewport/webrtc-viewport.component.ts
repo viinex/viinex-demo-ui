@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, OnDestroy, AfterViewInit, AfterViewChecked, ViewChild, ChangeDetectorRef, NgZone } from '@angular/core';
+import { Component, ElementRef, Input, OnDestroy, AfterViewInit, AfterViewChecked, ViewChild, ChangeDetectorRef, NgZone, AfterContentChecked } from '@angular/core';
 import { VideoSource, VideoTrack, WebRTCServer } from '../video-objects';
 import { VideoObjectsService } from '../video-objects.service';
 
@@ -20,15 +20,18 @@ import { VideoObjectsService } from '../video-objects.service';
         font-family: monospace; 
     }`]
 })
-export class WebrtcViewportComponent implements AfterViewInit, AfterViewChecked, OnDestroy {
+export class WebrtcViewportComponent implements AfterViewInit, AfterViewChecked, AfterContentChecked, OnDestroy {
     constructor(private videoObjectsService: VideoObjectsService, private zone: NgZone){
         console.log("webrtc viewport component");
     }
     ngAfterViewInit(): void {
-        this.updateMedia();
+        this._doUpdateMedia();
     }
     ngAfterViewChecked(): void {
-        this.updateMedia();
+        this._doUpdateMedia();
+    }
+    ngAfterContentChecked(): void {
+        this._doUpdateMedia();
     }
     ngOnDestroy(): void{
         this.clearVideo();
@@ -54,8 +57,16 @@ export class WebrtcViewportComponent implements AfterViewInit, AfterViewChecked,
     }
 
     initVideo() {
+        if(!this.videoDiv)
+            return;
+
         this.clearVideo();
         let videoDiv = <HTMLDivElement>this.videoDiv.nativeElement;
+
+        if(!this.webrtcServer){
+            this.peerConnection=null;
+            return;
+        }
 
         let video=<HTMLVideoElement>document.createElement("video"); 
         video.controls=true;
@@ -76,7 +87,7 @@ export class WebrtcViewportComponent implements AfterViewInit, AfterViewChecked,
     }
     createPeerConnection(video: HTMLVideoElement) : RTCPeerConnection {
         let pc=new RTCPeerConnection({iceServers:this.webrtcServer.iceServers});
-        console.log(this.webrtcServer.iceServers);
+        console.log(this.webrtcServer?.iceServers);
         pc.onicecandidate = e => {
             if(e.candidate==null){
                 console.log("last candidate received");
@@ -114,7 +125,7 @@ export class WebrtcViewportComponent implements AfterViewInit, AfterViewChecked,
             console.log("RTCPeerConnection.iceConnectionState: ", pc.iceConnectionState);
             this.zone.run(() => {
                 this.connectionState=pc.iceConnectionState;
-                this.updateMedia();
+                this._doUpdateMedia();
             });
         }
         return pc;
@@ -143,7 +154,7 @@ export class WebrtcViewportComponent implements AfterViewInit, AfterViewChecked,
     private selectWebrtcServer(){
         if(this._videoSource != null && this._videoSource.webrtcServers.length>0){
             let newWebrtcServer = this._videoSource.webrtcServers[0];
-            if(this.webrtcServer!==newWebrtcServer){
+            if(this.webrtcServer?.name!=newWebrtcServer?.name){
                 this.clearVideo();
                 this.webrtcServer=newWebrtcServer;
             }
@@ -152,6 +163,7 @@ export class WebrtcViewportComponent implements AfterViewInit, AfterViewChecked,
             this.clearVideo();
             this.webrtcServer=null;
         }
+        console.debug("selected webrtc server", this.webrtcServer, this._videoSource);
     }
 
     @Input('video-source')
@@ -160,18 +172,21 @@ export class WebrtcViewportComponent implements AfterViewInit, AfterViewChecked,
     }
     set videoSource(s: any){
         if(typeof s === 'string' || s instanceof String){
-            if(this._videoSource?.name !== s){
+            if(this._videoSource?.name != s){
                 this.videoObjectsService.objects.subscribe(vo => {
                     this.videoSource=vo.videoSources.find(v => v.name == s);
                 });
             }
         }
         else {
+            console.debug("SETTING VIDEO SOURCE", s);
             let newVideoSource = <VideoSource>s;
-            if(this._videoSource !== newVideoSource){
+            if(this._videoSource?.name != newVideoSource?.name){
+                console.debug("SHOULD UPDATE MEDIA");
                 this.shouldUpdateMedia = true;
                 this._videoSource=<VideoSource>s;
                 this.selectWebrtcServer();
+                this._doUpdateMedia();
             }
         }
     }
@@ -189,6 +204,7 @@ export class WebrtcViewportComponent implements AfterViewInit, AfterViewChecked,
             this._videoSource = t?.videoSource;
             this.shouldUpdateMedia = true;
             this.selectWebrtcServer();
+            this._doUpdateMedia();
         }
     }
 
@@ -203,6 +219,7 @@ export class WebrtcViewportComponent implements AfterViewInit, AfterViewChecked,
         }
         this._interval=i;
         this.shouldUpdateMedia=true;
+        this._doUpdateMedia();
     }
 
     @Input('speed')
@@ -213,9 +230,10 @@ export class WebrtcViewportComponent implements AfterViewInit, AfterViewChecked,
         }
         this._speed=s;
         this.shouldUpdateMedia=true;
+        this._doUpdateMedia();
     }
 
-    private updateMedia(): void {
+    private _doUpdateMedia(): void {
         if(this.peerConnection === null){
             this.initVideo();
         }
@@ -230,7 +248,7 @@ export class WebrtcViewportComponent implements AfterViewInit, AfterViewChecked,
                     console.log("Media updated for session "+this.sessionId);
                     this.mediaBeingUpdated = false; // video is not actually updated yet, -- status should be acquired and cookie compared to this.cookie
                     if(this.shouldUpdateMedia){ // in case if an overlapping update was requested during rpc
-                        this.updateMedia();
+                        this._doUpdateMedia();
                     }
                 });
             }

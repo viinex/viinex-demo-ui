@@ -17,15 +17,25 @@ const routes: Routes = [
                 component: WebrtcVideoListComponent,
             },
             {
-                path: ':webrtcServerId',
+                path: 'srv/:webrtcServerId',
                 component: WebrtcVideoListComponent,
                 children: [
                     {
-                        path: ':videoSourceId',
+                        path: 'src/:videoSourceId',
                         component: WebrtcVideoViewComponent
                     }
                 ]
-            }
+            },
+            {
+                path: 'src',
+                component: WebrtcVideoListComponent,
+                children: [
+                    {
+                        path:":videoSourceId",
+                        component: WebrtcVideoViewComponent
+                    }                    
+                ]
+            },
         ],
         canActivate: [LoginGuardService]
     }

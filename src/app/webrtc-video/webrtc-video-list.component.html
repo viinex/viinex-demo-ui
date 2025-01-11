@@ -1,14 +1,22 @@
 <div class="row">
     <div class="col-md-4">
             <ul *ngIf="webrtcServers!=null &amp;&amp; webrtcServers.length &gt; 1" class="nav nav-tabs">
+                <li class="nav-item">
+                    <a class="nav-link" routerLink="/webrtc-video/src" routerLinkActive="active">All</a>
+                </li>
                 <li class="nav-item" *ngFor="let wr of webrtcServers">
-                    <a class="nav-link" routerLink="/webrtc-video/{{wr.name}}" routerLinkActive="active">{{wr.displayName}}</a>
+                    <a class="nav-link" routerLink="/webrtc-video/srv/{{wr.name}}" routerLinkActive="active">{{wr.displayName}}</a>
                     
                 </li>
             </ul>
             <ul *ngIf="selectedServer!=null" class="nav nav-pills flex-column">
                 <li class="nav-item" *ngFor="let vs of selectedServer.videoSources">
-                    <a class="nav-link" routerLink="/webrtc-video/{{selectedServer.name}}/{{vs.name}}" routerLinkActive="active">{{vs.displayName}}</a>
+                    <a class="nav-link" routerLink="/webrtc-video/srv/{{selectedServer.name}}/src/{{vs.name}}" routerLinkActive="active">{{vs.displayName}}</a>
+                </li>
+            </ul>
+            <ul *ngIf="selectedServer==null" class="nav nav-pills flex-column">
+                <li class="nav-item" *ngFor="let vs of allVideoSources">
+                    <a class="nav-link" routerLink="/webrtc-video/src/{{vs.name}}" routerLinkActive="active">{{vs.displayName}}</a>
                 </li>
             </ul>
     </div>

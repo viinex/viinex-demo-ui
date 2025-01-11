@@ -2,7 +2,7 @@ import {Component, OnInit} from '@angular/core';
 import {Router, ActivatedRoute} from '@angular/router';
 
 import {VideoObjectsService} from '../video-objects.service'
-import {WebRTCServer,VideoObjects} from '../video-objects'
+import {WebRTCServer,VideoObjects, VideoSource} from '../video-objects'
 
 @Component({
     standalone: false,
@@ -10,8 +10,15 @@ import {WebRTCServer,VideoObjects} from '../video-objects'
 })
 export class WebrtcVideoListComponent implements OnInit {
     errorMessage: string;
-    webrtcServers: WebRTCServer[];
+    webrtcServers: Array<WebRTCServer> = [];
+    allVideoSources: Array<VideoSource> = [];
     selectedServer: WebRTCServer;
+    videoObjects: VideoObjects = null;
+    //anyServer: boolean = false;
+
+
+    webrtcServerId: string = null;
+    videoSourceId: string = null;
 
     constructor(private router: Router, 
                 private route: ActivatedRoute,
@@ -19,37 +26,23 @@ export class WebrtcVideoListComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        this.route.params.subscribe(params => {
-            let srvId = params["webrtcServerId"];
-            if(null==this.webrtcServers){
-                this.videoObjectsService.objects.subscribe(
-                    objs => {
-                        this.webrtcServers=objs.webrtcServers;
-                        if(this.webrtcServers.length==1){
-                            this.selectedServer=this.webrtcServers[0];
-                        }
-                        else {
-                            let srv = this.webrtcServers.find(wr => wr.name==srvId);
-                            if(null!=srv){
-                                this.selectedServer=srv;
-                            }
-                            else {
-                                this.selectedServer=null;
-                            }
-                        }
-                    },
-                    error => this.errorMessage=<any>error
-                );
-            }
-            else {
-                if(this.webrtcServers.length==1){
-                    this.selectedServer=this.webrtcServers[0];
-                }
-                else {
-                    this.selectedServer = this.webrtcServers.find(wr => wr.name==srvId);
-                }
-            }
+        this.videoObjectsService.objects.subscribe(vo => { 
+            this.videoObjects=vo;
+            this.complete();
         });
+        this.route.params.subscribe(params => {
+            this.webrtcServerId = params["webrtcServerId"];
+            this.videoSourceId = params["videoSourceId"];
+            if(this.videoObjects)
+                this.complete()
+        });
+    }
+    complete(){
+        if(!this.videoObjects)
+            return;
+        this.webrtcServers=this.videoObjects.webrtcServers;
+        this.selectedServer = this.videoObjects.webrtcServers.find(s => s.name==this.webrtcServerId);
+        this.allVideoSources = this.videoObjects.videoSources.filter(vs => vs.webrtcServers.length>0);
     }
     // onSelectServer(va:VideoArchive){
     //     this.selectedArchive=va; 
