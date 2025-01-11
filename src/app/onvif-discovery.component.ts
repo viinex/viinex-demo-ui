@@ -8,7 +8,8 @@ import {OnvifDevice, OnvifDeviceDetails} from './onvif-device'
 @Component({
     standalone: false,
     selector: 'onvif-discovery',
-    templateUrl: './onvif-discovery.component.html'
+    templateUrl: './onvif-discovery.component.html',
+    styleUrl: 'onvif-discovery-component.css'
 })
 export class OnvifDiscoveryComponent implements OnInit {
     errorMessage: string;

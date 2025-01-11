@@ -1,55 +1,64 @@
 <h2>ONVIF devices</h2>
-Viinex 2.0 provides two API functions for searching ONVIF devices: <a href="/v1/env/onvif">/v1/env/onvif</a> 
-and /v1/env/onvif/probe (via the HTTP POST method). The former involves multicast and obviously does not find anything 
-when ran by Viinex instance in a public datacenter on the Internet (like demo.viinex.com is). The latter, however, 
--- the probe call --
-will work for your ONVIF devices if they are available at some "white" IP addresses and ports. 
-Don't forget to specify the credentials then.
-<h4>Parameters for probe</h4>
 <div class="row">
-<div class="col-md-2">
-    <label>
-        As anonymous: 
-        <input type="checkbox" [(ngModel)]="probeAnon"/>
-    </label>
-</div>
-<div class="col-md-4">
-    <div  *ngIf="!probeAnon">
-        <label>
-        Credentials:
-        <input type="text" size="8" placeholder="login" [(ngModel)]="probeLogin"/>
-        <input type="password" size="8" placeholder="password" [(ngModel)]="probePassword"/>
-        </label>
+<div class="col-6">
+    <h3>Discover</h3>
+    <h4>Devices found on the local network</h4>
+    Total: {{devices != null ? devices.length : "N/A"}} device(s).
+    <div [ngClass]="probeResult?[]:['devices-list']">
+        <div class="sticky-top w-100">
+            <ul>
+                <li *ngFor="let dev of devices">
+                    <h4>{{dev.name}}</h4>
+                    Name: {{dev.name}} <br/>
+                    Hardware: {{dev.hardware}} <br/>
+                    <ng-template *ngIf="dev.location">
+                    Location: {{dev.location}} <br/>
+                    </ng-template>
+                    URL: {{dev.url}} <br/>
+                    <button class="btn primary" (click)="this.probeFor(dev.url)">Probe for details...</button><br/>
+                </li>
+            </ul>
+        </div>
     </div>
 </div>
-<div class="col-md-4">
-    <label>
-        Device:
-        <input type="text" size="12" placeholder="ip addr or host" [(ngModel)]="probeCustomAddress"/>
-        <input type="text" size="4" placeholder="port" [(ngModel)]="probeCustomPort"/>
-    </label>
-</div>
-<div class="col-md-2">
-    <button class="btn primary active" (click)="this.probeForCustom()">Probe...</button>
-</div>
-</div> <!--parameters row-->
-<br/>
-<div class="row">
 <div class="col-md-6">
-<h4>Devices found on the local network</h4>
-<ul>
-    <li *ngFor="let dev of devices">
-        <h4>{{dev.name}}</h4>
-        Name: {{dev.name}} <br/>
-        Hardware: {{dev.hardware}} <br/>
-        Location: {{dev.location}} <br/>
-        URL: {{dev.url}} <br/>
-        <button class="btn primary" (click)="this.probeFor(dev.url)">Probe for details...</button><br/>
-    </li>
-</ul>
-Total: {{devices != null ? devices.length : "N/A"}} device(s).
-</div>
-<div class="col-md-6">
+    <h3>Probe</h3>
+
+    <div class="row">
+        <h4>Parameter for probing a device</h4>
+        <div class="col-8">
+            <label for="inputDeviceAddress" class="form-label">Device address</label>
+            <input class="form-control" type="text" size="12" id="inputDeviceAddress" placeholder="ip addr or host" [(ngModel)]="probeCustomAddress" />
+        </div>
+        <div class="col-4">
+            <label for="inputDeviceAddress" class="form-label">Port</label>
+            <input class="form-control" type="text" size="4" id="inputDevicePort" placeholder="port" [(ngModel)]="probeCustomPort" />
+        </div>
+        <div class="col-12 mt-3">
+            <div class="form-check">
+                <label for="probeAnon" class="form-label">As anonymous</label>
+                <input id="probeAnon" type="checkbox" class="form-check-input" 
+                    [(ngModel)]="probeAnon" />
+            </div>
+        </div>
+        <div class="col-4" *ngIf="!probeAnon">
+            <label for="inputLogin" class="form-label">User name</label>
+            <input class="form-control" type="text" size="8" id="inputLogin" placeholder="login" 
+                [(ngModel)]="probeLogin" />
+        </div>
+        <div class="col-4" *ngIf="!probeAnon">
+            <label for="inputPassword" class="form-label">Password</label>
+            <input class="form-control" type="password" size="8" id="inputPassword" placeholder="password" 
+                [(ngModel)]="probePassword" />
+        </div>
+    </div> <!--parameters row-->
+    <div class="row">
+        <div class="col-6 mt-3 mb-3">
+            <button type="submit" class="btn primary active" (click)="this.probeForCustom()">Probe...</button>
+        </div>
+    </div>
+        
+
     <div class="alert alert-danger" role="alert" *ngIf="errorMessage!=null">Operation failed: <b>{{errorMessage}}</b><br>{{errorDetails}}</div>
     <div *ngIf="probeResult!=null">
         <h4>Probe result for {{probeTarget}}</h4>
