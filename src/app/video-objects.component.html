@@ -15,7 +15,7 @@
                 <h4>{{vs.displayName}}</h4>
                 <p *ngIf="vs.description != null">{{vs.description}}</p>
                 <a *ngIf="vs.webrtcServers.length &gt; 0" 
-                    routerLink="/webrtc-video/{{vs.webrtcServers[0].name}}/{{vs.name}}" 
+                    routerLink="/webrtc-video/src/{{vs.name}}" 
                     type="button" class="btn btn-outline-primary btn-sm btn-pad-right">Live (RTC)</a>
                 <a *ngIf="isHttp && vs.isLive" 
                     routerLink="/live-video/{{vs.name}}"
