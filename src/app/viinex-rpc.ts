@@ -351,11 +351,13 @@ export class WampRpc implements IViinexRpc {
 
     eventsSummary(name: string, subjects?: Array<string>, origins?: Array<string>, begin?: Date, end?: Date): Observable<Array<any>>{
         return this.wamp.call<Array<any>>(this.prefix + WampRpc.toQuietSnake(name) + ".event_archive.summary",
-            [{ begin: begin, end: end, origins, subjects }]);
+            [{ begin: begin.toISOString(), end: end.toISOString(), origin: origins, topic: subjects }]);
     }
     eventsQuery(name: string, subjects?: Array<string>, origins?: Array<string>, begin?: Date, end?: Date, limit?: number, offset?: number): Observable<Array<Object>>{
+        console.log(this.prefix + WampRpc.toQuietSnake(name) + ".event_archive.query", 
+        [{ begin: begin.toISOString(), end: end.toISOString(), origin: origins, topic: subjects, limit: limit, offset: offset }]);
         return this.wamp.call<Array<any>>(this.prefix + WampRpc.toQuietSnake(name) + ".event_archive.query",
-            [{ begin: begin, end: end, origin: origins, topic: subjects, limit: limit, offset: offset }]);
+            [{ begin: begin.toISOString(), end: end.toISOString(), origin: origins, topic: subjects, limit: limit, offset: offset }]);
     }
 
     kvstoreGet(name: string, key: string) : Observable<any> {

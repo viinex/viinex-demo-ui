@@ -107,10 +107,10 @@ export class AutoCheckpointComponent implements OnInit, OnDestroy {
           let mid : Date = new Date((begin.valueOf()+end.valueOf())/2);
           this.selectedDate=new NgbDate(mid.getUTCFullYear(), mid.getUTCMonth()+1, mid.getUTCDate());
         }
-        if(!this.queryInterval || this.queryInterval[0]!=begin || this.queryInterval[1]!=end)
+        if(!this.queryInterval || this.queryInterval[0].valueOf()!=begin.valueOf() || this.queryInterval[1].valueOf()!=end.valueOf()){
           this.loaded=false;
-
-        this.queryInterval=[begin, end];
+          this.queryInterval=[begin, end];
+        }
       }
       else {
         this.selectedDate=null;
@@ -130,7 +130,8 @@ export class AutoCheckpointComponent implements OnInit, OnDestroy {
         return;
       }
       this.autoCheckpoint=this.videoObjects.appsAutoCheckpoint.find(a => a.name==this.autoCheckpointId);
-      this.eventArchive=this.videoObjects.eventArchives[0];
+      if(this.autoCheckpoint)
+        this.eventArchive=this.autoCheckpoint.localVideoObjects.eventArchives[0];
       this.completeInit();
     });
   }
@@ -160,6 +161,7 @@ export class AutoCheckpointComponent implements OnInit, OnDestroy {
       this.loading=true;
       this.eventArchive.query(null, [this.autoCheckpointId], this.queryInterval[0],this.queryInterval[1], 20000, 0)
         .subscribe((events: Array<VnxEvent>) => {
+          console.debug("Loaded archive events: ", this.autoCheckpointId, this.queryInterval, events.length);
           this.arrangeEvents(events);
           this.current=null;
           this.loading=false;
@@ -176,6 +178,7 @@ export class AutoCheckpointComponent implements OnInit, OnDestroy {
       this.history=[];
       this.loading=true;
       this.eventArchive.query(null, [this.autoCheckpointId], begin,end, 10000, 0).subscribe((events: Array<VnxEvent>) => {
+        console.debug("Loaded current events: ", this.autoCheckpointId, begin, end, events.length);
         this.arrangeEvents(events);
         this.loading=false;
         this.loaded=true;

@@ -8,12 +8,14 @@ export class AppsObject {
 
     public readonly stateful: Stateful=null;
     public readonly updateable: Updateable=null;
+    public readonly localVideoObjects: VideoObjects;
 
     public videoSources: Array<VideoSource>=[];
 
     constructor(stateful: Stateful, private vo: VideoObjects){
         this.stateful=stateful;
         this.updateable=vo.updateables.find(u => u.name==this.stateful.name);
+        this.localVideoObjects=vo;
     }
 }
 
