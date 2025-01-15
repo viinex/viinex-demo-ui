@@ -1,7 +1,12 @@
 <div class="card">
     <img class="card-img-top" src="{{fact.car_photo}}" *ngIf="fact.car_photo" />
-    <div class="card-body">
-        <h4>At {{fact.direction?.name}} on {{fact.alpr_result.timestamp | date : 'HH:mm:ss' }}</h4>
+    <div class="card-body" [ngSwitch]="fact.reason">
+        <div *ngSwitchCase="'lpr'">
+            <h4>At {{fact.direction?.name}} on {{fact.timestamp | date : 'HH:mm:ss' }}</h4>
+        </div>
+        <div *ngSwitchCase="'actuator'">
+            <h4>Gate open by human action on {{fact.timestamp | date : 'HH:mm:ss' }}</h4>
+        </div>
     </div>
     <ul class="list-group list-group-flush">
         <li class="list-group-item" *ngFor="let e of fact.log">

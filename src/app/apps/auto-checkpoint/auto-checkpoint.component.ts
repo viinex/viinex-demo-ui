@@ -17,11 +17,13 @@ import { NgIcon, provideIcons, provideNgIconsConfig, withExceptionLogger } from 
 import { bootstrapCalendar3, bootstrapPlayBtn } from '@ng-icons/bootstrap-icons';
 import { FormsModule, NgModel } from '@angular/forms';
 import { AcpFactComponent } from './acp-fact.component';
+import { AcpFactShortComponent } from './acp-fact-short.component';
 
 @Component({
   selector: 'app-auto-checkpoint',
   standalone: true,
-  imports: [NgIf, NgForOf, ViewportModule, DatePipe, RouterLink, RouterLinkActive, NgbModule, NgIcon, FormsModule, AcpFactComponent],
+  imports: [NgIf, NgForOf, ViewportModule, DatePipe, RouterLink, RouterLinkActive, NgbModule, NgIcon, FormsModule, 
+    AcpFactComponent, AcpFactShortComponent],
   providers:[provideIcons({bootstrapCalendar3, bootstrapPlayBtn}), NgModel],
   templateUrl: './auto-checkpoint.component.html',
   styleUrl: './auto-checkpoint.component.css',
@@ -227,9 +229,10 @@ export class AutoCheckpointComponent implements OnInit, OnDestroy {
     if(this.loaded && this.queryTimestamp){
       // plain "==" doesn't work because JS Date rouds to 1ms while viinex may produce values with up to 6 digits after decimal point
       this.selectedFact=this._history.find(f => Math.abs(f.timestamp.valueOf() - this.queryTimestamp.valueOf()) < 1);
+      console.log(this.selectedFact);
       if(this.selectedFact){
         let lastEvent = this.selectedFact.log[this.selectedFact.log.length-1];
-        this.playbackInterval=[this.selectedFact.timestamp, lastEvent.timestamp];
+        this.playbackInterval=[this.selectedFact.timestamp, new Date(Date.parse(lastEvent.timestamp))];
       }
     }
   }

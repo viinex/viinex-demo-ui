@@ -6,7 +6,7 @@ import { AppsRoutingModule } from './apps-routing.module';
 import { NgxMasonryComponent, NgxMasonryDirective, NgxMasonryModule } from 'ngx-masonry';
 import { NgbCarouselModule } from '@ng-bootstrap/ng-bootstrap';
 import { NgIconsModule } from '@ng-icons/core';
-import { bootstrapCalendar3 } from '@ng-icons/bootstrap-icons';
+import { bootstrapCalendar3, bootstrapCheckCircle, bootstrapExclamationCircle, bootstrapXCircle } from '@ng-icons/bootstrap-icons';
 import { NgModel } from '@angular/forms';
 
 
@@ -19,7 +19,7 @@ import { NgModel } from '@angular/forms';
     AppsRoutingModule,
     CommonModule,
     NgbCarouselModule,
-    NgIconsModule.withIcons({bootstrapCalendar3})
+    NgIconsModule.withIcons({bootstrapCalendar3, bootstrapExclamationCircle, bootstrapXCircle, bootstrapCheckCircle})
   ]
 })
 export class AppsModule { }

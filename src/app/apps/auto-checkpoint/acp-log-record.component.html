@@ -3,7 +3,14 @@
     <div *ngSwitchCase="'CheckpointLog'" class="log-text">
         <div [ngSwitch]="subject" class="log-text">
             <div *ngSwitchCase="'ProcessingStarted'" class="log-text">
-                Processing started. Recognized <span class="rec-result">{{data.alpr_result.plate_text}}</span>
+                <div [ngSwitch]="reason" class="log-text">
+                    <div *ngSwitchCase="'lpr'" class="log-text">
+                        Processing started. Recognized <span class="rec-result">{{data.alpr_result.plate_text}}</span>
+                    </div>
+                    <div *ngSwitchCase="'actuator'" class="log-text">
+                        Gate is <span class="badge bg-success">OPEN</span> by operator action.
+                    </div>
+                </div>
             </div>
             <div *ngSwitchCase="'ProcessingComplete'" class="log-text">
                 Processing complete.
@@ -11,9 +18,56 @@
             <div *ngSwitchCase="'RecognizedWhileBusy'" class="log-text">
                 Got another recognition result: <span class="rec-result">{{data.alpr_result.plate_text}}</span>
             </div>
+            <div *ngSwitchCase="'ErrorOnAcsRequest'" class="log-text">
+                ACS API endpoint interaction failed. {{data.retries_left-1}} retries left.
+                <a role="button" class="link-secondary" (click)="errCollapse.toggle()">Details...</a>
+                <div #errCollapse="ngbCollapse" [ngbCollapse]="true">
+                    <pre>{{data.error | json}}</pre>
+                </div>
+            </div>
         </div>
     </div>
     <div *ngSwitchCase="'CheckpointActuatorTriggered'" class="log-text">
+        <div [ngSwitch]="subject" class="log-text">
+            <div *ngSwitchCase="'open'" class="log-text">
+                Command sent to <span class="badge bg-success">OPEN</span> the gate.
+            </div>
+            <div *ngSwitchCase="'close'" class="log-text">
+                Command sent to <span class="badge bg-secondary">CLOSE</span> the gate.
+            </div>
+        </div>
+    </div>
+    <div *ngSwitchCase="'CheckpointAcsDecision'" class="log-text">
+        Got decision from access control system:
+        <div [ngSwitch]="data.acs_decision_allow" class="log-text mr-3">
+            <div *ngSwitchCase="true" class="log-text">
+                <span class="badge bg-success">ALLOW</span>
+            </div>
+            <div *ngSwitchCase="false" class="log-text">
+                <span class="badge bg-danger">DENY</span>
+            </div>
+        </div>
+        &nbsp;
+        <a role="button" class="link-secondary" (click)="acsCollapse.toggle()">Details...</a>
+        <div #acsCollapse="ngbCollapse" [ngbCollapse]="true">
+            <pre>{{ data.acs_response | json }}</pre>
+        </div>
+    </div>
+    <div *ngSwitchCase="'CheckpointAcsNoDecision'" class="log-text">
+        <div [ngSwitch]="data.reason" class="log-text">
+            <div *ngSwitchCase="'error'" class="log-text">
+                Failed to get decision from ACS: API endpoint returned an error.
+                <a role="button" class="link-secondary" (click)="acsErrCollapse.toggle()">Details...</a>
+                <div #acsErrCollapse="ngbCollapse" [ngbCollapse]="true">
+                    <pre>{{ data.error | json }}</pre>
+                </div>
+            </div>
+            <div *ngSwitchCase="'operator'" class="log-text">
+                No ACS decision has been obtained so far. Operator has taken an action to <span class="badge bg-warning">OPEN</span> the gate.
+            </div>
+        </div>
+    </div>
+    <div *ngSwitchCase="'CheckpointActuatorChange'" class="log-text">
         <div [ngSwitch]="subject" class="log-text">
             <div *ngSwitchCase="'open'" class="log-text">
                 Gate is <span class="badge bg-success">OPEN</span>
@@ -22,23 +76,5 @@
                 Gate is <span class="badge bg-secondary">CLOSED</span>
             </div>
         </div>
-    </div>
-    <div *ngSwitchCase="'CheckpointAcsDecision'" class="log-text">
-        Got decision from access control system:
-        <div [ngSwitch]="data.acs_decision_allow" class="log-text">
-            <div *ngSwitchCase="true" class="log-text">
-                <span class="badge bg-success">ALLOW</span>
-            </div>
-            <div *ngSwitchCase="false" class="log-text">
-                <span class="badge bg-danger">DENY</span>
-            </div>
-        </div>
-        <!-- <br/>
-        Detailed response from ACS: 
-        <pre>{{ data.acs_response | json }}</pre> -->
-    </div>
-    <div *ngSwitchCase="'CheckpointAcsNoDecision'" class="log-text">
-        Failed to get decision from ACS.
-        <pre>{{ data | json }}</pre>
     </div>
 </div>

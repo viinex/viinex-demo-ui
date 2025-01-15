@@ -205,7 +205,7 @@ export class VnxEventOrigin {
     constructor(public name: string, public type: string){}
 }
 export class VnxEvent {
-    constructor(public topic: string, public origin: any, public timestamp: Date, public data: any){}
+    constructor(public topic: string, public origin: any, public timestamp: string, public data: any){}
 }
 
 export class EventArchive extends ViinexSvcObject {

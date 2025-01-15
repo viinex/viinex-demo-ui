@@ -26,14 +26,12 @@
                 </div>
                 </div>
                 <div class="nav-item"><span *ngIf="loading">Loading...</span></div>
-                <div *ngFor="let h of historyWindow" class="nav-item">
-                    <a routerLink="." [queryParams]="queryInterval ? {timestamp: h.alpr_result.timestamp, begin: queryInterval[0].toISOString(), end: queryInterval[1].toISOString()} : {timestamp: h.alpr_result.timestamp}" replaceUrl="true"
+                <div *ngFor="let h of historyWindow" class="nav-item w-100">
+                    <a routerLink="." [queryParams]="queryInterval ? {timestamp: h.timestamp.toISOString(), begin: queryInterval[0].toISOString(), end: queryInterval[1].toISOString()} : {timestamp: h.timestamp.toISOString()}" replaceUrl="true"
                         class="nav-link"
                         [routerLinkActiveOptions]="this.historyLinkActiveOptions"
                         routerLinkActive="active">
-                        <span class="log-timestamp">{{h.alpr_result.timestamp | date : 'dd-MM-yyyy HH:mm:ss' }}</span>
-                        {{h.direction.name}}
-                        <span class="rec-result">{{h.alpr_result.plate_text}}</span>
+                        <acp-fact-short [fact]="h"/>
                     </a>
                 </div>
             </nav>

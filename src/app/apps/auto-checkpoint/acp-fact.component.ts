@@ -30,7 +30,7 @@ export class AcpFactComponent implements AfterContentChecked {
     }
 
     private checkLoadSnapshot(this: AcpFactComponent){
-        if(this._fact && !this._fact.car_photo && !this._snapshotRequested){
+        if(this._fact && !this._fact.car_photo && !this._snapshotRequested && this._fact.direction){
             let tracks = this._fact.direction.videoSource.videoTracks;
             if(tracks && tracks.length>0){
                 this._snapshotRequested=true;

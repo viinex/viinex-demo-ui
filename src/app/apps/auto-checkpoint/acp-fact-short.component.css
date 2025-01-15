@@ -1,0 +1,15 @@
+.acs-decision {
+    width: 32px;
+    height: 32px;
+}
+
+.timestamp {
+    font-family: monospace;
+}
+.rec-result {
+    border: 1px solid;
+    border-radius: 2px;
+    font-family: monospace;
+    font-size: large;
+    padding: 3px;
+}

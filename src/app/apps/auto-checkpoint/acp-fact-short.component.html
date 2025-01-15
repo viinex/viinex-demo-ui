@@ -1,0 +1,30 @@
+<div class="d-flex justify-content-between">
+    <div>
+        <span class="timestamp">{{fact.timestamp | date : 'dd-MM-yyyy HH:mm:ss' }}</span>
+        <div [ngSwitch]="fact.reason">
+            <div *ngSwitchCase="'lpr'">
+                {{fact.direction.name}}
+                <span class="rec-result">{{fact.alpr_result.plate_text}}</span>
+            </div>
+            <div *ngSwitchCase="'actuator'">
+                Gate open by operator action
+            </div>
+        </div>
+    </div>
+    <div class="align-self-center">
+        <div [ngSwitch]="fact.acs_decision">
+            <div *ngSwitchCase="'allow'">
+                <ng-icon name="bootstrapCheckCircle" class="acs-decision text-success"></ng-icon>
+            </div>
+            <div *ngSwitchCase="'deny'">
+                <ng-icon name="bootstrapXCircle" class="acs-decision text-danger"></ng-icon>
+            </div>
+            <div *ngSwitchCase="'error'">
+                <ng-icon name="bootstrapBug" class="acs-decision text-secondary"></ng-icon>
+            </div>
+            <div *ngSwitchCase="'operator'">
+                <ng-icon name="bootstrapExclamationCircle" class="acs-decision text-warning"></ng-icon>
+            </div>
+        </div>
+    </div>
+</div>

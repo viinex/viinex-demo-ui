@@ -8,22 +8,43 @@ export class Acp {
     static readonly RecognizedWhileBusy = "RecognizedWhileBusy";
 
     static readonly CheckpointAcsDecision = "CheckpointAcsDecision";
+    static readonly CheckpointAcsNoDecision = "CheckpointAcsNoDecision";
 }
 
+export enum FactReason { Lpr = 'lpr', Actuator = 'actuator' }
+
+export enum AcsDecision { Allow = 'allow', Deny = 'deny', Error = 'error', Operator = 'operator' }
+
 export class Fact {
+    public reason: FactReason = null;
     public alpr_result: AlprResult = null;
     public timestamp: Date = null;
     public direction: AcpDirection = null;
     public acs_response: any = null;
-    public acs_decision: {allow: boolean} = null;
+    public acs_decision: AcsDecision = null;
     public car_photo: string = null;
+    public actuator_event: VnxEvent = null;
     public log: Array<VnxEvent> = [];
 
     public constructor(directions: Array<AcpDirection>, e: VnxEvent){
         if(Fact.isInitial(e)){
-            this.alpr_result = e.data.alpr_result;
-            this.timestamp = new Date(Date.parse(this.alpr_result.timestamp));
-            this.direction = directions.find(d => d.io_type === e.data.io_type);
+            if(e.data.reason === FactReason.Lpr || e.data.reason === FactReason.Actuator){
+                this.reason=e.data.reason;
+            }
+            if(e.data.alpr_result){
+                this.alpr_result = e.data.alpr_result;
+                this.timestamp = new Date(Date.parse(this.alpr_result.timestamp));
+                this.direction = directions.find(d => d.io_type === e.data.io_type);
+                if(!this.reason)
+                    this.reason=FactReason.Lpr;
+            }
+            if(e.data.actuator_event){
+                this.actuator_event = e.data.actuator_event;
+                this.timestamp = new Date(Date.parse(this.actuator_event.timestamp));
+                if(!this.reason)
+                    this.reason=FactReason.Actuator;
+                this.acs_decision=AcsDecision.Operator;
+            }
             this.log.push(e);
         }
         else {
@@ -31,12 +52,15 @@ export class Fact {
         }
     }
     public static fromCheckpointResponse(directions: Array<AcpDirection>, s: any){
-        let res=new Fact(directions, new VnxEvent(Acp.CheckpointLog, null, s.alpr_result, {
+        let timestamp = new Date(Date.parse(s.timestamp));
+        let res=new Fact(directions, new VnxEvent(Acp.CheckpointLog, null, timestamp.toISOString(), {
             subject: Acp.ProcessingStarted,
             alpr_result: s.alpr_result,
-            timestamp: new Date(Date.parse(s.alpr_result.timestamp))
+            actuator_event: s.actuator_event,
+            timestamp: timestamp
         }));
-        res.car_photo="data:image/jpeg;base64,"+s.car_photo;
+        if(s.car_photo)
+            res.car_photo="data:image/jpeg;base64,"+s.car_photo;
         res.acs_response=s.acs_response;
         return res;
     }
@@ -54,7 +78,13 @@ export class Fact {
         }
         if(e.topic === Acp.CheckpointAcsDecision){
             this.acs_response=e.data.acs_response;
-            this.acs_decision={allow: e.data.acs_decision_allow};
+            this.acs_decision=e.data.acs_decision_allow? AcsDecision.Allow:AcsDecision.Deny;
+        }
+        if(e.topic===Acp.CheckpointAcsNoDecision){
+            this.acs_decision=e.data.reason;
+            if(this.acs_decision==AcsDecision.Error){
+                this.acs_response=e.data.error;
+            }
         }
         this.log.push(e);
     }
