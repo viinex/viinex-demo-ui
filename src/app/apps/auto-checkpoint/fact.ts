@@ -68,6 +68,9 @@ export class Fact {
     public static isInitial(e: VnxEvent): boolean{
         return e.topic === Acp.CheckpointLog && e.data.subject === Acp.ProcessingStarted;
     }
+    public static shouldIgnore(e: VnxEvent): boolean {
+        return e.topic.startsWith("acpstat_");
+    }
 
     public append(this: Fact, e: VnxEvent){
         if(this.complete){

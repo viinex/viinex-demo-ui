@@ -208,6 +208,9 @@ export class AutoCheckpointComponent implements OnInit, OnDestroy {
     this.current=ctx.current;
   }
   private appendEvent(this: AutoCheckpointComponent, ctx: ReduceCtx, e: VnxEvent) {
+    if(Fact.shouldIgnore(e)){
+      return ctx;
+    }
     if(Fact.isInitial(e)){
       if(ctx.current){
         ctx.history.push(ctx.current);
