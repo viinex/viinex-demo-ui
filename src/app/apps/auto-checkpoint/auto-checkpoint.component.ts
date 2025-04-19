@@ -18,6 +18,7 @@ import { bootstrapCalendar3, bootstrapPlayBtn } from '@ng-icons/bootstrap-icons'
 import { FormsModule, NgModel } from '@angular/forms';
 import { AcpFactComponent } from './acp-fact.component';
 import { AcpFactShortComponent } from './acp-fact-short.component';
+import { Acp } from './fact';
 
 @Component({
   selector: 'app-auto-checkpoint',
@@ -161,7 +162,7 @@ export class AutoCheckpointComponent implements OnInit, OnDestroy {
     if(this.videoObjects && this.autoCheckpoint && this.eventArchive){
       this.history=[];
       this.loading=true;
-      this.eventArchive.query(null, [this.autoCheckpointId], this.queryInterval[0],this.queryInterval[1], 20000, 0)
+      this.eventArchive.query(Acp.RelevantEventTopics, [this.autoCheckpointId], this.queryInterval[0],this.queryInterval[1], 20000, 0)
         .subscribe((events: Array<VnxEvent>) => {
           console.debug("Loaded archive events: ", this.autoCheckpointId, this.queryInterval, events.length);
           this.arrangeEvents(events);
@@ -179,7 +180,7 @@ export class AutoCheckpointComponent implements OnInit, OnDestroy {
       let end = new Date(now.valueOf()+360000);
       this.history=[];
       this.loading=true;
-      this.eventArchive.query(null, [this.autoCheckpointId], begin,end, 10000, 0).subscribe((events: Array<VnxEvent>) => {
+      this.eventArchive.query(Acp.RelevantEventTopics, [this.autoCheckpointId], begin,end, 10000, 0).subscribe((events: Array<VnxEvent>) => {
         console.debug("Loaded current events: ", this.autoCheckpointId, begin, end, events.length);
         this.arrangeEvents(events);
         this.loading=false;

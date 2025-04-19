@@ -2,6 +2,7 @@ import { VnxEvent } from "../../video-objects";
 import { AcpDirection } from "../apps-objects"
 
 export class Acp {
+    // this is actually a mix of event topic names and "subject" fields in the event data
     static readonly CheckpointLog = "CheckpointLog";
     static readonly ProcessingStarted = "ProcessingStarted";
     static readonly ProcessingComplete = "ProcessingComplete";
@@ -9,6 +10,19 @@ export class Acp {
 
     static readonly CheckpointAcsDecision = "CheckpointAcsDecision";
     static readonly CheckpointAcsNoDecision = "CheckpointAcsNoDecision";
+
+    static readonly CheckpointActuatorChange = "CheckpointActuatorChange";
+    static readonly CheckpointActuatorTriggered = "CheckpointActuatorTriggered";
+
+    // but these are the list of event topics which are needed for this UI.
+    // Other related events, namely suppressed lpr results, stats, -- are omitted.
+    static readonly RelevantEventTopics = [
+        Acp.CheckpointLog, 
+        Acp.CheckpointAcsDecision, 
+        Acp.CheckpointAcsNoDecision,
+        Acp.CheckpointActuatorChange,
+        Acp.CheckpointActuatorTriggered,
+    ];
 }
 
 export enum FactReason { Lpr = 'lpr', Actuator = 'actuator' }
