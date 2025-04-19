@@ -20,6 +20,7 @@ export class Fact {
     public alpr_result: AlprResult = null;
     public timestamp: Date = null;
     public direction: AcpDirection = null;
+    public direction_view: AcpDirection = null;
     public acs_response: any = null;
     public acs_decision: AcsDecision = null;
     public car_photo: string = null;
@@ -35,6 +36,12 @@ export class Fact {
                 this.alpr_result = e.data.alpr_result;
                 this.timestamp = new Date(Date.parse(this.alpr_result.timestamp));
                 this.direction = directions.find(d => d.io_type === e.data.io_type);
+                if(e.data.video_source){
+                    this.direction_view = directions.find(d => d.videoSource.name==e.data.video_source);
+                }
+                else {
+                    this.direction_view = this.direction;
+                }
                 if(!this.reason)
                     this.reason=FactReason.Lpr;
             }
@@ -114,7 +121,10 @@ export class AlprResult {
     public template?: string;
     public confidence: number;
     public plate_rect: PlateRect;
+    public direction?: TrackDirection;
 }
+
+export enum TrackDirection { Unknown = 'unknown', Approaching = 'approaching', Receding = 'receding' }
 
 export class PlateRect {
     public left: number;
