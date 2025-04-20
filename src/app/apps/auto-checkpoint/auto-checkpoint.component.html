@@ -58,6 +58,9 @@
             <p class="card-text">{{direction.name}}</p>
         </div>
     </div>
+    <div class="card-direction-view">
+        <button class="btn btn-outline-secondary" *ngIf="selectedFact" (click)="syncPlaybackInterval()">Replay</button>
+    </div>
 </div>
 </div>
 </div>

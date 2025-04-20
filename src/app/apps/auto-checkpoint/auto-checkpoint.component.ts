@@ -234,9 +234,24 @@ export class AutoCheckpointComponent implements OnInit, OnDestroy {
       // plain "==" doesn't work because JS Date rouds to 1ms while viinex may produce values with up to 6 digits after decimal point
       this.selectedFact=this._history.find(f => Math.abs(f.timestamp.valueOf() - this.queryTimestamp.valueOf()) < 1);
       console.log(this.selectedFact);
-      if(this.selectedFact){
-        let lastEvent = this.selectedFact.log[this.selectedFact.log.length-1];
-        this.playbackInterval=[this.selectedFact.timestamp, new Date(Date.parse(lastEvent.timestamp))];
+      this.syncPlaybackInterval();
+    }
+  }
+  private syncPlaybackInterval() {
+    if(this.selectedFact){
+      let lastEvent = this.selectedFact.log[this.selectedFact.log.length-1];
+      let interval : [Date,Date] = [this.selectedFact.timestamp, new Date(Date.parse(lastEvent.timestamp))];
+
+      if(this.selectedFact.direction_view.videoTrack){
+        this.selectedFact.direction_view.videoTrack.getTrackData(interval).subscribe(td => {
+          if(td.timeLine && td.timeLine.length>0){
+            interval = td.timeLine[0]; // might want to do something smarter here one day
+            let b1=interval[0].valueOf();
+            let b2 = this.selectedFact.timestamp.valueOf()-15000;
+            interval[0]=new Date(Math.max(b1,b2));
+          }
+          this.playbackInterval=interval;
+        });
       }
     }
   }

@@ -37,7 +37,7 @@ export class AcpFactComponent implements AfterContentChecked {
                 of({}).pipe(delay(this.snapshotRequestDelay)).subscribe(_ => {
                     tracks[0].getSnapshotImage(this._fact.timestamp, {}).subscribe((image: string) => {
                         this._fact.car_photo = image;
-                    });
+                    }, (err) => {console.log("Could not get the snapshot: ", err);});
                 });
             }
         }
