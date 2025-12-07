@@ -40,7 +40,12 @@ export class LoginComponent implements OnInit {
                     this.isWamp = ls.rpc?.transport==Transport.Wamp;
 
                     if(this.isWamp){
-                        this.wampUri = "wss://cloud.viinex.com/ws";
+                        if(location.protocol == "https:"){
+                            this.wampUri = "wss://"+location.host+"/ws";
+                        }
+                        else{
+                            this.wampUri = "ws://"+location.host+"/ws";
+                        }
                     }
                 }
                 else{
