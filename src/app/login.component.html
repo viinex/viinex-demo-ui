@@ -8,7 +8,7 @@
             </div>
             <div class="form-group" *ngIf="isWamp">
                 <label class="col-form-label col-sm-4" for="wampUri">URI to connect to:</label>
-                <input [(ngModel)]="wampUri" type="text" class="form-control col-sm-8" name="wampUri" id="realm" placeholder="ws://example.com:8080/path"/>
+                <input [(ngModel)]="wampUri" type="text" class="form-control col-sm-8" name="wampUri" id="realm" placeholder="ws://example.com:8080/path" autocomplete="wampUri"/>
             </div>
             <div class="form-group" *ngIf="isWamp">
                 <label class="col-form-label col-sm-4" for="wampRealm">WAMP realm:</label>
@@ -21,6 +21,11 @@
             <div class="form-group">
                 <label class="col-form-label col-sm-4" for="password">Password:</label>
                 <input [(ngModel)]="loginPassword" type="password" class="form-control col-sm-8" id="password" name="loginPassword" placeholder="password" autocomplete="current-password"/>
+            </div>
+            <br>
+            <div class="form-group form-check">
+                <input [(ngModel)]="rememberLoginDetails" type="checkbox" class="form-check-input" id="rememberLoginDetails" name="rememberLoginDetails"/>
+                <label class="form-check-label" for="rememberLoginDetails">Remember login details on this device</label>
             </div>
             <br>
             <div class="form-group">

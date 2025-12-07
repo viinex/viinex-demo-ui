@@ -24,6 +24,7 @@ export class LoginComponent implements OnInit {
     wampRealm: string = "";
     loginName: string = "";
     loginPassword: string = "";
+    rememberLoginDetails: boolean = true;
 
     errorMessage: string;
 
@@ -39,7 +40,19 @@ export class LoginComponent implements OnInit {
                     this.loginName = ls.loginName; 
                     this.isWamp = ls.rpc?.transport==Transport.Wamp;
 
-                    if(this.isWamp){
+                    if (this.isWamp && !this.loginName) {
+                        this.wampUri = localStorage.getItem('wampUri') || this.wampUri;
+                        console.log("wampUri: ", this.wampUri);
+                        this.wampRealm = localStorage.getItem('wampRealm') || this.wampRealm;
+                        console.log("wampRealm: ", this.wampRealm);
+                        this.loginName = localStorage.getItem('loginName') || this.loginName;
+                        const privateKeySeed = localStorage.getItem('privateKeySeedHex');
+                        if (privateKeySeed) {
+                            this.loginPassword = privateKeySeed;
+                        }
+                    }
+
+                    if(this.isWamp && !this.wampUri){
                         if(location.protocol == "https:"){
                             this.wampUri = "wss://"+location.host+"/ws";
                         }
@@ -47,6 +60,7 @@ export class LoginComponent implements OnInit {
                             this.wampUri = "ws://"+location.host+"/ws";
                         }
                     }
+
                 }
                 else{
                     this.isServerOnline=false;
@@ -62,8 +76,21 @@ export class LoginComponent implements OnInit {
             password=this.privateKeySeedHex(password);
         }
         this.loginService.login({login: this.loginName, password: password, isWamp: this.isWamp, uri: this.wampUri, realm: this.wampRealm}).subscribe((loggedOn: boolean) => {
-            if(loggedOn)
+            console.log("this.loginService.login ", this.wampUri, this.wampRealm, this.loginName, this.loginPassword, loggedOn);
+            if(loggedOn) {
+                if (this.rememberLoginDetails && this.isWamp) {
+                    localStorage.setItem('wampUri', this.wampUri);
+                    localStorage.setItem('wampRealm', this.wampRealm);
+                    localStorage.setItem('loginName', this.loginName);
+                    localStorage.setItem('privateKeySeedHex', this.privateKeySeedHex(this.loginPassword));
+                } else {
+                    localStorage.removeItem('wampUri');
+                    localStorage.removeItem('wampRealm');
+                    localStorage.removeItem('loginName');
+                    localStorage.removeItem('privateKeySeedHex');
+                }
                 this.loginGuardService.returnToRequestedRoute('/');
+            }
         });
     }
     public onLogout(){
