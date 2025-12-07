@@ -98,7 +98,7 @@ export class LoginComponent implements OnInit {
     }
 
     private privateKeySeedHex(password: string) : string {
-        if(password.length==64){
+        if(password.length==64 && /^[0-9a-fA-F]+$/.test(password)){
             return password;
         }
         else{
