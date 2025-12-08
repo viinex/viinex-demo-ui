@@ -1,6 +1,4 @@
 <div class="row gx-2 gy-2">
-<h1>Overview</h1>
-<p>This page shows the information on video obects, i.e. cameras and archives, already configured at Viinex server. </p>
 <h2>Video sources</h2>
     <div class="col-sm-6 col-md-3" *ngFor="let vs of videoSources">
         <div class="card">
@@ -14,15 +12,43 @@
             <div class="card-body">
                 <h4>{{vs.displayName}}</h4>
                 <p *ngIf="vs.description != null">{{vs.description}}</p>
-                <a *ngIf="vs.webrtcServers.length &gt; 0" 
-                    routerLink="/webrtc-video/src/{{vs.name}}" 
-                    type="button" class="btn btn-outline-primary btn-sm btn-pad-right">Live (RTC)</a>
-                <a *ngIf="isHttp && vs.isLive" 
-                    routerLink="/live-video/{{vs.name}}"
-                    type="button" class="btn btn-outline-primary btn-sm btn-pad-right">Live (HLS)</a>
-                <a *ngIf="vs.videoTracks.length>0"
-                    routerLink="{{vs.videoTracks[0].routerLink}}"
-                    type="button" class="btn btn-outline-primary btn-sm">Archive{{vs.videoTracks.length>1?'s ('+vs.videoTracks.length+')':''}}</a>
+                <div class="btn-group">
+                    <button *ngIf="vs.webrtcServers.length &gt; 0" 
+                        routerLink="/webrtc-video/src/{{vs.name}}" 
+                        type="button" class="btn btn-outline-primary" title="Live (WebRTC)">
+                            <ng-icon name="bootstrapCameraVideo"></ng-icon>
+                    </button>
+                    <button *ngIf="isHttp && vs.isLive" 
+                        routerLink="/live-video/{{vs.name}}"
+                        type="button" class="btn btn-outline-primary" title="Live (HLS)">
+                            <ng-icon name="bootstrapCameraReels"></ng-icon>
+                    </button>
+                    <div ngbDropdown class="btn-group" role="group" *ngIf="(vs.derivedStreams.length > 0) && ((vs.webrtcServers.length > 0) || (isHttp && vs.isLive))">
+                            <button type="button" class="btn btn-outline-primary dropdown-toggle-no-caret" ngbDropdownToggle title="All live options">
+                                <ng-icon name="bootstrapThreeDotsVertical"></ng-icon>
+                            </button>
+                            <div ngbDropdownMenu>
+                                <a *ngIf="vs.webrtcServers.length > 0" ngbDropdownItem routerLink="/webrtc-video/src/{{vs.name}}">RTC - primary</a>
+                                <ng-container *ngFor="let dvs of vs.derivedStreams">
+                                    <a *ngIf="dvs.webrtcServers.length > 0" ngbDropdownItem routerLink="/webrtc-video/src/{{dvs.name}}">RTC - {{dvs.streamRole}}</a>
+                                </ng-container>
+
+                                <a *ngIf="isHttp && vs.isLive" 
+                                    routerLink="/live-video/{{vs.name}}"
+                                    type="button" class="btn btn-outline-primary btn-sm">HLS - primary</a>
+                                <ng-container *ngFor="let dvs of vs.derivedStreams">
+                                    <a *ngIf="isHttp && vs.isLive" 
+                                        routerLink="/live-video/{{dvs.name}}"
+                                        type="button" class="btn btn-outline-primary btn-sm">HLS - {{dvs.streamRole}}</a>
+                                </ng-container>
+                            </div>
+                    </div>
+                    <button *ngIf="vs.videoTracks.length>0"
+                        routerLink="{{vs.videoTracks[0].routerLink}}"
+                        type="button" class="btn btn-outline-primary" title="Archive{{vs.videoTracks.length>1?'s ('+vs.videoTracks.length+')':''}}">
+                            <ng-icon name="bootstrapHddStack"></ng-icon>
+                    </button>
+                </div>
             </div>
         </div>
     </div>

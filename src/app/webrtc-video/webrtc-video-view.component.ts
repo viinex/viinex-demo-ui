@@ -37,7 +37,7 @@ export class WebrtcVideoViewComponent implements OnInit, OnDestroy {
             this.videoSource=null;
             return;
         }
-        this.videoSource=this.videoObjects.videoSources.find(s => s.name==this.videoSourceId);
+        this.videoSource=this.videoObjects.allVideoSources.find(s => s.name==this.videoSourceId);
         if(this.webrtcServerId){
             this.webrtcServer=this.videoSource.webrtcServers.find(s => s.name==this.webrtcServerId);
         }

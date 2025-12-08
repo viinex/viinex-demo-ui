@@ -4,6 +4,7 @@ import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http'
 import { RouterModule, Routes }  from '@angular/router';
 import {FormsModule} from '@angular/forms';
 import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
+import { NgbDropdownModule } from '@ng-bootstrap/ng-bootstrap';
 import { NgbCarousel, NgbCarouselConfig, NgbSlide } from '@ng-bootstrap/ng-bootstrap';
 
 
@@ -34,6 +35,8 @@ import { AppsModule } from './apps/apps.module';
 import { AppsRoutingModule } from './apps/apps-routing.module';
 import { NgxMasonryModule } from 'ngx-masonry';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
+import { NgIconsModule } from '@ng-icons/core';
+import { bootstrapCalendar3, bootstrapCheckCircle, bootstrapExclamationCircle, bootstrapXCircle } from '@ng-icons/bootstrap-icons';
 
 
 @NgModule({ 
@@ -43,6 +46,7 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
         FormsModule,
         RouterModule,
         NgbModule,
+        NgbDropdownModule,
         NgbCarousel,
         NgxMasonryModule,
         LiveVideoModule,
@@ -54,7 +58,9 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
         ViewportModule,
         AppsModule,
         AppsRoutingModule,
-        AppRoutingModule], 
+        AppRoutingModule,
+        NgIconsModule.withIcons({bootstrapCalendar3, bootstrapExclamationCircle, bootstrapXCircle, bootstrapCheckCircle})
+    ], 
     providers: [OnvifService, 
         VideoObjectsService, 
         LoginService, 

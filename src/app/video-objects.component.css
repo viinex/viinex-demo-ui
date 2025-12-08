@@ -4,3 +4,6 @@
 .btn-pad-right {
     margin-right: 4px;
 }
+.dropdown-toggle-no-caret::after {
+  display: none;
+}
