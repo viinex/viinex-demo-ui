@@ -3,6 +3,7 @@ import { map } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 import { IViinexRpc } from "./viinex-rpc";
 import { AutoCheckpoint, RailwayTrack } from "./apps/apps-objects";
+import { all } from "when";
 
 export class ViinexSvcObject{
     constructor(protected rpc: IViinexRpc, public name:string, public metaData: any) {
@@ -10,17 +11,23 @@ export class ViinexSvcObject{
         if(null!=metaData){
             this.displayName = metaData.name;
             this.description = metaData.desc;
+            this.origin = metaData.origin;
         }
         if(!this.displayName)
             this.displayName = name;
     }
     public readonly displayName : string;
     public readonly description : string = null;
+    public readonly origin : string = null;
 }
 
 export class VideoSource extends ViinexSvcObject {
     constructor(rpc: IViinexRpc, public name:string, public metaData: any, public isLive: boolean, types: Array<string>){
         super(rpc, name, metaData);
+
+        if(this.origin && null!=metaData) {
+            this.streamRole = metaData.stream;
+        }
 
         this.getStreamDetails=rpc.liveStreamDetails(name).pipe(map(VideoSource.extractLiveStreamDetails));
 
@@ -42,6 +49,10 @@ export class VideoSource extends ViinexSvcObject {
 
     getStreamDetails: Observable<LiveStreamDetails>;
     getSnapshotImage: (spatial: any) => Observable<string>;
+
+    public readonly streamRole: string = null;
+    public derivedStreams: Array<VideoSource> = [];
+    public originStream: VideoSource = null;
 
     private static extractLiveStreamDetails(body: any){
         let d=new LiveStreamDetails();
@@ -262,6 +273,7 @@ export class KeyValueStore extends ViinexSvcObject {
 
 export class VideoObjects {
     constructor(){}
+    allVideoSources: Array<VideoSource> = [];
     videoSources: Array<VideoSource> = [];
     videoArchives: Array<VideoArchive> = [];
     webrtcServers: Array<WebRTCServer> = [];
@@ -277,7 +289,8 @@ export class VideoObjects {
 
     static concat(x: VideoObjects, y: VideoObjects) : VideoObjects {
         const selectors = [
-            { get: (v: VideoObjects) => v.videoSources,       set: (v: VideoObjects, x: any) => { v.videoSources=x; }},
+            { get: (v: VideoObjects) => v.allVideoSources,    set: (v: VideoObjects, x: any) => { v.allVideoSources=x; v.videoSources=VideoObjects.reduceVideoSources(x); }},
+            { get: (v: VideoObjects) => v.videoSources,       set: (v: VideoObjects, x: any) => { }},
             { get: (v: VideoObjects) => v.videoArchives,      set: (v: VideoObjects, x: any) => { v.videoArchives=x; }},
             { get: (v: VideoObjects) => v.webrtcServers,      set: (v: VideoObjects, x: any) => { v.webrtcServers=x; }},
             { get: (v: VideoObjects) => v.eventArchives,      set: (v: VideoObjects, x: any) => { v.eventArchives=x; }},
@@ -291,5 +304,28 @@ export class VideoObjects {
         let res=new VideoObjects();
         selectors.forEach(s => { s.set(res, s.get(x).concat(s.get(y))); });
         return res;
+    }
+
+    static reduceVideoSources(allSources: Array<VideoSource>) : Array<VideoSource> {
+        let origins=new Map<string, VideoSource>();
+        allSources.forEach(vs => { 
+            if(vs.origin==null) { 
+                origins.set(vs.name, vs); 
+                vs.derivedStreams=[];
+            } 
+        });
+        allSources.forEach(vs => {
+            if(vs.origin!=null) { 
+                let origin = origins.get(vs.origin);
+                if(origin!=null) {
+                    origin.derivedStreams.push(vs);
+                    vs.originStream=origin;
+                }
+                else {
+                    console.log("Found an orphan video source: ", vs.name, vs.origin);
+                }
+            }
+        });
+        return Array.from(origins.values());
     }
 }

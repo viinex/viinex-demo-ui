@@ -93,7 +93,7 @@ export class VideoObjectsService implements OnDestroy {
         return this._videoObjects.asObservable()
     }
     getVideoSource(videoSourceId: string) : Observable<VideoSource> {
-        return this.objects.pipe(map(vo => vo.videoSources.find(vs => vs.name==videoSourceId)));
+        return this.objects.pipe(map(vo => vo.allVideoSources.find(vs => vs.name==videoSourceId)));
     }
     getVideoArchive(videoArchiveId: string) : Observable <VideoArchive>
     {
@@ -124,7 +124,7 @@ export class VideoObjectsService implements OnDestroy {
             let meta = bodyMeta[name];
             switch(type){
                 case "VideoSource": {
-                    vo.videoSources.push(new VideoSource(rpc, name, meta, true, typesByName.get(name)));
+                    vo.allVideoSources.push(new VideoSource(rpc, name, meta, true, typesByName.get(name)));
                     break;
                 }
                 case "VideoStorage": {
@@ -175,7 +175,7 @@ export class VideoObjectsService implements OnDestroy {
         return forkJoin(vo.videoArchives.map(a => { return a.getSummary() })).pipe(map(
             res => {
                 for(let k=0; k<vo.videoArchives.length; ++k){
-                    VideoObjectsService.createTracks(rpc, vo.videoSources, vo.videoArchives[k], res[k]);
+                    VideoObjectsService.createTracks(rpc, vo.allVideoSources, vo.videoArchives[k], res[k]);
                 }
                 return vo;
             }
@@ -215,7 +215,7 @@ export class VideoObjectsService implements OnDestroy {
                     let w = vo.webrtcServers[k];
                     let r = res[k];
                     r.live.forEach(src => {
-                        let vs = vo.videoSources.find(e => e.name==src);
+                        let vs = vo.allVideoSources.find(e => e.name==src);
                         if(vs){
                             vs.webrtcServers.push(w);
                             w.videoSources.push(vs);
