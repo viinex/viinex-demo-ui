@@ -24,7 +24,7 @@ export class LoginComponent implements OnInit {
     wampRealm: string = "";
     loginName: string = "";
     loginPassword: string = "";
-    rememberLoginDetails: boolean = true;
+    rememberLoginDetails: boolean = localStorage.getItem('wampUri') != null;
 
     errorMessage: string;
 
