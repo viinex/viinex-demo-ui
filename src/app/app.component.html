@@ -3,31 +3,57 @@
         <h1 class="navbar-brand"><img src="assets/viinex.png" height="25px" style="padding-top: 4px;"/></h1>
         <ul class="navbar-nav me-auto mb-2 mb-lg-0" *ngIf="isAccessGranted">
             <li class="nav-item">
-                <a class="nav-link" routerLinkActive="active" routerLink="/video-objects" i18n>Overview</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" routerLinkActive="active" routerLink="/webrtc-video/src" i18n>WebRTC (live)</a> 
-            </li>
-            <li class="nav-item" *ngIf="isHttpRpc">
-                <a class="nav-link" routerLinkActive="active" routerLink="/live-video" i18n>HLS (live)</a> 
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" routerLinkActive="active" routerLink="/video-archive" i18n>Video archive</a> 
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" routerLinkActive="active" routerLink="/events" i18n>Events</a> 
-            </li>
-            <li class="nav-item" *ngIf="enableApps">
-                <a class="nav-link" routerLinkActive="active" routerLink="/apps" i18n>Applications</a> 
+                <a class="nav-link" routerLinkActive="active" routerLink="/video-objects" i18n>
+                    <ng-icon name="bootstrapWindowDock"></ng-icon>
+                    Overview
+                </a>
             </li>
 
             <li class="nav-item">
-                <a class="nav-link" routerLinkActive="active" routerLink="/onvif" i18n>ONVIF discovery tool</a>
+                <a class="nav-link" routerLinkActive="active" routerLink="/webrtc-video/src" i18n>
+                    <ng-icon name="bootstrapCameraVideo"></ng-icon>
+                    WebRTC (live)
+                </a> 
+            </li>
+            <li class="nav-item" *ngIf="isHttpRpc">
+                <a class="nav-link" routerLinkActive="active" routerLink="/live-video" i18n>
+                    <ng-icon name="bootstrapCameraReels"></ng-icon>
+                    HLS (live)
+                </a> 
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" routerLinkActive="active" routerLink="/video-archive" i18n>
+                    <ng-icon name="bootstrapHddStack"></ng-icon>
+                    Video archive
+                </a> 
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" routerLinkActive="active" routerLink="/events" i18n>
+                    <ng-icon name="bootstrapAppIndicator"></ng-icon>
+                    Events
+                </a> 
+            </li>
+
+            <li class="nav-item" *ngIf="enableApps">
+                <a class="nav-link" routerLinkActive="active" routerLink="/apps" i18n>
+                    <ng-icon name="bootstrapWindowStack"></ng-icon>
+                    Applications
+                </a> 
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link" routerLinkActive="active" routerLink="/onvif" i18n>
+                    <ng-icon name="bootstrapBinoculars"></ng-icon>
+                    ONVIF discovery tool
+                </a>
             </li>
         </ul>
         <ul class="navbar-nav">
             <li class="nav-item" *ngIf="isLoginApplicable">
-                <a class="nav-link" routerLinkActive="active" routerLink="/login">{{loginRefLabel}}</a>
+                <a class="nav-link" routerLinkActive="active" routerLink="/login">
+                    <ng-icon name="bootstrapBoxArrowRight"></ng-icon>
+                    {{loginRefLabel}}
+                </a>
             </li>
         </ul>
     </div>

@@ -29,3 +29,8 @@ body {
 .maincontainer {
   padding-bottom: 60px;
 }
+
+ng-icon {
+  vertical-align: text-top !important;
+  padding-top: 1px;
+}
