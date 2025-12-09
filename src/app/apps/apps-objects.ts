@@ -46,7 +46,7 @@ export class AutoCheckpoint extends AppsObject {
             stateful.metaData.directions.forEach((d: any) => {
                 let r = new AcpDirection();
                 r.name=d.name;
-                r.videoSource=vo.videoSources.find(vs => vs.name==d.video_source);
+                r.videoSource=vo.allVideoSources.find(vs => vs.name==d.video_source);
                 if(r.videoSource)
                     this.videoSources.push(r.videoSource);
                 r.io_type=d.io_type;

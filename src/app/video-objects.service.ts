@@ -86,6 +86,8 @@ export class VideoObjectsService implements OnDestroy {
             //trace("TRACE link webrtc servers"),
             mergeMap((vo:VideoObjects) => VideoObjectsService.createAllTracks(rpc, vo)),
             //trace("TRACE create all tracks")
+            map((vo:VideoObjects) => VideoObjectsService.realizeApplications(vo)),
+            //trace("TRACE realize applications"),
         );
     }
 
@@ -157,6 +159,10 @@ export class VideoObjectsService implements OnDestroy {
                 }
             }
         }
+        return vo;
+    }
+
+    private static realizeApplications(vo: VideoObjects) {
         // assembly "vertical applications" objects
         vo.applications.forEach(a => {
             if(a.metaData.type===AutoCheckpoint.type){
@@ -168,6 +174,7 @@ export class VideoObjectsService implements OnDestroy {
         });
         return vo;
     }
+
     private static createAllTracks(rpc: IViinexRpc, vo: VideoObjects): Observable<VideoObjects> {
         if(vo.videoArchives==null || vo.videoArchives.length==0){
             return of(vo);
