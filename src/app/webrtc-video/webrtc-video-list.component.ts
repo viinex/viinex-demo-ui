@@ -6,7 +6,12 @@ import {WebRTCServer,VideoObjects, VideoSource} from '../video-objects'
 
 @Component({
     standalone: false,
-    templateUrl: "./webrtc-video-list.component.html"
+    templateUrl: "./webrtc-video-list.component.html",
+    styles: [`
+        .substream {
+            padding-left: 3rem;
+        }
+    `],
 })
 export class WebrtcVideoListComponent implements OnInit {
     errorMessage: string;

@@ -15,9 +15,14 @@
                 </li>
             </ul>
             <ul *ngIf="selectedServer==null" class="nav nav-pills flex-column">
-                <li class="nav-item" *ngFor="let vs of allVideoSources">
-                    <a class="nav-link" routerLink="/webrtc-video/src/{{vs.name}}" routerLinkActive="active">{{vs.displayName}}</a>
-                </li>
+                <ng-container *ngFor="let vs of allVideoSources">
+                    <li class="nav-item">
+                        <a class="nav-link" routerLink="/webrtc-video/src/{{vs.name}}" routerLinkActive="active">{{vs.displayName}}</a>
+                    </li>
+                    <li class="nav-item" *ngFor="let dvs of vs.derivedStreams">
+                        <a class="nav-link substream" routerLink="/webrtc-video/src/{{dvs.name}}" routerLinkActive="active">{{dvs.streamRole}}</a>
+                    </li>
+                </ng-container>
             </ul>
     </div>
 
