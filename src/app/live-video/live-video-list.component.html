@@ -14,9 +14,8 @@
     </ng-template>
     <ng-template #verboseList>
         <div>
-        <h3>Select a live video source</h3>
         <ul class="nav nav-pills flex-column">
-        <ng-container *ngFor="let vs of allVideoSources">
+        <ng-container *ngFor="let vs of videoSources">
             <li class="nav-item">
                 <a class="nav-link" routerLink="./{{vs.name}}" routerLinkActive="active">{{vs.displayName+(vs.name!=vs.displayName?' ('+vs.name+')':'')}}
                 <small *ngIf="vs.description!=null"><br/>{{vs.description}}</small>
