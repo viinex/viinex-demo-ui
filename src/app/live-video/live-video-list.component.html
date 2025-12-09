@@ -16,11 +16,17 @@
         <div>
         <h3>Select a live video source</h3>
         <ul class="nav nav-pills flex-column">
-        <li class="nav-item" *ngFor="let vs of videoSources">
-            <a class="nav-link" routerLink="./{{vs.name}}" routerLinkActive="active">{{vs.displayName+(vs.name!=vs.displayName?' ('+vs.name+')':'')}}
-            <small *ngIf="vs.description!=null"><br/>{{vs.description}}</small>
-            </a>
-        </li>
+        <ng-container *ngFor="let vs of allVideoSources">
+            <li class="nav-item">
+                <a class="nav-link" routerLink="./{{vs.name}}" routerLinkActive="active">{{vs.displayName+(vs.name!=vs.displayName?' ('+vs.name+')':'')}}
+                <small *ngIf="vs.description!=null"><br/>{{vs.description}}</small>
+                </a>
+            </li>
+            <li class="nav-item" *ngFor="let dvs of vs.derivedStreams">
+                <a class="nav-link substream" routerLink="./{{dvs.name}}" routerLinkActive="active" title="{{dvs.displayName}}">{{dvs.streamRole}}</a>
+            </li>
+
+        </ng-container>
         </ul>
         </div>
     </ng-template>

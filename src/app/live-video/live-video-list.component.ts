@@ -6,7 +6,12 @@ import {VideoSource,VideoObjects} from '../video-objects'
 
 @Component({
     standalone: false,
-    templateUrl: 'live-video-list.component.html'
+    templateUrl: 'live-video-list.component.html',
+    styles: [`
+        .substream {
+            padding-left: 3rem;
+        }
+    `],
 })
 export class LiveVideoListComponent implements OnInit {
     errorMessage: string;
