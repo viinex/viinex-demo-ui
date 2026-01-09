@@ -1,3 +1,6 @@
+docker-build: clean
+	docker build --output type=local,dest=./dist -f Dockerfile.build .
+
 all: env build
 
 env:

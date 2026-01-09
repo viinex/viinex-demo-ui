@@ -1,0 +1,18 @@
+# Stage 1: Build
+FROM node:24 AS builder
+
+WORKDIR /app
+
+# Copy package files and install dependencies
+COPY package*.json ./
+RUN npm ci
+COPY autobahn-browser.d.ts node_modules/autobahn-browser/index.d.ts
+
+# Copy source code and build
+COPY . .
+RUN npm run build
+
+# Stage 2: Export
+# We use 'scratch' (empty image) because we only want to export files, not run a container
+FROM scratch AS export
+COPY --from=builder /app/dist /
